@@ -5,14 +5,13 @@ This folder contains the backend for the `pzpp_IO_1B` project.
 ## Tech stack
 
 - Django `6.0.2`
-- SQLite (`db.sqlite3`)
+- PostgreSQL `15+`
 
 ## Project layout
 
 - `manage.py` – Django CLI entry point
 - `pzpp/` – Django project settings, URLs, WSGI/ASGI
-- `pzpp_forum/` – app module (currently includes custom management command)
-- `db.sqlite3` – local development database
+- `pzpp_forum/` – App forum module
 
 ## Requirements
 
@@ -57,6 +56,7 @@ pip install -r requirements.txt
 4. Apply migrations and initialize administrator account
 
 ```bash
+python manage.py init_db --pasword <postgre-password>
 python manage.py migrate
 python manage.py init_admin
 ```
@@ -75,5 +75,6 @@ Backend will be available at:
 ## Management commands
 
 - `python manage.py migrate` – applies database migrations
+- `python manage.py init_db` – creates the database and grants all permissions to the user
 - `python manage.py init_admin` – creates superuser from environment variables
 - `python manage.py runserver` – starts local development server
