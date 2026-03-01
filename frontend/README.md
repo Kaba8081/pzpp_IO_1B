@@ -1,87 +1,53 @@
-# Welcome to React Router!
+# Frontend (React Router)
 
-A modern, production-ready template for building full-stack React applications using React Router.
+This folder contains the frontend for the `pzpp_IO_1B` project.
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
+## Tech stack
 
-## Features
+- React `19.2`
+- React Router `7.12`
+- TypeScript `5.9`
+- Vite `7.1`
+- TailwindCSS `4.1`
 
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
+## Project layout
 
-## Getting Started
+- `app/` – application source code
+- `public/` – static assets
+- `react-router.config.ts` – React Router configuration
+- `vite.config.ts` – Vite bundler configuration
+- `package.json` – Node.js dependencies and NPM scripts
 
-### Installation
+## Requirements
 
-Install the dependencies:
+- Node.js `22+` (or compatible LTS version)
+- npm (Node Package Manager)
+
+## Setup
+
+From the `frontend/` directory:
+
+1. Install dependencies
 
 ```bash
 npm install
 ```
 
-### Development
-
-Start the development server with HMR:
+2. Run development server
 
 ```bash
 npm run dev
 ```
 
-Your application will be available at `http://localhost:5173`.
+Frontend will be available at:
 
-## Building for Production
+- `http://localhost:5173/`
 
-Create a production build:
+## Scripts
 
-```bash
-npm run build
-```
-
-## Deployment
-
-### Docker Deployment
-
-To build and run using Docker:
-
-```bash
-docker build -t my-app .
-
-# Run the container
-docker run -p 3000:3000 my-app
-```
-
-The containerized application can be deployed to any platform that supports Docker, including:
-
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
-
-### DIY Deployment
-
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
-
-```
-├── package.json
-├── package-lock.json (or pnpm-lock.yaml, or bun.lockb)
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
-```
-
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
-
----
-
-Built with ❤️ using React Router.
+- `npm run dev` – starts local development server with HMR
+- `npm run build` – creates a production build of the application
+- `npm run start` – serves the production build
+- `npm run lint` – lints the codebase using ESLint
+- `npm run format` – checks code formatting with Prettier
+- `npm run typecheck` – runs TypeScript compiler check
