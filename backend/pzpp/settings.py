@@ -32,6 +32,15 @@ ALLOWED_HOSTS = []
 
 
 # Application definition
+LOCAL_APPS = [
+    'pzpp_forum',
+    'apps.users.apps.UsersConfig'
+]
+
+THIRD_PARTY_APPS = [
+    "rest_framework",
+    'rest_framework_simplejwt',
+]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -40,8 +49,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'pzpp_forum'
-]
+] + THIRD_PARTY_APPS + LOCAL_APPS
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -130,3 +138,11 @@ ADMINS = [
         'password': os.getenv('DJANGO_SUPERUSER_PASSWORD'),
     },
 ]
+
+AUTH_USER_MODEL = 'users.User'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
