@@ -1,3 +1,6 @@
+from datetime import datetime
+from typing import TYPE_CHECKING
+
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from common.models import BaseModel
@@ -35,15 +38,33 @@ class UserManager(BaseUserManager):
         )
 
 class User(AbstractBaseUser, PermissionsMixin, BaseModel):
+    if TYPE_CHECKING:
+        id: int | None
+        password: str
+        last_login: datetime | None
+        is_superuser: bool
+        created_at: datetime
+        updated_at: datetime
+        deleted_at: datetime | None
+
+    
     email = models.EmailField(unique=True, db_index=True)
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
+    
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
-
+    
     objects = UserManager()
 
     def __str__(self) -> str:
         return str(self.email)
+    
+class UserProfile(BaseModel):
+    id = models.BigAutoField(primary_key=True)
+    userId = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    username = models.CharField(max_length=64, unique=True)
+    description = models.CharField(max_length=255)
+    profilePicture = models.ImageField
