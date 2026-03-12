@@ -8,7 +8,8 @@ import {
 } from "react-router";
 
 import type { Route } from "./+types/root";
-import "./app.css";
+//import "./app.css";
+import { UserProvider } from "./stores/UserStore";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -33,9 +34,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
+        <UserProvider>
         {children}
         <ScrollRestoration />
         <Scripts />
+        </UserProvider>
       </body>
     </html>
   );
