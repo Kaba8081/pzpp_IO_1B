@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, type ReactNode } from 'react';
+import { setCookie, getCookie, deleteCookie } from '../utils/cookieUtils';
 
 export interface User {
   id: string;
@@ -22,25 +23,21 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
+  
   const [user, setUser] = useState<User | null>(() => {
-    try {
-      const storedUser = localStorage.getItem('user-store');
-      return storedUser ? JSON.parse(storedUser) : null;
-    } catch {
-      return null;
-    }
+    return getCookie('user-store');
   });
 
   const [currentModal, setCurrentModal] = useState<string | undefined>(undefined);
 
   const login = (userData: User) => {
     setUser(userData);
-    localStorage.setItem('user-store', JSON.stringify(userData));
+    setCookie('user-store', userData, 7);
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('user-store');
+    deleteCookie('user-store');
   };
 
   const modal = {
