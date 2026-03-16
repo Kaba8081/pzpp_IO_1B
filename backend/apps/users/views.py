@@ -3,9 +3,9 @@ from typing import TYPE_CHECKING
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import permissions, serializers, status
+from rest_framework.permissions import IsAuthenticated
 from drf_spectacular.utils import extend_schema, inline_serializer, OpenApiResponse
 from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework.permissions import IsAuthenticated
 
 from .serializers import RegisterSerializer, UserSerializer
 
@@ -71,27 +71,19 @@ class LoginView(TokenObtainPairView):
     def post(self, request: "Request", *args, **kwargs) -> Response:
         return super().post(request, *args, **kwargs)
 
-class MeApi(APIView):
+class MeView(APIView):
     permission_classes = [IsAuthenticated]
 
-    class OutputSerializer(serializers.Serializer):
-        status = serializers.ChoiceField(choices=['success', 'error'])
-        data = serializers.DictField()
-        message = serializers.CharField(allow_null=True)
-
+    @extend_schema(
+        description="Get the authenticated user's details.",
+        tags=['User'],
+        responses={
+            200: UserSerializer,
+            401: OpenApiResponse(description="Authentication credentials were not provided or are invalid."),
+        }
+    )
     def get(
         self,
         request: "Request"
     ) -> "Response":
-        # Mock data - returning a fixed username
-        mock_username = "mock_user"
-
-        response_data = {
-            "status": "success",
-            "data": {
-                "username": mock_username
-            },
-            "message": None
-        }
-
-        return Response(response_data, status=status.HTTP_200_OK)
+        return Response(UserSerializer(request.user).data, status=status.HTTP_200_OK)

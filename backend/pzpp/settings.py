@@ -33,8 +33,9 @@ ALLOWED_HOSTS = []
 
 # Application definition
 LOCAL_APPS = [
-    'pzpp_forum',
-    'apps.users.apps.UsersConfig'
+    'core.apps.CoreConfig',
+    'apps.users.apps.UsersConfig',
+    'apps.forum.apps.ForumConfig',
 ]
 
 THIRD_PARTY_APPS = [
