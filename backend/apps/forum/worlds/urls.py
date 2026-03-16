@@ -1,4 +1,9 @@
-from django.urls import path, include
+from django.urls import path
 
-url_patterns = [
+from apps.forum.worlds.views import WorldView
+
+app_name = 'worlds'
+
+urlpatterns = [
+    path('', WorldView.as_view(), name='worlds'),
 ]

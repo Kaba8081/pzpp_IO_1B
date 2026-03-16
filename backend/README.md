@@ -11,7 +11,8 @@ This folder contains the backend for the `pzpp_IO_1B` project.
 
 - `manage.py` – Django CLI entry point
 - `pzpp/` – Django project settings, URLs, WSGI/ASGI
-- `pzpp_forum/` – App forum module
+- `core/` – Contains global logic and code shared between apps
+- `apps/` - Contains apps grouped based on their purpose
 
 ## Requirements
 
@@ -79,3 +80,4 @@ Backend will be available at:
 - `python manage.py init_db` – creates the database and grants all permissions to the user
 - `python manage.py init_admin` – creates superuser from environment variables
 - `python manage.py runserver` – starts local development server
+- `python manage.py reset_db` - wipes the current database and recreates it from scratch

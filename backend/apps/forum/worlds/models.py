@@ -1,5 +1,7 @@
 from django.db import models
+
 from common.models import BaseModel
+from apps.forum.worlds.managers import WorldManager
 
 class World(BaseModel):
     id = models.AutoField(primary_key=True)
@@ -8,5 +10,8 @@ class World(BaseModel):
     description = models.TextField(blank=True)
     profile_picture = models.ImageField(null=True, blank=True)
 
+    objects = WorldManager()
+    all_objects = models.Manager()
+
     def __str__(self) -> str:
-        return self.name
+        return str(self.name)
