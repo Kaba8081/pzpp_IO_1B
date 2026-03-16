@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework import permissions, serializers, status
 from drf_spectacular.utils import extend_schema, inline_serializer, OpenApiResponse
 from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.permissions import IsAuthenticated
 
 from .serializers import RegisterSerializer, UserSerializer
 
@@ -69,3 +70,28 @@ class LoginView(TokenObtainPairView):
     )
     def post(self, request: "Request", *args, **kwargs) -> Response:
         return super().post(request, *args, **kwargs)
+
+class MeApi(APIView):
+    permission_classes = [IsAuthenticated]
+
+    class OutputSerializer(serializers.Serializer):
+        status = serializers.ChoiceField(choices=['success', 'error'])
+        data = serializers.DictField()
+        message = serializers.CharField(allow_null=True)
+
+    def get(
+        self,
+        request: "Request"
+    ) -> "Response":
+        # Mock data - returning a fixed username
+        mock_username = "mock_user"
+
+        response_data = {
+            "status": "success",
+            "data": {
+                "username": mock_username
+            },
+            "message": None
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
