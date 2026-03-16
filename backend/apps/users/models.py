@@ -47,21 +47,19 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
         updated_at: datetime
         deleted_at: datetime | None
 
-    
     email = models.EmailField(unique=True, db_index=True)
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
-    
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
-    
+
     objects = UserManager()
 
     def __str__(self) -> str:
         return str(self.email)
-    
+
 class UserProfile(BaseModel):
     id = models.BigAutoField(primary_key=True)
     userId = models.ForeignKey(User, on_delete=models.DO_NOTHING)
