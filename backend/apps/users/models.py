@@ -65,4 +65,4 @@ class UserProfile(BaseModel):
     userId = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     username = models.CharField(max_length=64, unique=True)
     description = models.CharField(max_length=255)
-    profilePicture = models.ImageField
+    profilePicture = models.ImageField(null=True, blank=True)
