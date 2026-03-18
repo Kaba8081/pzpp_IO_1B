@@ -5,10 +5,34 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   error?: string | null;
 }
 
-export const Input: React.FC<InputProps> = ({ label, error, ...props }) => (
-  <div>
-    <label>{label}</label>
-    <input {...props} />
-    {error && <p style={{ color: "red", fontSize: "12px" }}>{error}</p>}
-  </div>
-);
+export const Input: React.FC<InputProps> = ({ label, error, ...props }) => {
+  return (
+    <div className="flex flex-col gap-2 w-full mb-4">
+      {/* Label - teraz z czcionką Cinzel */}
+      <label className="font-cinzel text-xs tracking-widest uppercase text-primary/80 ml-1">
+        {label}
+      </label>
+
+      {/* Pole Input - stylizowany stroke i tło */}
+      <input
+        {...props}
+        className={`
+          w-full px-4 py-3 rounded-none border-t border-b border-l border-r transition-all duration-300
+          bg-input-bg text-white font-cinzel placeholder:text-gray-700 outline-none
+          ${
+            error
+              ? "border-error ring-1 ring-error/30"
+              : "border-input-border hover:border-input-stroke-hover focus:border-primary focus:ring-1 focus:ring-primary/40"
+          }
+        `}
+      />
+
+      {/* Komunikat o błędzie - Cinzel, mniejszy rozmiar */}
+      {error && (
+        <p className="font-cinzel text-[10px] text-error tracking-wider uppercase ml-1 mt-1">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+};
