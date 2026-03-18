@@ -3,7 +3,7 @@ from django.db import models
 from common.models import BaseModel
 from apps.forum.worlds.managers import WorldManager
 
-class World(BaseModel):
+class Worlds(BaseModel):
     id = models.AutoField(primary_key=True)
     owner_id = models.ForeignKey("users.User", on_delete=models.CASCADE, related_name="worlds")
     name = models.CharField(max_length=255)

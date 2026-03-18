@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.forum.worlds.managers import WorldManager
-from apps.forum.worlds.models import World
+from apps.forum.worlds.models import Worlds
 from apps.forum.worlds.serializers import WorldSerializer
 
 if TYPE_CHECKING:
@@ -41,7 +41,7 @@ class WorldView(APIView):
     )
     def get(self, request: "Request") -> Response:
         username = request.query_params.get("username")
-        world_manager = cast(WorldManager, World.objects)
+        world_manager = cast(WorldManager, Worlds.objects)
 
         queryset = world_manager.get().order_by("id")
 
