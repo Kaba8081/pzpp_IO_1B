@@ -5,6 +5,7 @@
     "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
     "Segoe UI Symbol", "Noto Color Emoji";
   /*z figmy*/
+  --color-button-background: #151616;
   --color-background: #061010;
   --color-primary: #068c7c;
   --color-success: #309b19;
@@ -12,8 +13,8 @@
   --color-warn: #d7d013;
   --color-info: #068080;
   /* Dodatkowe kolory pomocnicze do inputów (dostosowane do tła) */
-  --color-input-bg: #0c1a1a;
-  --color-input-border: #1a2e2e;
+  --color-input-bg: #151616;
+  --color-input-border: #068c7c;
   --color-input-stroke-hover: #2a4a4a;
   /*czcionka*/
   --font-cinzel: "Cinzel", serif;

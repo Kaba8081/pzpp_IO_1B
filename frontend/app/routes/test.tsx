@@ -99,7 +99,7 @@ export default function TestPage() {
 
           <div className="py-2">
             <Slider
-              label={`Wartość suwaka: ${values.slider}`}
+              label={`Wartość suwaka: `}
               min={0}
               max={100}
               value={values.slider}
