@@ -3,6 +3,7 @@ from .views import (
     RegisterView,
     LoginView,
     MeView,
+    RefreshTokenView,
 )
 
 app_name = 'users'
@@ -12,5 +13,6 @@ urlpatterns = [
         path('register/', RegisterView.as_view(), name='register'),
         path('login/', LoginView.as_view(), name='login'),
         path('me/', MeView.as_view(), name='me'),
+        path('refresh/', RefreshTokenView.as_view(), name='refresh')
     ], app_name))),
 ]
