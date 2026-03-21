@@ -2,6 +2,7 @@ import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
 import { Toggle } from "@/components/Toggle";
 import { Slider } from "@/components/Slider";
+import { Checkbox } from "@/components/Checkbox";
 import type { Route } from "./+types/test";
 import { useState } from "react";
 
@@ -17,6 +18,7 @@ export default function TestPage() {
     email: "",
     toggle: false,
     slider: 50,
+    agree: false,
   });
 
   const errors = {
@@ -26,9 +28,8 @@ export default function TestPage() {
     email: !values.email.includes("@") ? "Email musi zawierać @" : null,
     toggle: !values.toggle ? "Musisz zaznaczyć tę opcję" : null,
     slider: values.slider < 20 ? "Wartość musi być min. 20" : null,
+    agree: !values.agree ? "Musisz zaakceptować warunki" : null,
   };
-
-  const isInvalid = Object.values(errors).some((err) => err !== null);
 
   const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -36,7 +37,6 @@ export default function TestPage() {
   };
 
   return (
-    /* 1. Kontener strony - tło i wyśrodkowanie */
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-lg bg-input-bg/30 p-8 rounded-2xl border border-input-border shadow-2xl">
         <h1 className="text-3xl font-bold text-white mb-8 text-center">
@@ -98,6 +98,14 @@ export default function TestPage() {
           </div>
 
           <div className="py-2">
+            <Checkbox
+              label="Akceptuję regulamin i politykę prywatności"
+              checked={values.agree}
+              error={errors.agree}
+              onChange={(val: boolean) => setValues({ ...values, agree: val })}
+            />
+          </div>
+          <div className="py-2">
             <Slider
               label={`Wartość suwaka: `}
               min={0}
@@ -108,14 +116,10 @@ export default function TestPage() {
             />
           </div>
 
-          <div className="mt-4">
-            <Button
-              type="submit"
-              disabled={isInvalid}
-              className="w-full" // Rozciąga przycisk na całą szerokość
-            >
-              Wyślij do konsoli
-            </Button>
+          <div className="flex gap-4 mt-6">
+            <Button variant="primary">Zarejestruj się</Button>
+
+            <Button variant="outline">Anuluj</Button>
           </div>
         </form>
       </div>

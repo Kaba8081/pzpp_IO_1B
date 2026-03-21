@@ -8,13 +8,10 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 export const Input: React.FC<InputProps> = ({ label, error, ...props }) => {
   return (
     <div className="flex flex-col gap-2 w-full mb-4">
-      {/* Label - teraz z czcionką Cinzel */}
-
       <label className="font-cinzel text-xs tracking-widest uppercase text-primary/80 ml-1">
         {label}
       </label>
 
-      {/* Pole Input - stylizowany stroke i tło */}
       <input
         {...props}
         className={`
@@ -28,7 +25,6 @@ export const Input: React.FC<InputProps> = ({ label, error, ...props }) => {
         `}
       />
 
-      {/* Komunikat o błędzie - Cinzel, mniejszy rozmiar */}
       {error && (
         <p className="font-cinzel text-[10px] text-error tracking-wider uppercase ml-1 mt-1">
           {error}

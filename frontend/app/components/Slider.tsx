@@ -12,7 +12,6 @@ interface SliderProps {
 export const Slider: React.FC<SliderProps> = ({ label, error, min, max, value, onChange }) => {
   return (
     <div className="flex flex-col gap-1 w-full mb-6">
-      {/* Etykieta z wartością */}
       <div className="flex justify-between items-baseline ml-1 mb-1">
         <label className="font-cinzel text-[10px] tracking-widest uppercase text-primary/80">
           {label}
@@ -22,7 +21,6 @@ export const Slider: React.FC<SliderProps> = ({ label, error, min, max, value, o
         </span>
       </div>
 
-      {/* Kontener Slidera */}
       <div className="relative flex items-center group">
         <input
           type="range"
@@ -60,13 +58,11 @@ export const Slider: React.FC<SliderProps> = ({ label, error, min, max, value, o
             [&::-moz-range-thumb]:border-none
           `}
           style={{
-            // Dynamiczny pasek postępu (to co jest przed kółkiem)
             background: `linear-gradient(to right, #068C7C 0%, #068C7C ${((value - min) / (max - min)) * 100}%, #0c1a1a ${((value - min) / (max - min)) * 100}%, #0c1a1a 100%)`,
           }}
         />
       </div>
 
-      {/* Błąd */}
       {error && (
         <p className="font-cinzel text-[10px] text-error tracking-wider uppercase ml-1">{error}</p>
       )}
