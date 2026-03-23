@@ -8,4 +8,4 @@ class WorldRoomMessages(BaseModel):
     id = models.BigAutoField(primary_key=True)
     user_profile_id = models.ForeignKey(WorldUserProfiles, on_delete=models.DO_NOTHING)
     room_id = models.ForeignKey(WorldRooms, on_delete=models.DO_NOTHING)
-    content = models.CharField
+    content = models.CharField(max_length=2048)

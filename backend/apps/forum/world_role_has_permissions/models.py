@@ -1,5 +1,4 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from common.models import BaseModel
 from apps.forum.world_roles.models import WorldRoles
 from apps.forum.world_role_permissions.models import WorldRolePermissions

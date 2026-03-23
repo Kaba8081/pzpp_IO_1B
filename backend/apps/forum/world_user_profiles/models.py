@@ -8,3 +8,4 @@ class WorldUserProfiles(BaseModel):
     world_id = models.ForeignKey(Worlds, on_delete=models.DO_NOTHING)
     user_id = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     name = models.CharField(max_length=64)
+    description = models.CharField(max_length=512)
