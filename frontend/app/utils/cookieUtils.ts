@@ -1,5 +1,8 @@
+const isBrowser = typeof document !== 'undefined';
 
-export const setCookie = (name: string, value: any, days: number) => {
+export const setCookie = <T,>(name: string, value: T, days: number) => {
+  if (!isBrowser) return;
+
   const date = new Date();
   date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
   
@@ -9,6 +12,8 @@ export const setCookie = (name: string, value: any, days: number) => {
 };
 
 export const getCookie = (name: string) => {
+  if (!isBrowser) return null;
+
   const nameEQ = name + "=";
   const cookiesArray = document.cookie.split(';');
   
@@ -27,5 +32,6 @@ export const getCookie = (name: string) => {
 };
 
 export const deleteCookie = (name: string) => {
+  if (!isBrowser) return;
   document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
 };
