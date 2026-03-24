@@ -34,10 +34,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        <Modal name="test-modal">
         {children}
         <ScrollRestoration />
         <Scripts />
+        <Modal name="test-modal">
+          <div>Test Modal</div>
         </Modal>
       </body>
     </html>
