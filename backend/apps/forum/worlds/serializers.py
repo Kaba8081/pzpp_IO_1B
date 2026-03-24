@@ -1,12 +1,12 @@
 from rest_framework import serializers
 
-from apps.forum.worlds.models import World
+from apps.forum.worlds.models import Worlds
 
 class WorldSerializer(serializers.ModelSerializer):
     owner_id = serializers.IntegerField(read_only=True, source='owner_id_id')
 
     class Meta:
-        model = World
+        model = Worlds
         fields = [
             'id', 
             'name', 
