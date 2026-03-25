@@ -13,6 +13,24 @@ export interface ApiRequestOptions<TBody = unknown, TParams extends QueryParams 
   signal?: AbortSignal;
 }
 
+const backendUrl = import.meta.env.VITE_BACKEND_URL as string | undefined;
+
+function resolveApiUrl(url: string): string {
+  if (!backendUrl) {
+    return url;
+  }
+
+  const isAbsoluteUrl = /^https?:\/\//i.test(url);
+  if (isAbsoluteUrl) {
+    return url;
+  }
+
+  const normalizedBaseUrl = backendUrl.endsWith("/") ? backendUrl.slice(0, -1) : backendUrl;
+  const normalizedPath = url.startsWith("/") ? url : `/${url}`;
+
+  return `${normalizedBaseUrl}${normalizedPath}`;
+}
+
 function isBodyInit(body: unknown): body is BodyInit {
   return (
     typeof body === "string" ||
@@ -77,7 +95,9 @@ export async function apiRequest<
     }
   }
 
-  const response = await fetch(addParamsToUrl(url, params), {
+  const requestUrl = addParamsToUrl(resolveApiUrl(url), params);
+
+  const response = await fetch(requestUrl, {
     method,
     headers: requestHeaders,
     body: requestBody,

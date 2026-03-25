@@ -19,3 +19,13 @@ To run this project locally, you will need to set up both the backend and fronte
 
 - **Backend:** Python 3.12+
 - **Frontend:** Node.js 22+ and npm
+
+### Backend URL Configuration
+
+The frontend requires knowledge of the backend server URL to communicate with the API. The URL is configured via the `VITE_BACKEND_URL` environment variable in the `frontend/.env` file:
+
+```dotenv
+VITE_BACKEND_URL=http://127.0.0.1:8000
+```
+
+You can customize this to match your backend deployment (e.g., production URL). See [`frontend/README.md`](./frontend/README.md) for detailed setup instructions.
