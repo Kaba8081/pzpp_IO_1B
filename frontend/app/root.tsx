@@ -8,6 +8,7 @@ import {
 } from "react-router";
 
 import type { Route } from "./+types/root";
+import { Modal } from "./components/Modal";
 import "./app.css";
 import { UserProvider } from "./stores/UserStore";
 
@@ -35,9 +36,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         <UserProvider>
-        {children}
-        <ScrollRestoration />
-        <Scripts />
+          {children}
+          <ScrollRestoration />
+          <Scripts />
+          <Modal name="test-modal">
+            <div>Test Modal</div>
+          </Modal>
         </UserProvider>
       </body>
     </html>

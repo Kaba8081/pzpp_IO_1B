@@ -1,11 +1,11 @@
-const isBrowser = typeof document !== 'undefined';
+const isBrowser = typeof document !== "undefined";
 
-export const setCookie = <T,>(name: string, value: T, days: number) => {
+export const setCookie = <T>(name: string, value: T, days: number) => {
   if (!isBrowser) return;
 
   const date = new Date();
-  date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-  
+  date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
+
   const encodedValue = encodeURIComponent(JSON.stringify(value));
 
   document.cookie = `${name}=${encodedValue};expires=${date.toUTCString()};path=/;Secure;SameSite=Strict`;
@@ -15,15 +15,15 @@ export const getCookie = (name: string) => {
   if (!isBrowser) return null;
 
   const nameEQ = name + "=";
-  const cookiesArray = document.cookie.split(';');
-  
+  const cookiesArray = document.cookie.split(";");
+
   for (let i = 0; i < cookiesArray.length; i++) {
     let cookie = cookiesArray[i].trim();
     if (cookie.indexOf(nameEQ) === 0) {
       const rawValue = cookie.substring(nameEQ.length, cookie.length);
       try {
         return JSON.parse(decodeURIComponent(rawValue));
-      } catch (e) {
+      } catch {
         return null;
       }
     }
