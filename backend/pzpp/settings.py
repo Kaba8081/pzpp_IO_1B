@@ -33,13 +33,15 @@ ALLOWED_HOSTS = []
 
 # Application definition
 LOCAL_APPS = [
-    'pzpp_forum',
-    'apps.users.apps.UsersConfig'
+    'core.apps.CoreConfig',
+    'apps.users.apps.UsersConfig',
+    'apps.forum.apps.ForumConfig',
 ]
 
 THIRD_PARTY_APPS = [
     "rest_framework",
     'rest_framework_simplejwt',
+    'drf_spectacular',
 ]
 
 INSTALLED_APPS = [
@@ -145,4 +147,12 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'PZPP-forum API',
+    'DESCRIPTION': '',
+    'VERSION': '0.1.0',
+    'SERVE_INCLUDE_SCHEMA': False
 }

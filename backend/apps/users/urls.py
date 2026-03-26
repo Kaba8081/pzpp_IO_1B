@@ -1,9 +1,18 @@
-from django.urls import path
-
-from .views import LoginApi
+from django.urls import path, include
+from .views import (
+    RegisterView,
+    LoginView,
+    MeView,
+    RefreshTokenView,
+)
 
 app_name = 'users'
 
 urlpatterns = [
-    path('login/', LoginApi.as_view(), name='login')
+    path('auth/', include(([
+        path('register/', RegisterView.as_view(), name='register'),
+        path('login/', LoginView.as_view(), name='login'),
+        path('me/', MeView.as_view(), name='me'),
+        path('refresh/', RefreshTokenView.as_view(), name='refresh')
+    ], app_name))),
 ]
