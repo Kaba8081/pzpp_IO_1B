@@ -35,17 +35,19 @@ ALLOWED_HOSTS = [
 ]
 
 CORS_ALLOW_ALL_ORIGINS = False
-CORS_ORIGIN_WHITELIST = (
+CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'http://localhost:5173',
+    'http://127.0.0.1:5173',
     'http://localhost:8000',
-)
+]
 
-CSRF_TRUSTED_ORIGINS = (
+CSRF_TRUSTED_ORIGINS = [
     'http://localhost:3000',
     'http://localhost:5173',
+    'http://127.0.0.1:5173',
     'http://localhost:8000',
-)
+]
 
 
 # Application definition
@@ -56,6 +58,7 @@ LOCAL_APPS = [
 ]
 
 THIRD_PARTY_APPS = [
+    "corsheaders",
     "rest_framework",
     'rest_framework_simplejwt',
     'drf_spectacular',
@@ -72,6 +75,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
