@@ -63,7 +63,7 @@ class UserAdmin(BaseUserAdmin):
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ('id', 'userId', 'username', 'created_at', 'updated_at', 'deleted_at')
-    search_fields = ('username', 'userId__email')
+    list_display = ('id', 'user', 'username', 'created_at', 'updated_at', 'deleted_at')
+    search_fields = ('username', 'user__email')
     readonly_fields = ('created_at', 'updated_at', 'deleted_at')
-    autocomplete_fields = ('userId',)
+    autocomplete_fields = ('user',)

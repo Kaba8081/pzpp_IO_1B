@@ -9,4 +9,15 @@ from apps.forum.world_user_has_roles.models import WorldUserHasRoles
 from apps.forum.world_user_profiles.models import WorldUserProfiles
 from apps.forum.world_rooms.models import WorldRooms
 
-__all__ = ["Worlds", "WorldRules", "WorldRoleHasPermissions", "WorldRolePermissions", "WorldRoles", "WorldRoomMessageActions", "WorldRoomMessages", "WorldUserHasRoles", "WorldUserProfiles", "WorldRooms"]
+__all__ = [
+    "Worlds", 
+    "WorldRules", 
+    "WorldRoles",
+    "WorldRoleHasPermissions", 
+    "WorldRolePermissions",
+    "WorldRooms",
+    "WorldRoomMessageActions", 
+    "WorldRoomMessages", 
+    "WorldUserHasRoles", 
+    "WorldUserProfiles", 
+]

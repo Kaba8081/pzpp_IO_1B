@@ -3,7 +3,7 @@ from rest_framework import serializers
 from apps.forum.worlds.models import Worlds
 
 class WorldSerializer(serializers.ModelSerializer):
-    owner_id = serializers.IntegerField(read_only=True, source='owner_id_id')
+    owner = serializers.IntegerField(read_only=True, source='owner_id')
 
     class Meta:
         model = Worlds
@@ -11,6 +11,6 @@ class WorldSerializer(serializers.ModelSerializer):
             'id', 
             'name', 
             'description', 
-            'owner_id',
+            'owner',
             'profile_picture',
         ]

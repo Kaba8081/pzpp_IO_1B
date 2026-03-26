@@ -4,7 +4,7 @@ from apps.forum.worlds.models import Worlds
 
 class WorldRules(BaseModel):
     id = models.BigAutoField(primary_key=True)
-    world_id = models.ForeignKey(Worlds, on_delete=models.DO_NOTHING)
+    world = models.ForeignKey(Worlds, on_delete=models.DO_NOTHING)
     stat_slug = models.CharField(max_length=64)
     type = models.CharField(max_length=64)
     is_required = models.BooleanField(default=False)
