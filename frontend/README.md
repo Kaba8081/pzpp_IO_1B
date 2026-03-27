@@ -33,7 +33,15 @@ From the `frontend/` directory:
 npm install
 ```
 
-2. Run development server
+2. Create environment file and set backend URL
+
+```bash
+copy .env.example .env
+```
+
+Set `VITE_BACKEND_URL` in `.env` (for local backend usually `http://127.0.0.1:8000`).
+
+3. Run development server
 
 ```bash
 npm run dev
