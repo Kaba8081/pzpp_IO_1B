@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework import permissions, serializers, status
 from rest_framework.permissions import IsAuthenticated
 from drf_spectacular.utils import extend_schema, inline_serializer, OpenApiResponse
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from .serializers import RegisterSerializer, UserSerializer, UserProfileSerializer
 from .models import UserProfile
@@ -28,6 +28,18 @@ TOKEN_OBTAIN_PAIR_RESPONSE = inline_serializer(
     fields={
         "access": serializers.CharField(),
         "refresh": serializers.CharField(),
+    },
+)
+TOKEN_REFRESH_RESPONSE = inline_serializer(
+    name="TokenRefreshResponse",
+    fields={
+        "access": serializers.CharField(),
+    },
+)
+TOKEN_REFRESH_UNAUTHENTICATED_RESPONSE = inline_serializer(
+    name="TokenRefreshUnauthenticatedResponse",
+    fields={
+        "detail": serializers.CharField(),
     },
 )
 
@@ -77,7 +89,7 @@ class MeView(APIView):
 
     @extend_schema(
         description="Get the authenticated user's details.",
-        tags=['User'],
+        tags=['Auth'],
         responses={
             200: UserSerializer,
             401: OpenApiResponse(description="Authentication credentials were not provided or are invalid."),
@@ -168,3 +180,17 @@ class UserProfileDetailView(APIView):
                 model.objects.filter(pk__in=[obj.pk for obj in instances]).update(deleted_at=now)
             
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class RefreshTokenView(TokenRefreshView):
+    permission_classes = [permissions.AllowAny]
+
+    @extend_schema(
+        description="",
+        tags=["Auth"],
+        responses = {
+            200: TOKEN_REFRESH_RESPONSE,
+            403: TOKEN_REFRESH_UNAUTHENTICATED_RESPONSE
+        }
+    )
+    def post(self, request: "Request", *args, **kwargs) -> Response:
+        return super().post(request, *args, **kwargs)
