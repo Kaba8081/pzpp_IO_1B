@@ -9,9 +9,11 @@ from .models import UserProfile
 User = get_user_model()
 
 class UserProfileSerializer(serializers.ModelSerializer):
+    user = serializers.IntegerField(read_only=True, source='user_id')
+
     class Meta:
         model = UserProfile
-        fields = ['username', 'description', 'profilePicture']
+        fields = ['user', 'username', 'description', 'profile_picture']
 
 class UserSerializer(serializers.ModelSerializer):
     profile = serializers.SerializerMethodField()
@@ -22,7 +24,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(UserProfileSerializer)
     def get_profile(self, obj):
-        profile = UserProfile.objects.filter(userId=obj).first()
+        profile = UserProfile.objects.filter(user=obj).first()
         return UserProfileSerializer(profile).data if profile else None
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -47,7 +49,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             with transaction.atomic():
                 user = User.objects.create_user(**validated_data)
                 UserProfile.objects.create(
-                    userId=user,
+                    user=user,
                     username=username,
                     description=description
                 )

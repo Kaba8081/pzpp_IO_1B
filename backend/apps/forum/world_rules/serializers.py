@@ -6,4 +6,3 @@ class WorldRuleSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = WorldRules
 		fields = '__all__'
-    

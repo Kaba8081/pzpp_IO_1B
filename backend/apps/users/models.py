@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from common.models import BaseModel
-from apps.forum.worlds.models import Worlds
 
 class UserManager(BaseUserManager):
     def create_user(
@@ -63,9 +62,7 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
 
 class UserProfile(BaseModel):
     id = models.BigAutoField(primary_key=True)
-    userId = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     username = models.CharField(max_length=64, unique=True)
     description = models.CharField(max_length=255)
-    profilePicture = models.ImageField(null=True, blank=True)
-
-
+    profile_picture = models.ImageField(null=True, blank=True)

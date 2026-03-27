@@ -6,6 +6,6 @@ from apps.forum.world_user_profiles.models import WorldUserProfiles
 
 class WorldRoomMessages(BaseModel):
     id = models.BigAutoField(primary_key=True)
-    user_profile_id = models.ForeignKey(WorldUserProfiles, on_delete=models.DO_NOTHING)
-    room_id = models.ForeignKey(WorldRooms, on_delete=models.DO_NOTHING)
+    user_profile = models.ForeignKey(WorldUserProfiles, on_delete=models.DO_NOTHING)
+    room = models.ForeignKey(WorldRooms, on_delete=models.DO_NOTHING)
     content = models.CharField(max_length=2048)

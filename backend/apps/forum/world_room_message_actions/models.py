@@ -7,7 +7,7 @@ from apps.forum.world_user_profiles.models import WorldUserProfiles
 
 class WorldRoomMessageActions(BaseModel):
     id = models.BigAutoField(primary_key=True)
-    message_id = models.ForeignKey(WorldRoomMessages, on_delete=models.DO_NOTHING)
-    world_rule_id = models.ForeignKey(WorldRules, on_delete=models.DO_NOTHING)
-    user_profile_id = models.ForeignKey(WorldUserProfiles, on_delete=models.DO_NOTHING)
+    message = models.ForeignKey(WorldRoomMessages, on_delete=models.DO_NOTHING)
+    world_rule = models.ForeignKey(WorldRules, on_delete=models.DO_NOTHING)
+    user_profile = models.ForeignKey(WorldUserProfiles, on_delete=models.DO_NOTHING)
     value = models.CharField(max_length=256)
