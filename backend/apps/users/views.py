@@ -7,7 +7,8 @@ from rest_framework.permissions import IsAuthenticated
 from drf_spectacular.utils import extend_schema, inline_serializer, OpenApiResponse
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .serializers import RegisterSerializer, UserSerializer
+from .serializers import RegisterSerializer, UserSerializer, UserProfileSerializer
+from .models import UserProfile
 
 if TYPE_CHECKING:
     from rest_framework.request import Request
@@ -87,3 +88,83 @@ class MeView(APIView):
         request: "Request"
     ) -> "Response":
         return Response(UserSerializer(request.user).data, status=status.HTTP_200_OK)
+
+class UserProfileDetailView(APIView):
+    def get_permissions(self):
+        if self.request.method in ['PATCH', 'DELETE']:
+            return [IsAuthenticated()]
+        return [permissions.AllowAny()]
+
+    @extend_schema(
+        description="Return the given user's profile",
+        tags=['User'],
+        responses={
+            200: UserProfileSerializer,
+            404: OpenApiResponse(description="Profile not found."),
+        }
+    )
+    def get(self, request: "Request", username: str) -> Response:
+        profile = getattr(UserProfile.objects.filter(username=username).first(), 'userId', None)
+        if profile is None:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response(UserProfileSerializer(UserProfile.objects.get(username=username)).data, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        description="Handle user profile updates",
+        tags=['User'],
+        request=UserProfileSerializer,
+        responses={
+            200: UserProfileSerializer,
+            400: VALIDATION_ERROR_RESPONSE,
+            403: OpenApiResponse(description="You do not have permission to patch this profile."),
+            404: OpenApiResponse(description="Profile not found."),
+        }
+    )
+    def patch(self, request: "Request", username: str) -> Response:
+        profile = UserProfile.objects.filter(username=username).first()
+        if not profile:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        
+        if profile.userId != request.user:
+            return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
+        
+        serializer = UserProfileSerializer(profile, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @extend_schema(
+        description="Handle the deletion of all user related objects by marking them as deleted with a timestamp",
+        tags=['User'],
+        responses={
+            204: OpenApiResponse(description="User deleted successfully."),
+            403: OpenApiResponse(description="You do not have permission to delete this user."),
+            404: OpenApiResponse(description="User not found."),
+        }
+    )
+    def delete(self, request: "Request", username: str) -> Response:
+        profile = UserProfile.objects.filter(username=username).first()
+        if not profile:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+            
+        if profile.userId != request.user:
+            return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
+        
+        from django.utils import timezone
+        now = timezone.now()
+        
+        user = profile.userId
+        
+        # Traverse all relations holding an instance to the user or objects holding instances to the user
+        from django.contrib.admin.utils import NestedObjects
+        from django.db import DEFAULT_DB_ALIAS
+        
+        collector = NestedObjects(using=DEFAULT_DB_ALIAS)
+        collector.collect([user])
+        
+        for model, instances in collector.data.items():
+            if hasattr(model, 'deleted_at'):
+                model.objects.filter(pk__in=[obj.pk for obj in instances]).update(deleted_at=now)
+            
+        return Response(status=status.HTTP_204_NO_CONTENT)
