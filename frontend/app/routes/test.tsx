@@ -4,6 +4,7 @@ import { Toggle } from "@/components/Toggle";
 import { Slider } from "@/components/Slider";
 import type { Route } from "./+types/test";
 import { useState } from "react";
+import { WorldTile } from "@/components/WorldTile";
 
 export function meta(_: Route.MetaArgs) {
   return [{ title: "Test Form" }];
@@ -96,6 +97,19 @@ export default function TestPage() {
       <Button type="submit" disabled={isInvalid}>
         Wyślij do konsoli
       </Button>
+
+      <WorldTile
+        world={{
+          id: 123,
+          name: "Test World",
+          description: "This is a test description for the world tile component",
+          profile_picture: null,
+          owner_id: 1,
+          created_at: "2024-06-29",
+          updated_at: null,
+          deleted_at: null,
+        }}
+      />
     </form>
   );
 }
