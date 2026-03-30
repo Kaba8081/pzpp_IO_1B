@@ -1,5 +1,9 @@
 from typing import TYPE_CHECKING
 
+from django.db import transaction, DEFAULT_DB_ALIAS
+from django.utils import timezone
+from django.contrib.admin.utils import NestedObjects
+from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import permissions, serializers, status
@@ -163,22 +167,28 @@ class UserProfileDetailView(APIView):
         if profile.userId != request.user:
             return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
         
-        from django.utils import timezone
         now = timezone.now()
-        
         user = profile.userId
         
         # Traverse all relations holding an instance to the user or objects holding instances to the user
-        from django.contrib.admin.utils import NestedObjects
-        from django.db import DEFAULT_DB_ALIAS
-        
-        collector = NestedObjects(using=DEFAULT_DB_ALIAS)
-        collector.collect([user])
-        
-        for model, instances in collector.data.items():
-            if hasattr(model, 'deleted_at'):
-                model.objects.filter(pk__in=[obj.pk for obj in instances]).update(deleted_at=now)
-            
+        with transaction.atomic():
+            # Deactivate account so existing access tokens are no longer accepted.
+            if user.is_active:
+                user.is_active = False
+                user.save(update_fields=['is_active'])
+
+            # Revoke all refresh tokens issued for this user.
+            outstanding_tokens = OutstandingToken.objects.select_for_update().filter(user=user)
+            for token in outstanding_tokens:
+                BlacklistedToken.objects.get_or_create(token=token)
+
+            collector = NestedObjects(using=DEFAULT_DB_ALIAS)
+            collector.collect([user])
+
+            for model, instances in collector.data.items():
+                if hasattr(model, 'deleted_at'):
+                    model.objects.filter(pk__in=[obj.pk for obj in instances]).update(deleted_at=now)
+
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 class RefreshTokenView(TokenRefreshView):
