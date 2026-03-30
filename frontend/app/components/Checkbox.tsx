@@ -1,4 +1,5 @@
 import React from "react";
+import { Check } from "lucide-react";
 
 interface CheckboxProps {
   label: string;
@@ -29,28 +30,13 @@ export const Checkbox: React.FC<CheckboxProps> = ({ label, checked, error, onCha
             ${error ? "border-error" : ""}
           `}
         >
-          {checked && (
-            <svg
-              className="w-3.5 h-3.5 text-white stroke-[3px]"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-          )}
+          {checked && <Check className="w-4 h-4 text-primary-foreground stroke-[3px]" />}
         </div>
 
-        <span className="font-cinzel text-xs text-white/90 tracking-wide uppercase select-none">
-          {label}
-        </span>
+        <span className="font-cinzel text-white/90 tracking-wide select-none">{label}</span>
       </label>
 
-      {error && (
-        <p className="font-cinzel text-[10px] text-error tracking-wider uppercase ml-8 mt-0">
-          {error}
-        </p>
-      )}
+      {error && <p className="font-cinzel text-sm text-error tracking-wider  ml-8 mt-0">{error}</p>}
     </div>
   );
 };

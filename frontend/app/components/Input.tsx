@@ -16,7 +16,7 @@ export const Input: React.FC<InputProps> = ({ label, error, ...props }) => {
         {...props}
         className={`
           w-full px-4 py-3 rounded-2xl border-t border-b border-l border-r transition-all duration-300
-          bg-input-bg text-white font-cinzel placeholder:text-gray-700 outline-none
+          bg-input-bg text-white font-cinzel outline-none placeholder-input-placeholder
           ${
             error
               ? "border-error ring-1 ring-error"
@@ -25,11 +25,7 @@ export const Input: React.FC<InputProps> = ({ label, error, ...props }) => {
         `}
       />
 
-      {error && (
-        <p className="font-cinzel text-[10px] text-error tracking-wider uppercase ml-1 mt-1">
-          {error}
-        </p>
-      )}
+      {error && <p className="font-cinzel  text-error tracking-wider  ml-1 mt-1">{error}</p>}
     </div>
   );
 };

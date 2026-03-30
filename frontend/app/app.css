@@ -14,14 +14,6 @@
   --color-input-bg: #151616;
   --color-input-border: #068c7c;
   --color-input-stroke-hover: #2a4a4a;
+  --color-input-placeholder: #b1b1b1;
   --font-cinzel: "Cinzel", serif;
-}
-
-html,
-body {
-  @apply bg-white dark:bg-gray-950;
-
-  @media (prefers-color-scheme: dark) {
-    color-scheme: dark;
-  }
 }
