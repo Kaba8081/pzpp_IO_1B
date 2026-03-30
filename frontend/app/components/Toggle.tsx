@@ -38,7 +38,7 @@ export const Toggle: React.FC<ToggleProps> = ({ label, error, checked, onChange 
           />
         </div>
 
-        <span className="font-cinzel text-sm text-white/90 tracking-wide uppercase select-none">
+        <span className="font-cinzel text-sm text-white/90 tracking-wide  select-none">
           {label}
         </span>
       </label>

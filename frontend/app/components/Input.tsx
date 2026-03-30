@@ -8,9 +8,7 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 export const Input: React.FC<InputProps> = ({ label, error, ...props }) => {
   return (
     <div className="flex flex-col gap-2 w-full mb-4">
-      <label className="font-cinzel text-xs tracking-widest uppercase text-primary/80 ml-1">
-        {label}
-      </label>
+      <label className="font-cinzel text-xs tracking-widest  text-primary/80 ml-1">{label}</label>
 
       <input
         {...props}

@@ -14,7 +14,7 @@ export const Checkbox: React.FC<CheckboxProps> = ({ label, checked, error, onCha
       <label className="flex items-center gap-3 cursor-pointer group w-fit">
         <input
           type="checkbox"
-          className="hidden"
+          className="sr-only"
           checked={checked}
           onChange={(e) => onChange(e.target.checked)}
         />
