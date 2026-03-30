@@ -1,101 +1,183 @@
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
-import { Toggle } from "@/components/Toggle";
-import { Slider } from "@/components/Slider";
 import type { Route } from "./+types/test";
 import { useState } from "react";
+import { AuthService } from "@/services/auth";
+import { useUserStore } from "@/stores/UserStore";
 
 export function meta(_: Route.MetaArgs) {
-  return [{ title: "Test Form" }];
+  return [{ title: "Auth Test" }];
 }
 
 export default function TestPage() {
-  const [values, setValues] = useState({
-    text: "",
-    number: "",
-    password: "",
+  const { user, isLoggedIn, logout, setUser } = useUserStore();
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const [tab, setTab] = useState<"login" | "register">("login");
+
+  const [loginData, setLoginData] = useState({ email: "", password: "" });
+  const [registerData, setRegisterData] = useState({
     email: "",
-    toggle: false,
-    slider: 50,
+    password: "",
+    username: "",
+    description: "",
   });
 
-  const errors = {
-    text: values.text.length < 3 ? "Minimum 3 znaki" : null,
-    number: Number(values.number) <= 0 ? "Musi być większe od 0" : null,
-    password: values.password.length < 6 ? "Hasło: min. 6 znaków" : null,
-    email: !values.email.includes("@") ? "Email musi zawierać @" : null,
-    toggle: !values.toggle ? "Musisz zaznaczyć tę opcję" : null,
-    slider: values.slider < 20 ? "Wartość musi być min. 20" : null,
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setErrorMsg(null);
+    try {
+      const { user: loginUser } = await AuthService.login(loginData);
+      setUser(loginUser);
+      setLoginData({ email: "", password: "" });
+      console.log("✅ Login successful");
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : "Login failed";
+      setErrorMsg(msg);
+      console.error("❌ Login error:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const isInvalid = Object.values(errors).some((err) => err !== null);
-
-  const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Wysłane dane:", values);
+    setIsLoading(true);
+    setErrorMsg(null);
+    try {
+      await AuthService.register(registerData);
+      setRegisterData({ email: "", password: "", username: "", description: "" });
+      console.log("✅ Register successful");
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : "Register failed";
+      setErrorMsg(msg);
+      console.error("❌ Register error:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setIsLoading(true);
+    setErrorMsg(null);
+    try {
+      const result = await AuthService.refresh();
+      console.log("✅ Refresh successful:", result);
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : "Refresh failed";
+      setErrorMsg(msg);
+      console.error("❌ Refresh error:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    AuthService.clearAuth();
+    console.log("✅ Logged out");
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <Input
-        label="Tekst"
-        type="text"
-        value={values.text}
-        error={errors.text}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-          setValues({ ...values, text: e.target.value })
-        }
-      />
+    <div style={{ maxWidth: "500px", margin: "0 auto", padding: "20px" }}>
+      <h1>Test Auth</h1>
 
-      <Input
-        label="Liczba"
-        type="number"
-        value={values.number}
-        error={errors.number}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-          setValues({ ...values, number: e.target.value })
-        }
-      />
+      {/* Status */}
+      <div style={{ marginBottom: "20px", padding: "10px", border: "1px solid #ccc" }}>
+        <p>
+          <strong>Status:</strong> {isLoggedIn ? "✅ Zalogowany" : "❌ Niezalogowany"}
+        </p>
+        {user && (
+          <>
+            <p>
+              <strong>Email:</strong> {user.email}
+            </p>
+            <p>
+              <strong>Username:</strong> {user.profile?.username || "-"}
+            </p>
+          </>
+        )}
+      </div>
 
-      <Input
-        label="Hasło"
-        type="password"
-        value={values.password}
-        error={errors.password}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-          setValues({ ...values, password: e.target.value })
-        }
-      />
+      {errorMsg && <p style={{ color: "red", marginBottom: "10px" }}>{errorMsg}</p>}
 
-      <Input
-        label="Email"
-        type="email"
-        value={values.email}
-        error={errors.email}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-          setValues({ ...values, email: e.target.value })
-        }
-      />
+      {/* Tabs */}
+      <div style={{ marginBottom: "15px", borderBottom: "1px solid #ddd" }}>
+        <Button onClick={() => setTab("login")} disabled={tab === "login"}>
+          Logowanie
+        </Button>
+        <Button onClick={() => setTab("register")} disabled={tab === "register"}>
+          Rejestracja
+        </Button>
+      </div>
 
-      <Toggle
-        label="Zgoda"
-        checked={values.toggle}
-        error={errors.toggle}
-        onChange={(val: boolean) => setValues({ ...values, toggle: val })}
-      />
+      {/* Login */}
+      {tab === "login" && (
+        <form onSubmit={handleLogin} style={{ marginBottom: "20px" }}>
+          <Input
+            label="Email"
+            type="email"
+            value={loginData.email}
+            onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+          />
+          <Input
+            label="Hasło"
+            type="password"
+            value={loginData.password}
+            onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+          />
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? "Ładowanie..." : "Zaloguj"}
+          </Button>
+        </form>
+      )}
 
-      <Slider
-        label="Suwak"
-        min={0}
-        max={100}
-        value={values.slider}
-        error={errors.slider}
-        onChange={(val: number) => setValues({ ...values, slider: val })}
-      />
+      {/* Register */}
+      {tab === "register" && (
+        <form onSubmit={handleRegister} style={{ marginBottom: "20px" }}>
+          <Input
+            label="Email"
+            type="email"
+            value={registerData.email}
+            onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
+          />
+          <Input
+            label="Username"
+            type="text"
+            value={registerData.username}
+            onChange={(e) => setRegisterData({ ...registerData, username: e.target.value })}
+          />
+          <Input
+            label="Hasło"
+            type="password"
+            value={registerData.password}
+            onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
+          />
+          <Input
+            label="Opis"
+            type="text"
+            value={registerData.description}
+            onChange={(e) => setRegisterData({ ...registerData, description: e.target.value })}
+          />
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? "Ładowanie..." : "Zarejestruj"}
+          </Button>
+        </form>
+      )}
 
-      <Button type="submit" disabled={isInvalid}>
-        Wyślij do konsoli
-      </Button>
-    </form>
+      {/* Actions */}
+      {isLoggedIn && (
+        <div style={{ marginTop: "20px" }}>
+          <Button onClick={handleRefresh} disabled={isLoading}>
+            Odśwież token
+          </Button>
+          <Button onClick={handleLogout} disabled={isLoading}>
+            Wyloguj się
+          </Button>
+        </div>
+      )}
+    </div>
   );
 }
