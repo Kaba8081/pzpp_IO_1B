@@ -102,7 +102,7 @@ export default function TestPage() {
         world={{
           id: 123,
           name: "Test World",
-          description: "This is a test description for the world tile component",
+          description: "This is a test description for the world tile component Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
           profile_picture: null,
           owner_id: 1,
           created_at: "2024-06-29",
