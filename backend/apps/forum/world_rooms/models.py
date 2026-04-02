@@ -8,3 +8,9 @@ class WorldRooms(BaseModel):
     world = models.ForeignKey(Worlds, on_delete=models.DO_NOTHING)
     name = models.CharField(max_length=64)
     description = models.CharField(max_length=256)
+
+    objects = models.Manager()
+    all_objects = models.Manager()
+
+    def __str__(self) -> str:
+        return str(self.name)
