@@ -55,8 +55,5 @@ class WorldUserProfilesSerializer(serializers.ModelSerializer):
             if user is None:
                 raise serializers.ValidationError({'user': 'User with this id does not exist.'})
 
-        if WorldUserProfiles.objects.filter(world=world, user=user).exists():
-            raise serializers.ValidationError({'detail': 'A profile already exists for this user in this world.'})
-
         return WorldUserProfiles.objects.create(world=world, user=user, **validated_data)
 
