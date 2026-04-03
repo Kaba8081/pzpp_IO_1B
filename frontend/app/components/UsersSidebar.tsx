@@ -38,11 +38,11 @@ export const UsersSidebar = ({ masterOfGame, characters }: UsersSidebarProps) =>
   };
 
   return (
-    <aside className=" text-[#068C7C] w-1/5 min-w-[250px] h-full bg-[#040d0d] border border-[#068C7C] rounded-2xl p-6 md:p-8 flex flex-col gap-10 overflow-y-auto custom-scrollbar">
+    <aside className=" text-[#068C7C] w-[180px] lg:w-[230px] xl:w-[280px] h-full bg-[#040d0d] border border-[#068C7C] rounded-2xl p-6 md:p-8 flex flex-col gap-10 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
       
       {/*MASTER OF GAME*/}
       <div className="flex flex-col gap-4">
-        <h3 className="font-cinzel text-[clamp(16px,2vw,20px)] uppercase tracking-widest">
+        <h3 className="font-cinzel text-[clamp(16px,2vw,18px)] uppercase tracking-widest">
           Master of Game
         </h3>
         <span className="text-[clamp(8px,1vw,10px)]">{renderUser(currentMaster)}</span>
@@ -50,7 +50,7 @@ export const UsersSidebar = ({ masterOfGame, characters }: UsersSidebarProps) =>
 
       {/*Characters*/}
       <div className="flex flex-col gap-6">
-        <h3 className="font-cinzel text-[clamp(16px,2vw,20px)] uppercase tracking-widest leading-relaxed">
+        <h3 className="font-cinzel text-[clamp(16px,2vw,18px)] uppercase tracking-widest leading-relaxed">
           Number of <br /> Characters #{currentCharacters.length}
         </h3>
         
