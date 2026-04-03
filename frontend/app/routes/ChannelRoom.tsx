@@ -3,6 +3,7 @@ import { useParams } from 'react-router';
 import { UsersSidebar } from '@/components/UsersSidebar';
 import { ChannelRoomMessage } from '@/components/ChannelRoomMessage';
 import { Button } from '@/components/Button';
+import { SendHorizontal, Dices, User } from 'lucide-react';
 
 
 export default function WorldRoomPage() {
@@ -88,13 +89,16 @@ export default function WorldRoomPage() {
           
           <div className="flex flex-col xl:flex-row lg:flex-row gap-3 w-full">
             <Button variant="outline" className="w-full sm:w-auto !px-4 !py-2 text-[clamp(10px,2vw,12px)] flex justify-center items-center gap-2">
-              SEND MESSAGE <span>🚀</span>
+              SEND MESSAGE
+              <SendHorizontal size={20} className="text-[#068C7C]" strokeWidth={1.5} />
             </Button>
             <Button variant="outline" className="w-full sm:w-auto !px-4 !py-2 text-[clamp(10px,2vw,12px)] flex justify-center items-center gap-2">
-              ROLL A DICE <span>🎲</span>
+              ROLL A 
+              <Dices size={20} className="text-[#068C7C]" strokeWidth={1.5} />
             </Button>
             <Button variant="outline" className="w-full sm:w-auto !px-4 !py-2 text-[clamp(10px,2vw,12px)] flex justify-center items-center gap-2">
-              CREATE CHARACTER <span>👤</span>
+              CREATE CHARACTER
+              <User size={20} className="text-[#068C7C]" strokeWidth={1.5} />
             </Button>
           </div>
         </div>
