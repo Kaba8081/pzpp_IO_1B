@@ -59,3 +59,5 @@ Frontend will be available at:
 - `npm run lint` – lints the codebase using ESLint
 - `npm run format` – checks code formatting with Prettier
 - `npm run typecheck` – runs TypeScript compiler check
+- `npm run storybook` - runs storybook for component preview
+- `npm run build-storybook` - creates a static build of storybook
