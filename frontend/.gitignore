@@ -8,3 +8,6 @@
 
 bun.lock
 package-lock.json
+
+*storybook.log
+storybook-static
