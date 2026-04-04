@@ -1,16 +1,15 @@
 import React, { createContext, useContext, useState, type ReactNode } from "react";
-import { setCookie, getCookie, deleteCookie } from "../utils/cookieUtils";
+import type { SessionUser } from "@/types/models";
+import { setCookie, getCookie, deleteCookie } from "@/utils/cookieUtils";
 
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-}
+const USER_COOKIE_NAME = "user";
 
 interface UserContextType {
-  user: User | null;
+  user: SessionUser | null;
   isLoggedIn: boolean;
-  login: (userData: User) => void;
+  accessToken: string | null;
+  refreshToken: string | null;
+  setUser: (user: SessionUser | null) => void;
   logout: () => void;
 
   currentModal: string | undefined;
@@ -22,21 +21,43 @@ interface UserContextType {
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
+function readUserFromCookie(): SessionUser | null {
+  return getCookie(USER_COOKIE_NAME);
+}
+
+function persistUser(user: SessionUser | null): void {
+  if (user === null) {
+    deleteCookie(USER_COOKIE_NAME);
+    return;
+  }
+
+  setCookie(USER_COOKIE_NAME, user, 7);
+}
+
+export function getStoredUser(): SessionUser | null {
+  return readUserFromCookie();
+}
+
+export function clearUserStoreAuth(): void {
+  persistUser(null);
+}
+
+export function setStoredUser(user: SessionUser | null): void {
+  persistUser(user);
+}
+
 export const UserProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(() => {
-    return getCookie("user-store");
-  });
+  const [user, setUserState] = useState<SessionUser | null>(() => readUserFromCookie());
 
   const [currentModal, setCurrentModal] = useState<string | undefined>(undefined);
 
-  const login = (userData: User) => {
-    setUser(userData);
-    setCookie("user-store", userData, 7);
+  const setUser = (nextUser: SessionUser | null) => {
+    setUserState(nextUser);
+    persistUser(nextUser);
   };
 
   const logout = () => {
     setUser(null);
-    deleteCookie("user-store");
   };
 
   const modal = {
@@ -48,8 +69,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     <UserContext.Provider
       value={{
         user,
-        isLoggedIn: !!user,
-        login,
+        accessToken: user?.accessToken ?? null,
+        refreshToken: user?.refreshToken ?? null,
+        isLoggedIn: user !== null,
+        setUser,
         logout,
         currentModal,
         modal,

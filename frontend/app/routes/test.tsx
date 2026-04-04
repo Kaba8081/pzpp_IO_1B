@@ -1,128 +1,183 @@
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
-import { Toggle } from "@/components/Toggle";
-import { Slider } from "@/components/Slider";
-import { Checkbox } from "@/components/Checkbox";
 import type { Route } from "./+types/test";
 import { useState } from "react";
+import { AuthService } from "@/services/auth";
+import { useUserStore } from "@/stores/UserStore";
 
 export function meta(_: Route.MetaArgs) {
-  return [{ title: "Test Form" }];
+  return [{ title: "Auth Test" }];
 }
 
 export default function TestPage() {
-  const [values, setValues] = useState({
-    text: "",
-    number: "",
-    password: "",
+  const { user, isLoggedIn, logout, setUser } = useUserStore();
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const [tab, setTab] = useState<"login" | "register">("login");
+
+  const [loginData, setLoginData] = useState({ email: "", password: "" });
+  const [registerData, setRegisterData] = useState({
     email: "",
-    toggle: false,
-    slider: 50,
-    agree: false,
+    password: "",
+    username: "",
+    description: "",
   });
 
-  const errors = {
-    text: values.text.length < 3 ? "Minimum 3 znaki" : null,
-    number: Number(values.number) <= 0 ? "Musi być większe od 0" : null,
-    password: values.password.length < 6 ? "Hasło: min. 6 znaków" : null,
-    email: !values.email.includes("@") ? "Email musi zawierać @" : null,
-    toggle: !values.toggle ? "Musisz zaznaczyć tę opcję" : null,
-    slider: values.slider < 20 ? "Wartość musi być min. 20" : null,
-    agree: !values.agree ? "Musisz zaakceptować warunki" : null,
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setErrorMsg(null);
+    try {
+      const { user: loginUser } = await AuthService.login(loginData);
+      setUser(loginUser);
+      setLoginData({ email: "", password: "" });
+      console.log("✅ Login successful");
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : "Login failed";
+      setErrorMsg(msg);
+      console.error("❌ Login error:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Wysłane dane:", values);
+    setIsLoading(true);
+    setErrorMsg(null);
+    try {
+      await AuthService.register(registerData);
+      setRegisterData({ email: "", password: "", username: "", description: "" });
+      console.log("✅ Register successful");
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : "Register failed";
+      setErrorMsg(msg);
+      console.error("❌ Register error:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setIsLoading(true);
+    setErrorMsg(null);
+    try {
+      const result = await AuthService.refresh();
+      console.log("✅ Refresh successful:", result);
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : "Refresh failed";
+      setErrorMsg(msg);
+      console.error("❌ Refresh error:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    AuthService.clearAuth();
+    console.log("✅ Logged out");
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-lg bg-input-bg/30 p-8 rounded-2xl border border-input-border shadow-2xl">
-        <h1 className="text-3xl font-bold text-white mb-8 text-center">
-          Rejestracja <span className="text-primary">.</span>
-        </h1>
+    <div style={{ maxWidth: "500px", margin: "0 auto", padding: "20px" }}>
+      <h1>Test Auth</h1>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-          <Input
-            label="Tekst"
-            placeholder="Wpisz tekst..."
-            type="text"
-            value={values.text}
-            error={errors.text}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setValues({ ...values, text: e.target.value })
-            }
-          />
+      {/* Status */}
+      <div style={{ marginBottom: "20px", padding: "10px", border: "1px solid #ccc" }}>
+        <p>
+          <strong>Status:</strong> {isLoggedIn ? "✅ Zalogowany" : "❌ Niezalogowany"}
+        </p>
+        {user && (
+          <>
+            <p>
+              <strong>Email:</strong> {user.email}
+            </p>
+            <p>
+              <strong>Username:</strong> {user.profile?.username || "-"}
+            </p>
+          </>
+        )}
+      </div>
 
-          <Input
-            label="Liczba"
-            placeholder="0"
-            type="number"
-            value={values.number}
-            error={errors.number}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setValues({ ...values, number: e.target.value })
-            }
-          />
+      {errorMsg && <p style={{ color: "red", marginBottom: "10px" }}>{errorMsg}</p>}
 
-          <Input
-            label="Hasło"
-            placeholder="••••••••"
-            type="password"
-            value={values.password}
-            error={errors.password}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setValues({ ...values, password: e.target.value })
-            }
-          />
+      {/* Tabs */}
+      <div style={{ marginBottom: "15px", borderBottom: "1px solid #ddd" }}>
+        <Button onClick={() => setTab("login")} disabled={tab === "login"}>
+          Logowanie
+        </Button>
+        <Button onClick={() => setTab("register")} disabled={tab === "register"}>
+          Rejestracja
+        </Button>
+      </div>
 
+      {/* Login */}
+      {tab === "login" && (
+        <form onSubmit={handleLogin} style={{ marginBottom: "20px" }}>
           <Input
             label="Email"
-            placeholder="twoj@email.pl"
             type="email"
-            value={values.email}
-            error={errors.email}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setValues({ ...values, email: e.target.value })
-            }
+            value={loginData.email}
+            onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
           />
-
-          <div className="py-2">
-            <Toggle
-              label="Zgadzam się z regulaminem"
-              checked={values.toggle}
-              error={errors.toggle}
-              onChange={(val: boolean) => setValues({ ...values, toggle: val })}
-            />
-          </div>
-
-          <div className="py-2">
-            <Checkbox
-              label="Akceptuję regulamin i politykę prywatności"
-              checked={values.agree}
-              error={errors.agree}
-              onChange={(val: boolean) => setValues({ ...values, agree: val })}
-            />
-          </div>
-          <div className="py-2">
-            <Slider
-              label={`Wartość suwaka: `}
-              min={0}
-              max={100}
-              value={values.slider}
-              error={errors.slider}
-              onChange={(val: number) => setValues({ ...values, slider: val })}
-            />
-          </div>
-
-          <div className="flex gap-4 mt-6">
-            <Button variant="primary">Zarejestruj się</Button>
-
-            <Button variant="outline">Anuluj</Button>
-          </div>
+          <Input
+            label="Hasło"
+            type="password"
+            value={loginData.password}
+            onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+          />
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? "Ładowanie..." : "Zaloguj"}
+          </Button>
         </form>
-      </div>
+      )}
+
+      {/* Register */}
+      {tab === "register" && (
+        <form onSubmit={handleRegister} style={{ marginBottom: "20px" }}>
+          <Input
+            label="Email"
+            type="email"
+            value={registerData.email}
+            onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
+          />
+          <Input
+            label="Username"
+            type="text"
+            value={registerData.username}
+            onChange={(e) => setRegisterData({ ...registerData, username: e.target.value })}
+          />
+          <Input
+            label="Hasło"
+            type="password"
+            value={registerData.password}
+            onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
+          />
+          <Input
+            label="Opis"
+            type="text"
+            value={registerData.description}
+            onChange={(e) => setRegisterData({ ...registerData, description: e.target.value })}
+          />
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? "Ładowanie..." : "Zarejestruj"}
+          </Button>
+        </form>
+      )}
+
+      {/* Actions */}
+      {isLoggedIn && (
+        <div style={{ marginTop: "20px" }}>
+          <Button onClick={handleRefresh} disabled={isLoading}>
+            Odśwież token
+          </Button>
+          <Button onClick={handleLogout} disabled={isLoading}>
+            Wyloguj się
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
