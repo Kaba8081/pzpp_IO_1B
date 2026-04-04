@@ -3,13 +3,32 @@ import { Input } from "@/components/Input";
 import { Toggle } from "@/components/Toggle";
 import { Slider } from "@/components/Slider";
 import { Checkbox } from "@/components/Checkbox";
-import { Sidebar } from "@/components/Sidebar";
+import { Sidebar, type UserData, type WorldData } from "@/components/Sidebar";
 import type { Route } from "./+types/test";
 import { useState } from "react";
 
 export function meta(_: Route.MetaArgs) {
   return [{ title: "Test Form & Sidebar" }];
 }
+
+// Przykładowe dane mockowane dla zalogowanego użytkownika
+const mockUser: UserData = {
+  name: "Nick",
+  avatarUrl: "https://i.pravatar.cc/150?img=5",
+};
+
+const mockWorlds: WorldData[] = [
+  {
+    title: "World 1",
+    defaultOpen: true,
+    items: [{ label: "Cave" }, { label: "Mountain" }, { label: "Kingdom", isActive: true }],
+  },
+  {
+    title: "World 2",
+    defaultOpen: false,
+    items: [{ label: "Forest" }, { label: "Desert" }],
+  },
+];
 
 export default function TestPage() {
   const [values, setValues] = useState({
@@ -44,7 +63,12 @@ export default function TestPage() {
     // Główny kontener strony
     <div className="h-screen bg-background flex overflow-hidden p-6 gap-8">
       {/* sidebar */}
-      <Sidebar isLoggedIn={isSidebarLoggedIn} />
+      <Sidebar
+        isLoggedIn={isSidebarLoggedIn}
+        user={mockUser}
+        worlds={mockWorlds}
+        isHomeActive={false}
+      />
 
       {/* komponenty testowe */}
       <div className="flex-1 overflow-y-auto flex flex-col items-center pb-20 pt-4 custom-scrollbar">
