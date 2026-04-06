@@ -31,14 +31,18 @@ export default function WorldRoomPage() {
     { id: 102, content: "I carefully examine the tracks near the riverbank.", room_id: 1, user_profile_id: 2, status: 'pending', created_at: null, updated_at: null, deleted_at: null }
   ];
 
+  const mockActions = [
+    { id: 201, message_id: 102, attribute_id: 1, user_profile_id: 2, value: "6", created_at: null, updated_at: null, deleted_at: null }
+  ];
+
   const [messageText, setMessageText] = useState("");
 
   return (
-    <div className="flex w-full h-screen bg-[#020808] text-white p-4 gap-6 font-cinzel">
+    <div className="flex w-full h-screen bg-background-site text-white p-4 gap-6 font-cinzel">
       
-      <div className="flex-1 flex flex-col min-w-0 border border-[#068C7C] rounded-2xl bg-[#040d0d]/30 relative">
+      <div className="flex-1 flex flex-col min-w-0 border border-primary rounded-2xl bg-background relative">
         
-        <div className="relative m-5 h-[150px] shrink-0 overflow-hidden rounded-2xl">
+        <div className="relative m-5 h-1/4 shrink-0 overflow-hidden rounded-2xl">
           <img 
             src={worldData.bannerImg} 
             alt={worldData.name} 
@@ -62,14 +66,19 @@ export default function WorldRoomPage() {
                 <ChannelRoomMessage 
                   message={msg} 
                   author={author} 
-                  isMasterOfGame={isMasterOfGame} 
+                  GameMaster={isMasterOfGame} 
                 />
                 
-                {index === 0 && (
+                {index === 0 && mockActions.length > 0 && (
                   <div className="flex justify-center my-8">
-                    <div className="border border-[#068C7C] border-2 rounded-2xl px-6 py-2 bg-[#040d0d]">
-                      <span className="font-cinzel text-white text-[clamp(10px,2vw,12px)] uppercase tracking-widest">
-                        KAELEN ROLLED 4
+                    <div className="border border-primary border-2 rounded-2xl px-6 py-2 bg-button-background">
+                      <span className="font-cinzel text-white text-xs uppercase tracking-widest">
+                        {mockActions.map((action, actionIndex) => {
+                          const user = [currentUser, ...mockPlayers].find(u => u.id === action.user_profile_id);
+                          const nickname = user ? user.username : 'Unknown';
+                          const actionvalue = action.value;
+                          return actionIndex === 0 ? `${nickname} rolled ${actionvalue}` : `, ${nickname} rolled ${actionvalue}`;
+                        }).join('')}
                       </span>
                     </div>
                   </div>
@@ -84,21 +93,21 @@ export default function WorldRoomPage() {
             value={messageText}
             onChange={(e) => setMessageText(e.target.value)}
             placeholder="YOUR MESSAGE"
-            className="w-full h-20 bg-transparent border border-[#068C7C] rounded-2xl border-2 p-4 text-[11px] tracking-widest uppercase text-white/90 focus:outline-none focus:border-[#068C7C] resize-none mb-4 custom-scrollbar"
+            className="w-full h-full border border-primary rounded-2xl border-2 p-4 text-xs tracking-widest uppercase text-white/90 focus:outline-none focus:border-primary resize-none mb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
           />
           
           <div className="flex flex-col xl:flex-row lg:flex-row gap-3 w-full">
-            <Button variant="outline" className="w-full sm:w-auto !px-4 !py-2 text-[clamp(10px,2vw,12px)] flex justify-center items-center gap-2">
+            <Button variant="outline" className="w-full sm:w-auto text-xs flex justify-center items-center gap-2">
               SEND MESSAGE
-              <SendHorizontal size={20} className="text-[#068C7C]" strokeWidth={1.5} />
+              <SendHorizontal size={20} className="text-primary" strokeWidth={1.5} />
             </Button>
-            <Button variant="outline" className="w-full sm:w-auto !px-4 !py-2 text-[clamp(10px,2vw,12px)] flex justify-center items-center gap-2">
-              ROLL A 
-              <Dices size={20} className="text-[#068C7C]" strokeWidth={1.5} />
+            <Button variant="outline" className="w-full sm:w-auto text-xs flex justify-center items-center gap-2">
+              ROLL A DICE
+              <Dices size={20} className="text-primary" strokeWidth={1.5} />
             </Button>
-            <Button variant="outline" className="w-full sm:w-auto !px-4 !py-2 text-[clamp(10px,2vw,12px)] flex justify-center items-center gap-2">
+            <Button variant="outline" className="w-full sm:w-auto text-xs flex justify-center items-center gap-2">
               CREATE CHARACTER
-              <User size={20} className="text-[#068C7C]" strokeWidth={1.5} />
+              <User size={20} className="text-primary" strokeWidth={1.5} />
             </Button>
           </div>
         </div>

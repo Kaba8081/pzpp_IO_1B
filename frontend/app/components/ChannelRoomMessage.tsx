@@ -6,14 +6,14 @@ interface ChannelRoomMessageProps {
   message: WorldRoomMessage;
   author: UserProfile;
   actions?: WorldRoomMessageAction[];
-  isMasterOfGame: boolean;
+  GameMaster: boolean;
 }
 
 export const ChannelRoomMessage = ({
   message,
   author,
   actions = [],
-  isMasterOfGame,
+  GameMaster,
 }: ChannelRoomMessageProps) => {
 
   const [isPending, setIsPending] = useState(true);
@@ -34,29 +34,29 @@ export const ChannelRoomMessage = ({
         <img 
           src={avatar} 
           alt={username}
-          className="w-12 h-12 rounded-full object-cover border border-[#068C7C]/40"
+          className="w-12 h-12 rounded-full object-cover"
         />
       </div>
 
       <div className="flex flex-col flex-1">
         <div className="flex justify-between items-center mb-1">
-          <span className="font-cinzel text-[#068C7C] font-bold uppercase tracking-widest text-[clamp(12px,2vw,16px)] whitespace-nowrap mr-4">
+          <span className="font-cinzel text-primary font-bold uppercase tracking-widest text-md whitespace-nowrap mr-4">
             {username}
           </span>
 
-          {isMasterOfGame && isPending && (
+          {GameMaster && isPending && (
             <div className="flex gap-3">
               <Button 
                 variant="outline"
                 onClick={() => setIsPending(false)}
-                className="!px-2 !py-0 text-[clamp(12px,2vw,16px)] uppercase whitespace-nowrap mr-4 border-none hover:text-green-600 whitespace-nowrap !tracking-tighter" 
+                className="uppercase whitespace-nowrap border-none whitespace-nowrap" 
               >
                 Accept post
               </Button>
               <Button 
                 variant="outline"
                 onClick={() => console.log("Post Declined")}
-                className="!px-2 !py-0 text-[clamp(12px,2vw,16px)] uppercase whitespace-nowrap mr-4 border-none text-red-700 hover:text-red-500 whitespace-nowrap !tracking-tighter"
+                className="uppercase whitespace-nowrap border-none !text-error whitespace-nowrap"
               >
                 Decline post
               </Button>
@@ -64,16 +64,16 @@ export const ChannelRoomMessage = ({
           )}
         </div>
 
-        <p className="font-cinzel text-white leading-relaxed tracking-wide text-justify mb-3">
+        <p className="font-cinzel text-white text-md leading-relaxed tracking-wide text-justify mb-3">
           {message.content || "No content provided."}
         </p>
 
         <div className="flex flex-col items-start gap-2">
-          {isMasterOfGame && (
+          {GameMaster && (
             <Button 
             variant = "outline"
             onClick={() => console.log("Change attributes")}
-            className = "text-white text-[clamp(10px,2vw,12px)] uppercase !px-4 !py-2"
+            className = "text-white text-xs uppercase"
             >
               Change attributes
             </Button>
@@ -83,7 +83,7 @@ export const ChannelRoomMessage = ({
             {displayActions.map((action) => (
                 <span 
                   key={action.id} 
-                  className="font-cinzel text-white text-[clamp(10px,2vw,12px)] uppercase tracking-[0.2em] whitespace-nowrap pb-0.5"
+                  className="font-cinzel text-white text-xs uppercase tracking-[0.2em] whitespace-nowrap pb-0.5"
                 >
                   {action.value}
                 </span>
