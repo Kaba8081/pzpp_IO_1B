@@ -8,3 +8,11 @@ class WorldRules(BaseModel):
     stat_slug = models.CharField(max_length=64)
     type = models.CharField(max_length=64)
     is_required = models.BooleanField(default=False)
+
+    def __str__(self) -> str:
+        return str(self.stat_slug)
+
+    class Meta(BaseModel.Meta):
+        abstract = False
+        verbose_name = "World Rule"
+        verbose_name_plural = "World Rules"
