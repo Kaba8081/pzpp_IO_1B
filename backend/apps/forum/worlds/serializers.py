@@ -4,6 +4,7 @@ from apps.forum.worlds.models import Worlds
 
 class WorldSerializer(serializers.ModelSerializer):
     owner = serializers.IntegerField(read_only=True, source='owner_id')
+    user_count = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Worlds
@@ -13,7 +14,13 @@ class WorldSerializer(serializers.ModelSerializer):
             'description',
             'owner',
             'profile_picture',
+            'user_count',
         ]
+
+    def get_user_count(self, obj):
+        if hasattr(obj, 'user_count'):
+            return obj.user_count
+        return obj.worlduserprofiles_set.count() if hasattr(obj, 'worlduserprofiles_set') else 0
 
     def validate(self, attrs):
         name = attrs.get('name', '').strip()
