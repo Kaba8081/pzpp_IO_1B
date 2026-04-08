@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema_serializer
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
@@ -7,8 +8,9 @@ from apps.forum.worlds.models import Worlds
 User = get_user_model()
 
 class WorldUserProfilesSerializer(serializers.ModelSerializer):
-    world = serializers.IntegerField(read_only=True, source='world_id')
-    user = serializers.IntegerField(read_only=True, source='user_id')
+    world = serializers.IntegerField(write_only=True, required=True)
+    user = serializers.IntegerField(write_only=True, required=False)
+    deleted_at = serializers.DateTimeField(read_only=True, required=False, allow_null=True)
 
     class Meta:
         model = WorldUserProfiles
@@ -33,27 +35,30 @@ class WorldUserProfilesSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        world = validated_data.pop('world', None) or validated_data.pop('world_id', None)
-        user = validated_data.pop('user', None) or validated_data.pop('user_id', None)
+        world_id = validated_data.pop('world', None)
+        user_id = validated_data.pop('user', None)
 
         request = self.context.get('request')
-        if user is None and request and hasattr(request, 'user') and request.user and not request.user.is_anonymous:
+        user = None
+        if user_id is not None:
+            user = User.objects.filter(pk=user_id).first()
+        elif request and hasattr(request, 'user') and request.user and not request.user.is_anonymous:
             user = request.user
 
-        if world is None:
+        if world_id is None:
             raise serializers.ValidationError({'world': 'World is required to create a profile.'})
+        world = Worlds.objects.filter(pk=world_id).first()
+        if world is None:
+            raise serializers.ValidationError({'world': 'World with this id does not exist.'})
+
         if user is None:
             raise serializers.ValidationError({'user': 'User is required to create a profile.'})
 
-        if isinstance(world, int):
-            world = Worlds.objects.filter(pk=world).first()
-            if world is None:
-                raise serializers.ValidationError({'world': 'World with this id does not exist.'})
-
-        if isinstance(user, int):
-            user = User.objects.filter(pk=user).first()
-            if user is None:
-                raise serializers.ValidationError({'user': 'User with this id does not exist.'})
-
         return WorldUserProfiles.objects.create(world=world, user=user, **validated_data)
 
+
+# Ony for drf documentation purposes
+@extend_schema_serializer(exclude_fields=("world", "user"))
+class WorldUserProfilesUpdateSerializer(WorldUserProfilesSerializer):
+    class Meta(WorldUserProfilesSerializer.Meta):
+        pass

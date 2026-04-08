@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
 from apps.forum.world_user_profiles.models import WorldUserProfiles
-from apps.forum.world_user_profiles.serializers import WorldUserProfilesSerializer
+from apps.forum.world_user_profiles.serializers import WorldUserProfilesSerializer, WorldUserProfilesUpdateSerializer
 from apps.forum.world_room_messages.models import WorldRoomMessages
 
 if TYPE_CHECKING:
@@ -78,7 +78,7 @@ class ProfileView(APIView):
 
     @extend_schema(
         tags=["World Profiles"],
-        request=WorldUserProfilesSerializer,
+        request=WorldUserProfilesUpdateSerializer,
         responses={
             200: WorldUserProfilesSerializer,
             400: None,
