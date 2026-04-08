@@ -46,14 +46,15 @@ class WorldView(APIView):
         username = request.query_params.get("username")
         world_manager = cast(WorldManager, Worlds.objects)
 
-        queryset = world_manager.get().annotate(user_count_annotated=Count('worlduserprofiles')).order_by("id")
+
+        queryset = world_manager.get().annotate(
+            distinct_user_count=Count('worlduserprofiles__user', distinct=True),
+            total_user_profiles_count=Count('worlduserprofiles'),
+        ).order_by("id")
 
         if username:
             username = username.strip()
-            queryset = queryset.filter(worlduserprofiles__user__username=username)
-
-        for world in queryset:
-            world.user_count = getattr(world, 'user_count_annotated', 0)
+            queryset = queryset.filter(worlduserprofiles__user__userprofile__username=username)
 
         serializer = WorldSerializer(queryset, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -73,7 +74,7 @@ class WorldView(APIView):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer.save(owner_id=request.user.id)
+        serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class WorldDetailView(APIView):
