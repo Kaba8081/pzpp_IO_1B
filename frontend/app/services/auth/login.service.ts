@@ -1,9 +1,9 @@
 import { apiRequest } from "@/api/apiRequest";
-import type { LoginRequest, LoginResponse } from "./types";
+import type { LoginRequest, TokenPairResponse } from "@/types/models";
 
-export function login(loginValue: string, password: string) {
-  return apiRequest<LoginResponse, LoginRequest>("/api/auth/login/", {
+export function login(payload: LoginRequest) {
+  return apiRequest<TokenPairResponse, LoginRequest>("/api/auth/login/", {
     method: "POST",
-    body: { email: loginValue, password },
+    body: payload,
   });
 }

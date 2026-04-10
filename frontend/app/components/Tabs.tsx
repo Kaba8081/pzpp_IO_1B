@@ -15,14 +15,17 @@ interface TabsProps {
 
 export const Tabs: React.FC<TabsProps> = ({ activeTab, setActiveTab, items }) => {
   return (
-    <div className="flex justify-around border-b border-primary/20 mb-8 font-cinzel font-bold tracking-[0.15em]">
+    <div className="flex justify-around border-b border-primary/20 mb-8  font-bold">
       {items.map((tab) => (
         <Button
           key={tab.id}
-          variant="tab"
-          isActive={activeTab === tab.id}
+          variant="ghost"
           onClick={() => setActiveTab(tab.id)}
-          className="flex items-center gap-3"
+          className={`flex items-center gap-3 pb-2 relative border-b-2 ${
+            activeTab === tab.id
+              ? "text-white border-primary"
+              : "text-input-placeholder hover:text-white border-transparent"
+          }`}
         >
           {tab.label}
           {tab.hasBadge && <span className="w-2 h-2 rounded-full bg-primary mb-0.5"></span>}

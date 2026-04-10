@@ -3,31 +3,23 @@ import { Home, PlusCircle } from "lucide-react";
 import { Button } from "./Button";
 import { Tabs, type TabItem } from "./Tabs";
 import { Dropdown, type DropdownItem } from "./Dropdown";
+import { useUserStore } from "@/stores/UserStore";
+import type { World, WorldRoom } from "@/types/models";
 
-export interface UserData {
-  name: string;
-  avatarUrl: string;
-}
-
-export interface WorldData {
-  title: string;
+export interface SidebarWorldData {
+  world: World;
+  rooms: WorldRoom[];
   defaultOpen?: boolean;
-  items: DropdownItem[];
+  activeRoomId?: number;
 }
 
 interface SidebarProps {
-  isLoggedIn: boolean;
-  user?: UserData;
   isHomeActive?: boolean;
-  worlds?: WorldData[];
+  worlds?: SidebarWorldData[];
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({
-  isLoggedIn,
-  user,
-  isHomeActive = false,
-  worlds = [],
-}) => {
+export const Sidebar: React.FC<SidebarProps> = ({ isHomeActive = false, worlds = [] }) => {
+  const { user, isLoggedIn } = useUserStore();
   const [activeTab, setActiveTab] = useState<string>("worlds");
 
   const tabItems: TabItem[] = [
@@ -40,14 +32,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* gorna sekcja - account */}
       {isLoggedIn && user ? (
         <div className="flex items-center gap-5 mb-12">
-          <img
-            src={user.avatarUrl}
-            alt="User Avatar"
-            className="w-14 h-14 rounded-full border border-primary/50 object-cover"
-          />
-          <div className="font-cinzel tracking-[0.15em] uppercase">
+          {user.profile?.profile_picture ? (
+            <img
+              src={user.profile.profile_picture}
+              alt="User Avatar"
+              className="w-14 h-14 rounded-full border border-primary/50 object-cover"
+            />
+          ) : (
+            <div className="w-14 h-14 rounded-full border border-primary/50 bg-primary/15 flex items-center justify-center  text-sm font-bold text-primary">
+              {(user.profile?.username || user.email).slice(0, 1).toUpperCase()}
+            </div>
+          )}
+          <div className=" uppercase">
             <div className="text-sm text-input-placeholder font-bold mb-1">Account</div>
-            <div className="text-sm text-white font-bold">{user.name}</div>
+            <div className="text-sm text-white font-bold">
+              {user.profile?.username || user.email}
+            </div>
           </div>
         </div>
       ) : (
@@ -82,14 +82,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
             {/* Lista światów dla zalogowanych */}
             {isLoggedIn && worlds.length > 0 && (
               <div className="flex flex-col gap-2 mb-8">
-                {worlds.map((world, index) => (
-                  <Dropdown
-                    key={index}
-                    title={world.title}
-                    items={world.items}
-                    defaultOpen={world.defaultOpen}
-                  />
-                ))}
+                {worlds.map((worldData) => {
+                  const items: DropdownItem[] = worldData.rooms.map((room) => ({
+                    label: room.name ?? "Untitled Room",
+                    isActive: room.id === worldData.activeRoomId,
+                  }));
+
+                  return (
+                    <Dropdown
+                      key={worldData.world.id}
+                      title={worldData.world.name ?? "Untitled World"}
+                      items={items}
+                      defaultOpen={worldData.defaultOpen}
+                    />
+                  );
+                })}
               </div>
             )}
 
@@ -102,7 +109,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         )}
 
         {activeTab === "messages" && (
-          <div className="text-input-placeholder font-cinzel text-xs uppercase tracking-widest mt-10 text-center">
+          <div className="text-input-placeholder  text-xs uppercase mt-10 text-center">
             {isLoggedIn ? "No new messages." : "Login to view messages."}
           </div>
         )}
@@ -111,14 +118,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* stopkaa */}
       <div className="mt-12 flex flex-col items-center">
         <div className="mb-8 w-40 h-52 bg-linear-to-b from-primary/10 to-transparent border border-primary/20 rounded flex items-center justify-center text-center">
-          <span className="text-xs text-primary font-cinzel font-bold tracking-widest">
+          <span className="text-xs text-primary  font-bold">
             LOGO
             <br />
             PLACEHOLDER
           </span>
         </div>
 
-        <div className="flex gap-6 text-[10px] text-input-placeholder font-cinzel tracking-[0.15em] mb-5">
+        <div className="flex gap-6 text-[10px] text-input-placeholder  mb-5">
           <a
             href="#"
             className="hover:text-white transition-colors underline underline-offset-[5px] decoration-gray-600 hover:decoration-primary"
@@ -133,7 +140,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </a>
         </div>
 
-        <div className="text-[10px] text-input-placeholder font-cinzel tracking-[0.15em] text-center">
+        <div className="text-[10px] text-input-placeholder  text-center">
           ©2026 Forum Chronicles
         </div>
       </div>

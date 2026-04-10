@@ -23,7 +23,7 @@ export const Toggle: React.FC<ToggleProps> = ({ label, error, checked, onChange 
         <div
           className={`
             relative w-14 h-7 shrink-0 transition-all duration-300 rounded-2xl border
-            bg-input-bg border-input-border 
+            bg-input-bg border-input-border
             group-hover:border-input-stroke-hover
             peer-checked:bg-primary peer-checked:border-primary
             peer-focus-visible:ring-2 peer-focus-visible:ring-primary/50 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-background
@@ -38,12 +38,10 @@ export const Toggle: React.FC<ToggleProps> = ({ label, error, checked, onChange 
           />
         </div>
 
-        <span className="font-cinzel text-sm text-white/90 tracking-wide  select-none">
-          {label}
-        </span>
+        <span className=" text-sm text-white/90 select-none">{label}</span>
       </label>
 
-      {error && <p className="font-cinzel text-error tracking-wider ml-1">{error}</p>}
+      {error && <p className=" text-error ml-1">{error}</p>}
     </div>
   );
 };
