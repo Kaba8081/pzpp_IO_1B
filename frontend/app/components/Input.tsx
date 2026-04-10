@@ -8,13 +8,13 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 export const Input: React.FC<InputProps> = ({ label, error, ...props }) => {
   return (
     <div className="flex flex-col gap-2 w-full mb-4">
-      <label className="font-cinzel text-xs tracking-widest  text-primary/80 ml-1">{label}</label>
+      <label className=" text-xs  text-primary/80 ml-1">{label}</label>
 
       <input
         {...props}
         className={`
           w-full px-4 py-3 rounded-2xl border-t border-b border-l border-r transition-all duration-300
-          bg-input-bg text-white font-cinzel outline-none placeholder-input-placeholder
+          bg-input-bg text-white  outline-none placeholder-input-placeholder
           ${
             error
               ? "border-error ring-1 ring-error"
@@ -23,7 +23,7 @@ export const Input: React.FC<InputProps> = ({ label, error, ...props }) => {
         `}
       />
 
-      {error && <p className="font-cinzel  text-error tracking-wider  ml-1 mt-1">{error}</p>}
+      {error && <p className="  text-error ml-1 mt-1">{error}</p>}
     </div>
   );
 };
