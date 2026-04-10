@@ -1,4 +1,16 @@
 export type { ISODateTime } from "./models/common";
+export type {
+  AuthUser,
+  AuthUserProfile,
+  SessionUser,
+  LoginRequest,
+  MeResponse,
+  RefreshTokenRequest,
+  RefreshTokenResponse,
+  RegisterRequest,
+  RegisterResponse,
+  TokenPairResponse,
+} from "./models/auth";
 
 export type { User } from "./models/user";
 export type { UserProfile } from "./models/userProfile";
