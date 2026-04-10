@@ -33,10 +33,10 @@ export const Checkbox: React.FC<CheckboxProps> = ({ label, checked, error, onCha
           {checked && <Check className="w-4 h-4 text-primary-foreground stroke-[3px]" />}
         </div>
 
-        <span className="font-cinzel text-white/90 tracking-wide select-none">{label}</span>
+        <span className=" text-white/90 select-none">{label}</span>
       </label>
 
-      {error && <p className="font-cinzel text-sm text-error tracking-wider  ml-8 mt-0">{error}</p>}
+      {error && <p className="text-sm text-error ml-8 mt-0">{error}</p>}
     </div>
   );
 };
