@@ -41,15 +41,15 @@ export const WorldTile = ({ world }: WorldTileProps) => {
 
       {/*Metadata section*/}
       <div className="flex flex-wrap justify-center gap-x-8 gap-y-2 py-4 px-6">
-        <div className="flex gap-2 font-cinzel text-sm xl:text-lg md:text-lg uppercase tracking-widest">
+        <div className="flex gap-2 text-sm xl:text-lg md:text-lg uppercase tracking-widest">
           Added:{dateAdded}
         </div>
 
-        <div className="flex gap-2 font-cinzel text-sm xl:text-lg md:text-lg uppercase tracking-widest">
+        <div className="flex gap-2 text-sm xl:text-lg md:text-lg uppercase tracking-widest">
           Author:Nickname
         </div>
 
-        <div className="flex gap-2 font-cinzel text-sm xl:text-lg md:text-lg uppercase tracking-widest">
+        <div className="flex gap-2 text-sm xl:text-lg md:text-lg uppercase tracking-widest">
           Characters:#
         </div>
       </div>
@@ -57,7 +57,7 @@ export const WorldTile = ({ world }: WorldTileProps) => {
       {/*Description section*/}
       <div className="flex flex-col p-6 sm:p-8 grow">
         <p
-          className="lg:text-sm text-xs font-bold font-cinzel uppercase line-clamp-4 tracking-widest"
+          className="lg:text-sm text-xs font-bold uppercase line-clamp-4 tracking-widest"
           title={displayDescription}
         >
           {displayDescription}
