@@ -1,5 +1,5 @@
 from django.db import models
-from apps.forum.world_user_profiles.managers import WorldUserProfilesManager
+
 from common.models import BaseModel
 from apps.users.models import User
 from apps.forum.world_user_profiles.managers import WorldUserProfilesManager
