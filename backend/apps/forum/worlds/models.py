@@ -8,7 +8,7 @@ class Worlds(BaseModel):
     owner = models.ForeignKey("users.User", on_delete=models.CASCADE, related_name="worlds")
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-    profile_picture = models.ImageField(null=True, blank=True)
+    profile_picture = models.ImageField(upload_to="world_avatars", null=True, blank=True)
 
     objects = WorldManager()
     all_objects = models.Manager()

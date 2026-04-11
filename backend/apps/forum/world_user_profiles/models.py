@@ -1,8 +1,9 @@
 from django.db import models
-from apps.forum.world_user_profiles.managers import WorldUserProfilesManager
+
 from common.models import BaseModel
-from apps.forum.worlds.models import Worlds
 from apps.users.models import User
+from apps.forum.world_user_profiles.managers import WorldUserProfilesManager
+from apps.forum.worlds.models import Worlds
 
 class WorldUserProfiles(BaseModel):
     id = models.BigAutoField(primary_key=True)
