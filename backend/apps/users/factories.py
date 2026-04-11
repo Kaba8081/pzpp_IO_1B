@@ -1,20 +1,31 @@
+# type: ignore[reportPrivateImportUsage]
+import factory
+from factory.declarations import LazyFunction
 from factory.django import DjangoModelFactory, ImageField
-from factory.faker import Faker
-from factory.declarations import SubFactory
+from factory import fuzzy
+from faker import Faker
 
 from apps.users.models import User, UserProfile
 
+fake = Faker()
+
+def custom_email():
+    return f"{fake.user_name()}{fuzzy.FuzzyInteger(1000, 9999).fuzz()}@example.com"
+
+def custom_username():
+    return f"{fake.user_name()}{fuzzy.FuzzyInteger(1000, 9999).fuzz()}"
+
 class UserFactory(DjangoModelFactory):
-    class Meta:  # type: ignore
+    class Meta:
         model = User
 
-    email = Faker('email')
+    email = LazyFunction(custom_email)
 
 class UserProfileFactory(DjangoModelFactory):
-    class Meta:  # type: ignore
+    class Meta:
         model = UserProfile
 
-    user = SubFactory(UserFactory)
-    username = Faker('user_name')
-    description = Faker('sentence', nb_words=6)
+    user = factory.SubFactory(UserFactory)
+    username = LazyFunction(custom_username)
+    description = factory.Faker('sentence', nb_words=6)
     profile_picture = ImageField(color='blue', width=200, height=200, filename='profile.jpg')

@@ -24,13 +24,14 @@ class BaseSeeder(BaseCommand, abc.ABC):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._prepared = False
+        self._image_cache = {}
 
     def add_arguments(self, parser: CommandParser) -> None:
         parser.add_argument(
             '--count',
             type=int,
             help='The amount of objects to create',
-            default=25
+            default=self.config.object_count
         )
 
         if self.config.prepare_images:
@@ -66,10 +67,16 @@ class BaseSeeder(BaseCommand, abc.ABC):
 
         self.seed(*args, **kwargs)
 
-    @staticmethod
-    def get_random_image(folder: Path) -> Path | None:
-        placeholder_dir = Path(settings.MEDIA_ROOT) / folder
-        images = list(placeholder_dir.glob('*.jpg'))
+    def get_random_image(self, folder: Path) -> Path | None:
+        folder_path = Path(settings.MEDIA_ROOT) / folder
+        cache_key = str(folder_path.resolve())
+
+        if cache_key not in self._image_cache:
+            images = list(folder_path.glob('*.jpg'))
+            self._image_cache[cache_key] = images
+        else:
+            images = self._image_cache[cache_key]
+
         if not images:
             return None
         return random.choice(images)
@@ -89,7 +96,8 @@ class BaseSeeder(BaseCommand, abc.ABC):
 
         async def run_progress():
             last = 0
-            async for downloaded in download_images_progress(path, missing, interval):
+            self.stdout.write(f"[PREPARE] Downloading images to {path} ({len(existing_images)}/{count})...", ending="\r")
+            async for downloaded in download_images_progress(path, missing, interval, len(existing_images)):
                 last = downloaded
                 self.stdout.write(f"[PREPARE] Downloading images to {path} ({downloaded + len(existing_images)}/{count})...", ending="\r")
                 self.stdout.flush()

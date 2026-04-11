@@ -35,9 +35,10 @@ async def download_images(path: Path, count=1) -> AsyncGenerator[int, None]:
     """
 
     path.mkdir(parents=True, exist_ok=True)
+    tasks = [_download_image(path, i) for i in range(1, count + 1)]
+    results = await asyncio.gather(*tasks)
     downloaded = 0
-    for i in range(1, count + 1):
-        result = await _download_image(path, i)
+    for result in results:
         if result:
             downloaded += 1
         yield downloaded
@@ -45,19 +46,34 @@ async def download_images(path: Path, count=1) -> AsyncGenerator[int, None]:
 async def download_images_progress(
         path: Path,
         count: int = 1,
-        interval: float = 2.
+        interval: float = 2.,
+        start_index: int = 1,
     ) -> AsyncGenerator[int, None]:
     """
     Async generator that yields the number of images downloaded every `interval` seconds.
     """
-    gen = download_images(path, count)
-    downloaded = 0
-    start = asyncio.get_event_loop().time()
-    async for d in gen:
-        downloaded = d
-        now = asyncio.get_event_loop().time()
-        if now - start >= interval:
-            yield downloaded
-            start = now
+    path.mkdir(parents=True, exist_ok=True)
+    loop = asyncio.get_event_loop()
 
-    yield downloaded
+    # This limits the concurent downloads to 15
+    # setting it higher causes network-dropout issues
+    semaphore = asyncio.Semaphore(15)
+
+    async def sem_download(i):
+        async with semaphore:
+            return await _download_image(path, i)
+
+    tasks = [asyncio.ensure_future(sem_download(i)) for i in range(start_index, start_index + count)]
+    downloaded = 0
+    start = loop.time()
+    last_yield = start
+    for coro in asyncio.as_completed(tasks):
+        try:
+            if await coro:
+                downloaded += 1
+        except Exception:
+            pass
+        now = loop.time()
+        if now - last_yield >= interval or downloaded == count:
+            yield downloaded
+            last_yield = now
