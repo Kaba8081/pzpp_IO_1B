@@ -2,7 +2,7 @@ from factory.django import DjangoModelFactory, ImageField
 from factory.faker import Faker
 from factory.declarations import SubFactory
 
-from apps.users.factories import UserFactory, UserProfileFactory
+from apps.users.factories import UserFactory
 from apps.forum.models import (
     Worlds,
     WorldUserProfiles,
