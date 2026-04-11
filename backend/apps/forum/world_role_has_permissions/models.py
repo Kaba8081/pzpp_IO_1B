@@ -6,3 +6,11 @@ from apps.forum.world_role_permissions.models import WorldRolePermissions
 class WorldRoleHasPermissions(BaseModel):
     role = models.ForeignKey(WorldRoles, on_delete=models.DO_NOTHING)
     permission = models.ForeignKey(WorldRolePermissions, on_delete=models.DO_NOTHING)
+
+    def __str__(self) -> str:
+        return str(f"{self.role.name} - {self.permission.name}")
+
+    class Meta(BaseModel.Meta):
+        abstract = False
+        verbose_name = "Role Permission"
+        verbose_name_plural = "Role Permissions"

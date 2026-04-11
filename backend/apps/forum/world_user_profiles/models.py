@@ -1,8 +1,9 @@
 from django.db import models
-from apps.forum.world_user_profiles.managers import WorldUserProfilesManager
+
 from common.models import BaseModel
 from apps.forum.worlds.models import Worlds
 from apps.users.models import User
+from apps.forum.world_user_profiles.managers import WorldUserProfilesManager
 
 class WorldUserProfiles(BaseModel):
     id = models.BigAutoField(primary_key=True)
@@ -16,3 +17,8 @@ class WorldUserProfiles(BaseModel):
 
     def __str__(self) -> str:
         return str(self.name)
+
+    class Meta(BaseModel.Meta):
+        abstract = False
+        verbose_name = "User Profile"
+        verbose_name_plural = "User Profiles"
