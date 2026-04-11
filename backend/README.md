@@ -81,3 +81,4 @@ Backend will be available at:
 - `python manage.py init_admin` – creates superuser from environment variables
 - `python manage.py runserver` – starts local development server
 - `python manage.py reset_db` - wipes the current database and recreates it from scratch
+- `python manage.py seed_db` - seeds the database by calling all commands from `/apps` starting with `seed_`
