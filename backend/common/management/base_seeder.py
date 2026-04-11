@@ -84,17 +84,15 @@ class BaseSeeder(BaseCommand, abc.ABC):
         existing_images = list(path.glob('*.jpg'))
         missing = max(0, count - len(existing_images))
         if missing == 0:
-            self.stdout.write(f"[PREPARE] All {count} images in {self.config.img_folder} already exist. Skipping download.")
+            self.stdout.write(f"[PREPARE] All {count} images in {path} already exist. Skipping download.")
             return
 
         async def run_progress():
             last = 0
             async for downloaded in download_images_progress(path, missing, interval):
                 last = downloaded
-                self.stdout.write(f"[PREPARE] Downloading images to {self.config.img_folder} ({downloaded + len(existing_images)}/{count})...", ending="\r")
+                self.stdout.write(f"[PREPARE] Downloading images to {path} ({downloaded + len(existing_images)}/{count})...", ending="\r")
                 self.stdout.flush()
-            self.stdout.write(f"[PREPARE] Downloading images to {self.config.img_folder} ({last + len(existing_images)}/{count})...\n")
+            self.stdout.write(f"[PREPARE] Downloading images to {path} ({last + len(existing_images)}/{count})...\n")
 
         asyncio.run(run_progress())
-
-

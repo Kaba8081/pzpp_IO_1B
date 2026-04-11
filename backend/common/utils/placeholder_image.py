@@ -9,9 +9,10 @@ async def _download_image(path: Path, i: int) -> str | None:
     Asynchronously downloads a random image and saves it to the given path
     """
 
-    if not path.exists():
+    image_path = path / f"image_{i}.jpg"
+    if not image_path.exists():
         try:
-            url = f"https://picsum.photos/seed/{i}/800/600"
+            url = "https://picsum.photos/800/600"
             async with httpx.AsyncClient(timeout=5, follow_redirects=False) as client:
                 response = await client.get(url)
                 if response.status_code == 302:
@@ -21,12 +22,12 @@ async def _download_image(path: Path, i: int) -> str | None:
                         return None
                     response = await client.get(redirect_url)
                 response.raise_for_status()
-                with open(path, 'wb') as f:
+                with open(image_path, 'wb') as f:
                     f.write(response.content)
         except Exception as e:
             print(f"Warning: Failed to download image {i} ({e})")
             return None
-    return f"{path}/image_{i}.jpg"
+    return str(image_path)
 
 async def download_images(path: Path, count=1) -> AsyncGenerator[int, None]:
     """

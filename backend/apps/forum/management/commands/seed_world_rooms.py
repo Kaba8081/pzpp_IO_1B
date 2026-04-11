@@ -16,7 +16,7 @@ class Command(BaseSeeder):
 
         # Ensure enough worlds exist in the database
         if world_count < self.config.object_count:
-            self.stdout.write("[PREPARE] Not enough worlds, seeding . . .", ending="")
+            self.stdout.write("[PREPARE] Not enough worlds, seeding . . .")
             call_command('seed_worlds', count=self.config.object_count - world_count)
 
         super().prepare(self, *args, **kwargs)

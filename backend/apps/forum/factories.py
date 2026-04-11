@@ -15,7 +15,7 @@ class WorldFactory(DjangoModelFactory):
         model = Worlds
 
     owner = SubFactory(UserFactory)
-    name = Faker('city')
+    name = Faker('street_name')
     description = Faker('text', max_nb_chars=300)
     profile_picture=ImageField(color='blue', width=200, height=200, filename='profile.jpg')
 
@@ -33,7 +33,7 @@ class WorldRoomFactory(DjangoModelFactory):
         model = WorldRooms
 
     world = SubFactory(WorldFactory)
-    name = Faker('words', nb=3)
+    name = Faker('city')
     description = Faker('sentence', nb_words=15)
 
 class WorldRoomMessageFactory(DjangoModelFactory):

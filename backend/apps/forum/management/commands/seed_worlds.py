@@ -23,7 +23,7 @@ class Command(BaseSeeder):
 
         # Ensure enough users exist in the database
         if user_count < self.config.object_count:
-            self.stdout.write("[PREPARE] Not enough users, seeding . . .", ending="")
+            self.stdout.write("[PREPARE] Not enough users, seeding . . .")
             call_command('seed_users', count=self.config.object_count - user_count)
 
         super().prepare(self, *args, **kwargs)
@@ -36,7 +36,11 @@ class Command(BaseSeeder):
             user_ids = list(User.objects.values_list('id', flat=True))
             for _ in range(self.config.object_count):
                 owner = User.objects.get(id=random.choice(user_ids))
-                WorldFactory(owner=owner)
+                avatar = self.get_random_image(self.config.img_folder)
+                WorldFactory(
+                    owner=owner, 
+                    profile_picture=str(avatar) if avatar else None
+                )
         except Exception as e:
             self.stdout.write(self.style.ERROR("FAIL"))
             self.stdout.write(self.style.ERROR(f"An error occurred: {e}"))

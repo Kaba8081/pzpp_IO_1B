@@ -22,10 +22,10 @@ class Command(BaseSeeder):
         try:
             users = UserFactory.create_batch(self.config.object_count)
             for user in users:
-                placeholder = self.get_random_image(self.config.img_folder)
+                avatar = self.get_random_image(self.config.img_folder)
                 UserProfileFactory(
                     user=user,
-                    profile_picture=str(placeholder) if placeholder else None
+                    profile_picture=str(avatar) if avatar else None
                 )
         except Exception as e:
             self.stdout.write(self.style.ERROR("FAIL"))

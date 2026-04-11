@@ -7,7 +7,6 @@ from django.core.management import call_command
 from common.management import BaseSeeder
 from apps.forum.factories import WorldRoomMessageFactory
 from apps.forum.models import (
-    Worlds,
     WorldUserProfiles,
     WorldRooms
 )
@@ -21,12 +20,12 @@ class Command(BaseSeeder):
 
                 # Ensure enough users exist in the database
         if user_profile_count < self.config.object_count:
-            self.stdout.write("[PREPARE] Not enough users, seeding . . .", ending="")
+            self.stdout.write("[PREPARE] Not enough users, seeding . . .")
             call_command('seed_users', count=self.config.object_count - user_profile_count)
 
         # Ensure enough worlds exist in the database
         if world_room_count < self.config.object_count:
-            self.stdout.write("[PREPARE] Not enough world rooms, seeding . . .", ending="")
+            self.stdout.write("[PREPARE] Not enough world rooms, seeding . . .")
             call_command('seed_world_rooms', count=self.config.object_count - world_room_count)
 
         super().prepare(self, *args, **kwargs)
