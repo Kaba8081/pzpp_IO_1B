@@ -17,3 +17,8 @@ class WorldUserProfiles(BaseModel):
 
     def __str__(self) -> str:
         return str(self.name)
+
+    class Meta(BaseModel.Meta):
+        abstract = False
+        verbose_name = "User Profile"
+        verbose_name_plural = "User Profiles"

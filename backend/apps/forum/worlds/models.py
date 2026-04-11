@@ -15,3 +15,8 @@ class Worlds(BaseModel):
 
     def __str__(self) -> str:
         return str(self.name)
+
+    class Meta(BaseModel.Meta):
+        abstract = False
+        verbose_name = "World"
+        verbose_name_plural = "Worlds"

@@ -11,3 +11,11 @@ class WorldRoomMessageActions(BaseModel):
     world_rule = models.ForeignKey(WorldRules, on_delete=models.DO_NOTHING)
     user_profile = models.ForeignKey(WorldUserProfiles, on_delete=models.DO_NOTHING)
     value = models.CharField(max_length=256)
+
+    def __str__(self) -> str:
+        return str(self.id)
+
+    class Meta(BaseModel.Meta):
+        abstract = False
+        verbose_name = "Message Action"
+        verbose_name_plural = "Message Actions"

@@ -1,0 +1,10 @@
+from apps.forum.worlds import admin as _worlds_admin
+from apps.forum.world_user_profiles import admin as _worlduserprofiles_admin
+from apps.forum.world_rules import admin as _worldrules_admin
+from apps.forum.world_role_permissions import admin as _worldrolepermissions_admin
+from apps.forum.world_roles import admin as _worldroles_admin
+from apps.forum.world_user_has_roles import admin as _worlduserhasroles_admin
+from apps.forum.world_role_has_permissions import admin as _worldrolehaspermissions_admin
+from apps.forum.world_rooms import admin as _worldrooms_admin
+from apps.forum.world_room_messages import admin as _worldroommessages_admin
+from apps.forum.world_room_message_actions import admin as _worldroommessageactions_admin
