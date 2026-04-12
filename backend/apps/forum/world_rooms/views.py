@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import permissions, status
@@ -6,10 +6,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db import transaction
+from django.utils import timezone
 
 from apps.forum.worlds.models import Worlds
 from apps.forum.world_rooms.models import WorldRooms
-from apps.forum.world_rooms.serializers import WorldRoomsSerializer
+from apps.forum.world_rooms.serializers import WorldRoomsSerializer, WorldRoomsUpdateSerializer
 from apps.forum.world_room_messages.models import WorldRoomMessages
 from apps.forum.world_room_message_actions.models import WorldRoomMessageActions
 
@@ -24,7 +25,7 @@ class WorldRoomsListView(APIView):
         return [permissions.AllowAny()]
 
     @extend_schema(
-        tags=["Channels"],
+        tags=["Rooms"],
         responses={200: WorldRoomsSerializer(many=True)},
     )
     def get(self, request: "Request", world_id: int) -> Response:
@@ -33,12 +34,12 @@ class WorldRoomsListView(APIView):
         except Worlds.DoesNotExist:
             return Response({"error": "World not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        channels = WorldRooms.objects.filter(world=world)
-        serializer = WorldRoomsSerializer(channels, many=True)
+        rooms = WorldRooms.objects.filter(world=world)
+        serializer = WorldRoomsSerializer(rooms, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @extend_schema(
-        tags=["Channels"],
+        tags=["Rooms"],
         request=WorldRoomsSerializer,
         responses={
             201: WorldRoomsSerializer,
@@ -47,14 +48,12 @@ class WorldRoomsListView(APIView):
         },
     )
     def post(self, request: "Request", world_id: int) -> Response:
-        try:
-            world = Worlds.objects.get(id=world_id)
-        except Worlds.DoesNotExist:
+        if not Worlds.objects.filter(id=world_id).exists():
             return Response({"error": "World not found."}, status=status.HTTP_404_NOT_FOUND)
 
         data: dict[str, Any] = dict(request.data)  # type: ignore
         data['world'] = world_id
-        
+
         serializer = WorldRoomsSerializer(data=data)
 
         if not serializer.is_valid():
@@ -71,7 +70,7 @@ class WorldRoomsDetailView(APIView):
         return [permissions.AllowAny()]
 
     @extend_schema(
-        tags=["Channels"],
+        tags=["Rooms"],
         responses={200: WorldRoomsSerializer, 404: OpenApiResponse(description="Channel not found.")},
     )
     def get(self, request: "Request", channel_id: int) -> Response:
@@ -84,8 +83,8 @@ class WorldRoomsDetailView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @extend_schema(
-        tags=["Channels"],
-        request=WorldRoomsSerializer,
+        tags=["Rooms"],
+        request=WorldRoomsUpdateSerializer,
         responses={
             200: WorldRoomsSerializer,
             400: OpenApiResponse(description="Validation errors."),
@@ -98,6 +97,11 @@ class WorldRoomsDetailView(APIView):
         except WorldRooms.DoesNotExist:
             return Response({"error": "Channel not found."}, status=status.HTTP_404_NOT_FOUND)
 
+        # Later on this is where the permission check would go
+        world = channel.world
+        if world.owner != request.user:
+            return Response({"error": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
+
         serializer = WorldRoomsSerializer(channel, data=request.data, partial=True)
 
         if not serializer.is_valid():
@@ -107,7 +111,7 @@ class WorldRoomsDetailView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @extend_schema(
-        tags=["Channels"],
+        tags=["Rooms"],
         responses={
             204: OpenApiResponse(description="No Content."),
             404: OpenApiResponse(description="Channel not found."),
@@ -119,11 +123,17 @@ class WorldRoomsDetailView(APIView):
         except WorldRooms.DoesNotExist:
             return Response({"error": "Channel not found."}, status=status.HTTP_404_NOT_FOUND)
 
+        # Later on this is where the permission check would go
+        world = channel.world
+        if world.owner != request.user:
+            return Response({"error": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
+
         with transaction.atomic():
-            # Delete related messages and their actions.
             messages = WorldRoomMessages.objects.filter(room=channel)
-            WorldRoomMessageActions.objects.filter(message__in=messages).delete()
-            messages.delete()
-            channel.delete()
+
+            WorldRoomMessageActions.objects.filter(message__in=messages).update(deleted_at=timezone.now())
+            messages.update(deleted_at=timezone.now())
+            channel.deleted_at = timezone.now()
+            channel.save()
 
         return Response(status=status.HTTP_204_NO_CONTENT)

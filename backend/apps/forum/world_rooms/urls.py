@@ -1,8 +1,8 @@
 from django.urls import path
-from apps.forum.world_rooms.views import WorldRoomsListView
+from apps.forum.world_rooms.views import WorldRoomsDetailView
 
 app_name = 'world_rooms'
 
 urlpatterns = [
-    path('', WorldRoomsListView.as_view(), name='channel-list'),
+    path('<int:channel_id>', WorldRoomsDetailView.as_view(), name='room-detail'),
 ]
