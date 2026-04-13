@@ -12,7 +12,7 @@ const mockWorlds: World[] = [
     description:
       "LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM",
     profile_picture:
-      "https://images.unsplash.com/photo-1605806616949-1e87b487cb2a?q=80&w=1920&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1518105779142-d975f22f1b0a?q=80&w=1920&auto=format&fit=crop",
     created_at: "2026-03-03T00:00:00Z",
     updated_at: "2026-03-03T00:00:00Z",
     deleted_at: null,
@@ -24,7 +24,7 @@ const mockWorlds: World[] = [
     description:
       "LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM LOREM IPSUM",
     profile_picture:
-      "https://images.unsplash.com/photo-1542401886-65d6c61de152?q=80&w=1920&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1518105779142-d975f22f1b0a?q=80&w=1920&auto=format&fit=crop",
     created_at: "2026-03-03T00:00:00Z",
     updated_at: "2026-03-03T00:00:00Z",
     deleted_at: null,
@@ -47,7 +47,7 @@ export default function MainPage() {
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [activeSort, setActiveSort] = useState("USERS (MOST TO FEWEST)");
 
-  const sortOptions = ["USERS (MOST TO FEWEST)", "USER (FEWEST TO MOST)"];
+  const sortOptions = ["USERS (MOST TO FEWEST)", "USERS (FEWEST TO MOST)"];
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background-site p-4 gap-6 font-cinzel text-white">
