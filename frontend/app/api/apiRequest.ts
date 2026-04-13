@@ -1,4 +1,4 @@
-export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+export type HttpMethod = "GET" | "POST" | "PATCH" | "DELETE";
 
 type QueryValue = string | number | boolean | null | undefined;
 type QueryParam = QueryValue | QueryValue[];
