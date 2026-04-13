@@ -1,3 +1,4 @@
+# pylint: disable=W0718:broad-exception-caught
 from typing import TYPE_CHECKING
 
 import psycopg2
