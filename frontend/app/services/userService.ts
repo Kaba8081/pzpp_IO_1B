@@ -43,7 +43,7 @@ export async function getUserById(id: string): Promise<User> {
 export async function updateCurrentUser(data: UpdateUserDto): Promise<User> {
   try {
     return await apiRequest<User, UpdateUserDto>("/api/users/me/", {
-      method: "PUT",
+      method: "PATCH",
       body: data,
       headers: getAuthHeaders(),
     });
