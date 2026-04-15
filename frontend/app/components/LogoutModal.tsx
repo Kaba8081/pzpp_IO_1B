@@ -40,7 +40,7 @@ export const LogoutModal = () => {
           <Button
             variant="outline"
             onClick={modal.close}
-            className="flex-1 text-white tracking-widest"
+            className="flex-1 text-white font-cinzel tracking-widest"
           >
             CANCEL
           </Button>
@@ -48,7 +48,7 @@ export const LogoutModal = () => {
           <Button
             variant="outline"
             onClick={handleLogout}
-            className="flex-1 text-white tracking-widest !border-error !bg-error transition-all duration-300"
+            className="flex-1 text-white tracking-widest font-cinzel !border-error !bg-error transition-all duration-300"
           >
             LOGOUT
           </Button>
