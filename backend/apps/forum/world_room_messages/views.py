@@ -33,10 +33,10 @@ class ChannelMessagesView(APIView):
         responses={200: WorldRoomMessagesSerializer(many=True)},
     )
     def get(self, request: "Request", channel_id: int) -> Response:
-        channel = get_object_or_404(WorldRooms, id=channel_id)
-
-        messages = WorldRoomMessages.objects.filter(room=channel).order_by('created_at')
-
+        channel = get_object_or_404(WorldRooms, id=channel_id, deleted_at__isnull=True)
+        
+        messages = WorldRoomMessages.objects.filter(room=channel, deleted_at__isnull=True).order_by('created_at')
+        
         paginator = MessagePagination()
         page = paginator.paginate_queryset(messages, request, view=self)
         if page is not None:
@@ -56,7 +56,7 @@ class ChannelMessagesView(APIView):
         },
     )
     def post(self, request: "Request", channel_id: int) -> Response:
-        channel = get_object_or_404(WorldRooms, id=channel_id)
+        channel = get_object_or_404(WorldRooms, id=channel_id, deleted_at__isnull=True)
 
         data: dict[str, Any] = dict(request.data)  # type: ignore
         data['room'] = channel.id
@@ -81,7 +81,7 @@ class MessageDetailView(APIView):
         },
     )
     def patch(self, request: "Request", message_id: int) -> Response:
-        message = get_object_or_404(WorldRoomMessages, id=message_id)
+        message = get_object_or_404(WorldRoomMessages, id=message_id, deleted_at__isnull=True)
 
         serializer = WorldRoomMessagesSerializer(message, data=request.data, partial=True)
         if serializer.is_valid():
@@ -97,13 +97,14 @@ class MessageDetailView(APIView):
         },
     )
     def delete(self, request: "Request", message_id: int) -> Response:
-        message = get_object_or_404(WorldRoomMessages, id=message_id)
+        message = get_object_or_404(WorldRoomMessages, id=message_id, deleted_at__isnull=True)
 
         with transaction.atomic():
             now = timezone.now()
             message.deleted_at = now
             message.save()
-
+            
             WorldRoomMessageActions.objects.filter(message=message).update(deleted_at=now)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
