@@ -6,10 +6,6 @@ export interface CreateWorldDto {
   profile_picture?: string | null;
 }
 
-export interface UpdateWorldDto {
-  name?: string | null;
-  description?: string | null;
-  profile_picture?: string | null;
-}
+export type UpdateWorldDto = CreateWorldDto;
 
 export type { World, WorldProfile };
