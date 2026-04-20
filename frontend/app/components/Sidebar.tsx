@@ -64,7 +64,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isHomeActive = false, worlds =
       {/* home button */}
       <Button
         variant="ghost"
-        className={`flex items-center justify-start gap-5 w-full rounded-2xl uppercase mb-10 ${
+        className={`flex items-center justify-start gap-5 w-full rounded-2xl mb-10 ${
           isHomeActive ? "bg-primary text-white" : "text-white hover:bg-primary/10"
         }`}
       >

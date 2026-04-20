@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Search, ChevronDown, Check } from "lucide-react";
-import { Sidebar } from "../components/Sidebar";
-import { WorldTile } from "../components/WorldTile";
+import { Sidebar } from "@/components/Sidebar";
+import { WorldTile } from "@/components/WorldTile";
 import type { World } from "@/types/models";
 
 const mockWorlds: World[] = [
@@ -50,7 +50,7 @@ export default function MainPage() {
   const sortOptions = ["USERS (MOST TO FEWEST)", "USERS (FEWEST TO MOST)"];
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-background-site p-4 gap-6 font-cinzel text-white">
+    <div className="flex h-screen w-full overflow-hidden bg-background-site p-4 gap-6  text-white">
       <div className="shrink-0 h-full">
         <Sidebar isHomeActive={true} worlds={[]} />
       </div>
@@ -62,7 +62,7 @@ export default function MainPage() {
             <input
               type="text"
               placeholder="SEARCH"
-              className="w-full bg-transparent text-sm text-white placeholder-white/80 outline-none uppercase tracking-widest font-cinzel"
+              className="w-full bg-transparent text-sm text-white placeholder-white/80 outline-none uppercase tracking-widest"
             />
           </div>
 
@@ -72,14 +72,14 @@ export default function MainPage() {
             <div className="relative">
               <button
                 onClick={() => setIsSortOpen(!isSortOpen)}
-                className="flex items-center justify-between gap-3 w-64 px-4 py-2.5 border border-primary/50 rounded-xl bg-background text-xs uppercase tracking-widest font-bold hover:border-primary transition-colors font-cinzel"
+                className="flex items-center justify-between gap-3 w-64 px-4 py-2.5 border border-primary/50 rounded-xl bg-background text-xs uppercase tracking-widest font-bold hover:border-primary transition-colors"
               >
                 {activeSort}
                 <ChevronDown className="w-4 h-4" />
               </button>
 
               {isSortOpen && (
-                <div className="absolute top-full right-0 mt-2 w-64 bg-background border border-primary rounded-xl overflow-hidden shadow-2xl flex flex-col font-cinzel">
+                <div className="absolute top-full right-0 mt-2 w-64 bg-background border border-primary rounded-xl overflow-hidden shadow-2xl flex flex-col">
                   {sortOptions.map((option) => (
                     <button
                       key={option}
