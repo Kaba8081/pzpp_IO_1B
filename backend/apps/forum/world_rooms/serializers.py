@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers
 
 from apps.forum.world_rooms.models import WorldRooms
@@ -36,3 +37,9 @@ class WorldRoomsSerializer(serializers.ModelSerializer):
             )
 
         return WorldRooms.objects.create(**validated_data)
+
+# Ony for drf documentation purposes
+@extend_schema_serializer(exclude_fields=("world",))
+class WorldRoomsUpdateSerializer(WorldRoomsSerializer):
+    class Meta(WorldRoomsSerializer.Meta):
+        pass

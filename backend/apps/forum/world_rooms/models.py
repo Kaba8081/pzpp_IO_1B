@@ -13,10 +13,10 @@ class WorldRooms(BaseModel):
     def __str__(self) -> str:
         return str(self.name)
 
-    objects = WorldRoomManager()
-    all_objects = models.Manager()
-    
     class Meta(BaseModel.Meta):
         abstract = False
         verbose_name = "World Room"
         verbose_name_plural = "World Rooms"
+
+    objects = WorldRoomManager()
+    all_objects = models.Manager()
