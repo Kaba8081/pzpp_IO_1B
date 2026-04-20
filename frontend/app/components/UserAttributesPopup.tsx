@@ -34,7 +34,7 @@ export const UserAttributesPopup = ({
         key={attr.key}
         className="grid grid-cols-[2fr_1fr_1fr] items-center gap-4 text-white uppercase tracking-wider py-2"
       >
-        <span className=" font-medium truncate">{attr.name}</span>
+        <span className="font-medium truncate">{attr.name}</span>
         <span className="text-center font-bold">{attr.current}</span>
         <div className="flex justify-center text-center">
           <input
@@ -50,22 +50,24 @@ export const UserAttributesPopup = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-      {/* Kontener modala z ograniczoną szerokością */}
-      <div className="w-full max-w-120 bg-background border border-primary rounded-[2.5rem] p-8 md:p-10 shadow-2xl">
-        {/* Nagłówki sekcji */}
-        <div className="grid mb-4 gap-4 grid-cols-[2fr_1fr_1fr] font-bold  text-primary uppercase">
-          <span className="flex  items-center">Attributes</span>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-120 bg-background border-2 border-primary rounded-[2.5rem] p-8 md:p-10 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="grid mb-4 gap-4 grid-cols-[2fr_1fr_1fr] font-bold text-primary uppercase">
+          <span className="flex items-center">Attributes</span>
           <span className="text-center">Current Value</span>
           <span className="text-center">New Value</span>
         </div>
 
-        {/* Lista statystyk */}
-        <div className="flex flex-col ">
+        <div className="flex flex-col">
           {attributesData.map((attr) => renderAttributeRow(attr))}
         </div>
 
-        {/* Przyciski akcji */}
         <div className="mt-4 flex justify-end gap-6">
           <Button onClick={onClose} variant="outline">
             Exit

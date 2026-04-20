@@ -39,7 +39,7 @@ const meta: Meta<typeof UserAttributesPopup> = {
   component: UserAttributesPopup,
   tags: ["autodocs"],
   parameters: {
-    layout: "fullscreen", // Ustawiamy fullscreen, bo modal ma własny overlay
+    layout: "fullscreen",
   },
 };
 
