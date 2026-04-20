@@ -11,3 +11,10 @@ export interface User {
   updated_at: ISODateTime | null;
   deleted_at: ISODateTime | null;
 }
+
+export interface UpdateUserDto {
+  email?: string;
+  username?: string;
+  description?: string;
+  profile_picture?: string | null;
+}

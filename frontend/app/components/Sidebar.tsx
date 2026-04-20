@@ -28,7 +28,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isHomeActive = false, worlds =
   ];
 
   return (
-    <aside className="w-85 h-screen bg-background border-2 border-primary rounded-2xl flex flex-col px-8 py-10 overflow-y-auto">
+    <aside className="w-85 h-full bg-background border-2 border-primary rounded-2xl flex flex-col px-8 py-10 overflow-y-auto">
       {/* gorna sekcja - account */}
       {isLoggedIn && user ? (
         <div className="flex items-center gap-5 mb-12">
@@ -64,7 +64,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isHomeActive = false, worlds =
       {/* home button */}
       <Button
         variant="ghost"
-        className={`flex items-center justify-start gap-5 w-full uppercase mb-10 ${
+        className={`flex items-center justify-start gap-5 w-full rounded-2xl mb-10 ${
           isHomeActive ? "bg-primary text-white" : "text-white hover:bg-primary/10"
         }`}
       >

@@ -12,7 +12,7 @@ export type {
   TokenPairResponse,
 } from "./models/auth";
 
-export type { User } from "./models/user";
+export type { User, UpdateUserDto } from "./models/user";
 export type { UserProfile } from "./models/userProfile";
 export type { World } from "./models/world";
 export type { WorldAttribute } from "./models/worldAttribute";
