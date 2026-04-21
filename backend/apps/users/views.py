@@ -120,10 +120,10 @@ class UserProfileDetailView(APIView):
         }
     )
     def get(self, request: "Request", username: str) -> Response:
-        profile = getattr(UserProfile.objects.filter(username=username).first(), 'userId', None)
+        profile = UserProfile.objects.filter(username=username).first()
         if profile is None:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
-        return Response(UserProfileSerializer(UserProfile.objects.get(username=username)).data, status=status.HTTP_200_OK)
+        return Response(UserProfileSerializer(profile).data, status=status.HTTP_200_OK)
 
     @extend_schema(
         description="Handle user profile updates",
@@ -141,9 +141,9 @@ class UserProfileDetailView(APIView):
         if not profile:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         
-        if profile.userId != request.user:
+        if profile.user != request.user:
             return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
-        
+
         serializer = UserProfileSerializer(profile, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
@@ -164,11 +164,11 @@ class UserProfileDetailView(APIView):
         if not profile:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
             
-        if profile.userId != request.user:
+        if profile.user != request.user:
             return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
-        
+
         now = timezone.now()
-        user = profile.userId
+        user = profile.user
         
         # Traverse all relations holding an instance to the user or objects holding instances to the user
         with transaction.atomic():

@@ -89,11 +89,13 @@ export default function WorldRoomPage() {
         id: parseInt(worldId),
         name: `The Chronicles of World ${worldId}`,
         description: null,
+        owner_id: 0,
+        profile_picture: null,
+        distinct_user_count: 0,
+        total_user_profiles_count: 0,
         created_at: null,
         updated_at: null,
         deleted_at: null,
-        owner_id: 0,
-        profile_picture: null,
       },
       rooms: [
         {

@@ -117,20 +117,20 @@ export async function apiRequest<
 
   if (!response.ok) {
     let errorMessage = response.statusText;
+    const rawBody = await response.text();
 
-    try {
-      const errorBody = await response.json();
-      if (typeof errorBody === "string") {
-        errorMessage = errorBody;
-      } else if (errorBody?.message && typeof errorBody.message === "string") {
-        errorMessage = errorBody.message;
-      } else {
-        errorMessage = JSON.stringify(errorBody);
-      }
-    } catch {
-      const text = await response.text();
-      if (text) {
-        errorMessage = text;
+    if (rawBody) {
+      try {
+        const errorBody = JSON.parse(rawBody);
+        if (typeof errorBody === "string") {
+          errorMessage = errorBody;
+        } else if (errorBody?.message && typeof errorBody.message === "string") {
+          errorMessage = errorBody.message;
+        } else {
+          errorMessage = JSON.stringify(errorBody);
+        }
+      } catch {
+        errorMessage = rawBody;
       }
     }
 
