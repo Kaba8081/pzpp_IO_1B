@@ -6,6 +6,7 @@ import { useUserStore } from "@/stores/UserStore";
 import { Modal } from "./Modal";
 import { Button } from "./Button";
 import login_register_banner from "@/images/login_register_banner.jpg"
+import { AuthService } from "@/services/auth";
 
 export const LoginRegisterModal = () => {
   const { currentModal, modal } = useUserStore();
@@ -13,17 +14,73 @@ export const LoginRegisterModal = () => {
   const [agreeToPolicy, setAgreeToPolicy] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  useEffect(() => {
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
+
+  const [values, setValues] = useState({
+    password: "",
+    confirmPassword: "",
+    email: "",
+    username: "",
+    agree: false,
+  });
+
+  const errors = {
+    password: isSubmitted && values.password.length < 6 ? "Password: min. 6 characters" : null,
+    confirmPassword: isSubmitted && values.confirmPassword !== values.password ? "Passwords do not match" : null,
+    email: isSubmitted && !values.email.includes("@") ? "Email must contain @" : null,
+    username: isSubmitted && values.username.length < 3 ? "Username: min. 3 characters" : null,
+    agree: isSubmitted && !values.agree ? "You must accept the terms" : null,
+  };
+
+useEffect(() => {
     if (currentModal === "login") {
       setActiveTab("LOGIN");
     } else if (currentModal === "register") {
       setActiveTab("REGISTER");
     }
+    setIsSubmitted(false);
+    setServerError(null);
   }, [currentModal]);
 
   if (currentModal !== "login" && currentModal !== "register") {
     return null;
   }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitted(true);
+    setServerError(null);
+    
+    if (!values.email.includes("@") || values.password.length < 6 ||
+       (activeTab === "REGISTER" && values.password !== values.confirmPassword) ||
+       (activeTab === "REGISTER" && values.username.length < 3) ||
+       (activeTab === "REGISTER" && !agreeToPolicy)) {
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      if (activeTab === "LOGIN") {
+        await AuthService.login({ email: values.email, password: values.password });
+        modal.close();
+      } else {
+        await AuthService.register({ email: values.email, password: values.password, username: values.username });
+        await AuthService.login({ email: values.email, password: values.password });
+        modal.close();
+      }
+    } catch (error: unknown) { 
+      console.error(error);
+      
+      const err = error as { response?: { data?: { message?: string } } };
+      
+      setServerError(err?.response?.data?.message || "An error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <Modal name={currentModal}>
@@ -68,13 +125,31 @@ export const LoginRegisterModal = () => {
               </p>
             </div>
 
-            <form className="flex flex-col gap-5 w-full max-w-lg mx-auto">
-              
+            <form onSubmit={handleSubmit} className="flex flex-col gap-5 w-full max-w-lg mx-auto">
+
+              {serverError && <p className="text-error text-xs font-bold uppercase tracking-wider text-center">{serverError}</p>}
+
+              {activeTab === 'REGISTER' && (
               <div className="relative mb-3">
-                <Input 
-                  type="email" 
+                <Input
+                  type="text"
+                  label="USERNAME"
+                  value={values.username}
+                  placeholder="USERNAME"
+                  error={errors.username}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setValues({ ...values, username: e.target.value })}
+                />
+              </div>
+              )}
+
+              <div className="relative mb-3">
+                <Input
+                  type="email"
                   label="EMAIL"
+                  value={values.email}
                   placeholder="EMAIL@COM.OPL"
+                  error={errors.email}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setValues({ ...values, email: e.target.value })}
                 />
                 <Mail size={20} className="absolute top-1/2 right-6 -translate-y-1/2 text-white" />
               </div>
@@ -84,6 +159,9 @@ export const LoginRegisterModal = () => {
                   type={showPassword ? "text" : "password"} 
                   placeholder="*****"
                   label="PASSWORD"
+                  value={values.password}
+                  error={errors.password}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setValues({ ...values, password: e.target.value })}
                 />
                 <button
                 type="button"
@@ -100,6 +178,9 @@ export const LoginRegisterModal = () => {
                   type={showPassword ? "text" : "password"}
                   placeholder="*****"
                   label="CONFIRM PASSWORD"
+                  value={values.confirmPassword}
+                  error={errors.confirmPassword}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setValues({ ...values, confirmPassword: e.target.value })}
                 />
                 <button
                 type="button"
@@ -112,7 +193,7 @@ export const LoginRegisterModal = () => {
               )}
 
               {activeTab === 'REGISTER' && (
-                  <Checkbox label="I AGREE WITH PRIVACY POLICY" checked={agreeToPolicy} onChange={setAgreeToPolicy} />
+                  <Checkbox label="I AGREE WITH PRIVACY POLICY" checked={agreeToPolicy} onChange={setAgreeToPolicy} error={errors.agree}/>
               )}
 
               {activeTab === 'LOGIN' && (
@@ -125,6 +206,7 @@ export const LoginRegisterModal = () => {
                 type="submit" 
                 variant="primary"
                 className="max-w-3xs mx-auto w-full"
+                disabled={isLoading}
               >
                 {activeTab === 'LOGIN' ? 'LOGIN' : 'CREATE ACCOUNT'}
               </Button>
