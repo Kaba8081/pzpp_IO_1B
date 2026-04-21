@@ -19,10 +19,10 @@ export const Modal = ({ name, children }: ModalProps) => {
       onClick={modal.close}
     >
       <div
-        className="relative w-full max-w-2xl border-2 border-primary transform overflow-hidden rounded-2xl bg-background p-6 shadow-2xl transition-all"
+        className="relative w-full max-w-4xl border-2 border-primary transform overflow-hidden rounded-2xl bg-background shadow-2xl transition-all"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="mt-2 text-white">{children}</div>
+        <div className="text-white">{children}</div>
       </div>
     </div>
   );
