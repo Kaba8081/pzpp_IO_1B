@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Mail, Eye, EyeOff, X } from "lucide-react";
+import { Mail, Eye, EyeOff, X , User} from "lucide-react";
 import { Input } from "./Input";
 import { Checkbox } from "./Checkbox";
 import { useUserStore } from "@/stores/UserStore";
@@ -129,67 +129,57 @@ useEffect(() => {
 
               {serverError && <p className="text-error text-xs font-bold uppercase tracking-wider text-center">{serverError}</p>}
 
-              {activeTab === 'REGISTER' && (
-              <div className="relative mb-3">
-                <Input
-                  type="text"
-                  label="USERNAME"
-                  value={values.username}
-                  placeholder="USERNAME"
-                  error={errors.username}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setValues({ ...values, username: e.target.value })}
-                />
-              </div>
-              )}
-
-              <div className="relative mb-3">
                 <Input
                   type="email"
                   label="EMAIL"
                   value={values.email}
                   placeholder="EMAIL@COM.OPL"
                   error={errors.email}
+                  icon={<Mail size={20} />}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => setValues({ ...values, email: e.target.value })}
                 />
-                <Mail size={20} className="absolute top-1/2 right-6 -translate-y-1/2 text-white" />
-              </div>
 
-              <div className="relative mb-3">
+              
+              {activeTab === 'REGISTER' && (
+                <Input
+                  type="text"
+                  label="USERNAME"
+                  value={values.username}
+                  placeholder="USERNAME"
+                  error={errors.username}
+                  icon={<User size={20} />}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setValues({ ...values, username: e.target.value })}
+                />
+              )}
+
                 <Input 
                   type={showPassword ? "text" : "password"} 
                   placeholder="*****"
                   label="PASSWORD"
                   value={values.password}
                   error={errors.password}
+                  icon={
+                    <button type="button" onClick={() => setShowPassword(!showPassword)}>
+                      {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
+                    </button>
+                  }
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => setValues({ ...values, password: e.target.value })}
                 />
-                <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-6 text-white top-1/2 -translate-y-1/2 transition-colors"
-                >
-                {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
-                </button>
-              </div>
 
               {activeTab === 'REGISTER' && (
-              <div className="relative mb-3">
                 <Input 
                   type={showPassword ? "text" : "password"}
                   placeholder="*****"
                   label="CONFIRM PASSWORD"
                   value={values.confirmPassword}
                   error={errors.confirmPassword}
+                  icon={
+                    <button type="button" onClick={() => setShowPassword(!showPassword)}>
+                      {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
+                    </button>
+                  }
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => setValues({ ...values, confirmPassword: e.target.value })}
                 />
-                <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-6 text-white top-1/2 -translate-y-1/2 transition-colors"
-                >
-                {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
-                </button>
-              </div>
               )}
 
               {activeTab === 'REGISTER' && (
