@@ -1,32 +1,19 @@
 import { apiRequest } from "@/api/apiRequest";
 import { getStoredUser } from "@/stores/UserStore";
-import type { World, WorldProfile } from "./types";
-import { getAllWorlds } from "./getAllWorlds.service";
-
-function getAuthHeaders(): HeadersInit {
-  const accessToken = getStoredUser()?.accessToken;
-
-  if (!accessToken) {
-    throw new Error("Brak access token w UserStore.");
-  }
-
-  return {
-    Authorization: `Bearer ${accessToken}`,
-  };
-}
+import type { World } from "./types";
 
 export async function getUserWorlds(): Promise<World[]> {
+  const username = getStoredUser()?.profile?.username;
+
+  if (!username) {
+    throw new Error("Nie można pobrać światów: brak nazwy użytkownika.");
+  }
+
   try {
-    const profiles = await apiRequest<WorldProfile[]>("/api/forum/profile/", {
+    return await apiRequest<World[]>("/api/forum/world/", {
       method: "GET",
-      headers: getAuthHeaders(),
+      params: { username },
     });
-
-    const worldIds = new Set(profiles.map((profile) => profile.world_id));
-
-    const allWorlds = await getAllWorlds();
-
-    return allWorlds.filter((world) => worldIds.has(world.id));
   } catch (error) {
     throw new Error(
       `Nie udało się pobrać światów użytkownika: ${error instanceof Error ? error.message : String(error)}`

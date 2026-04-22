@@ -20,6 +20,8 @@ const baseWorld: World = {
   description: null,
   name: null,
   profile_picture: null,
+  distinct_user_count: 0,
+  total_user_profiles_count: 0,
   created_at: "2024-01-15T10:30:00Z",
   updated_at: "2024-01-15T10:30:00Z",
   deleted_at: null,
