@@ -35,6 +35,7 @@ class WorldUserProfileFactory(DjangoModelFactory):
     user = factory.SubFactory(UserFactory)
     name = LazyFunction(custom_username)
     description = factory.Faker('sentence', nb_words=6)
+    avatar=ImageField(color='blue', width=200, height=200, filename='avatar.jpg')
 
 class WorldRoomFactory(DjangoModelFactory):
     class Meta:
@@ -43,6 +44,7 @@ class WorldRoomFactory(DjangoModelFactory):
     world = factory.SubFactory(WorldFactory)
     name = factory.Faker('city')
     description = factory.Faker('sentence', nb_words=15)
+    thumbnail=ImageField(color='blue', width=200, height=200, filename='thumbnail.jpg')
 
 class WorldRoomMessageFactory(DjangoModelFactory):
     class Meta:
