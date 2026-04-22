@@ -48,7 +48,7 @@ export const WorldTile = ({ world }: WorldTileProps) => {
 
       {/*Description section*/}
       <div className="flex flex-col p-6 sm:p-8 grow">
-        <p className="lg:line-clamp-4 tracking-widest" title={displayDescription}>
+        <p className="line-clamp-4 tracking-widest" title={displayDescription}>
           {displayDescription}
         </p>
       </div>

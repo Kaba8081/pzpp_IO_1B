@@ -1,26 +1,67 @@
-import React, { useState } from "react";
-import { Home, PlusCircle } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import { Home, PlusCircle, UserPen, LogOut, MoreVertical } from "lucide-react";
+import { useNavigate, useLocation, useParams } from "react-router";
 import { Button } from "./Button";
 import { Tabs, type TabItem } from "./Tabs";
-import { Dropdown, type DropdownItem } from "./Dropdown";
+import { Dropdown } from "./Dropdown";
 import { useUserStore } from "@/stores/UserStore";
-import type { World, WorldRoom } from "@/types/models";
+import { getUserWorlds } from "@/services/world";
+import { getChannels } from "@/services/worldRoom";
+import type { World, Channel } from "@/types/models";
 
-export interface SidebarWorldData {
-  world: World;
-  rooms: WorldRoom[];
-  defaultOpen?: boolean;
-  activeRoomId?: number;
-}
+export const Sidebar: React.FC = () => {
+  const {
+    user,
+    isLoggedIn,
+    modal,
+    worldsVersion,
+    channelsVersion,
+    setEditingWorld,
+    setDeletingWorld,
+    setChannelCreationWorld,
+  } = useUserStore();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { worldId } = useParams<{ worldId?: string }>();
 
-interface SidebarProps {
-  isHomeActive?: boolean;
-  worlds?: SidebarWorldData[];
-}
-
-export const Sidebar: React.FC<SidebarProps> = ({ isHomeActive = false, worlds = [] }) => {
-  const { user, isLoggedIn } = useUserStore();
   const [activeTab, setActiveTab] = useState<string>("worlds");
+  const [worlds, setWorlds] = useState<World[]>([]);
+  const [channelsByWorldId, setChannelsByWorldId] = useState<Record<number, Channel[]>>({});
+  const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
+  const accountMenuRef = useRef<HTMLDivElement>(null);
+
+  const isHomeActive = location.pathname === "/";
+
+  useEffect(() => {
+    if (!isAccountMenuOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (accountMenuRef.current && !accountMenuRef.current.contains(e.target as Node)) {
+        setIsAccountMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [isAccountMenuOpen]);
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setWorlds([]);
+      setChannelsByWorldId({});
+      return;
+    }
+    getUserWorlds()
+      .then(setWorlds)
+      .catch(() => setWorlds([]));
+  }, [isLoggedIn, worldsVersion]);
+
+  useEffect(() => {
+    if (!isLoggedIn || worlds.length === 0) return;
+    worlds.forEach((world) => {
+      getChannels(world.id)
+        .then((channels) => setChannelsByWorldId((prev) => ({ ...prev, [world.id]: channels })))
+        .catch(() => setChannelsByWorldId((prev) => ({ ...prev, [world.id]: [] })));
+    });
+  }, [isLoggedIn, worlds, channelsVersion]);
 
   const tabItems: TabItem[] = [
     { id: "worlds", label: "Worlds" },
@@ -28,40 +69,80 @@ export const Sidebar: React.FC<SidebarProps> = ({ isHomeActive = false, worlds =
   ];
 
   return (
-    <aside className="w-85 h-full bg-background border-2 border-primary rounded-2xl flex flex-col px-8 py-10 overflow-y-auto">
-      {/* gorna sekcja - account */}
+    <aside className="w-85 h-full bg-background border-2 border-primary rounded-2xl flex flex-col px-8 py-10 overflow-y-auto shrink-0">
       {isLoggedIn && user ? (
         <div className="flex items-center gap-5 mb-12">
           {user.profile?.profile_picture ? (
             <img
               src={user.profile.profile_picture}
               alt="User Avatar"
-              className="w-14 h-14 rounded-full border border-primary/50 object-cover"
+              className="w-14 h-14 rounded-full border-2 border-primary/50 object-cover shrink-0 transition-all duration-200 hover:border-primary hover:shadow-[0_0_12px_rgba(6,140,124,0.35)] hover:scale-105"
             />
           ) : (
-            <div className="w-14 h-14 rounded-full border border-primary/50 bg-primary/15 flex items-center justify-center text-primary">
-              {(user.profile?.username || user.email).slice(0, 1).toUpperCase()}
+            <div className="w-14 h-14 rounded-full border-2 border-primary/50 bg-primary/15 flex items-center justify-center text-primary shrink-0 transition-all duration-200 hover:border-primary hover:shadow-[0_0_12px_rgba(6,140,124,0.35)] hover:scale-105 select-none">
+              {(user.profile?.username || user.email).slice(0, 1)}
             </div>
           )}
-          <div>
+          <div className="flex-1 min-w-0">
             <div className="text-input-placeholder mb-1">Account</div>
-            <div>{user.profile?.username || user.email}</div>
+            <div className="text-white truncate">{user.profile?.username || user.email}</div>
+          </div>
+          <div className="relative shrink-0" ref={accountMenuRef}>
+            <button
+              onClick={() => setIsAccountMenuOpen((v) => !v)}
+              className="p-1.5 text-input-placeholder hover:text-white hover:bg-primary/20 transition-all rounded-md"
+            >
+              <MoreVertical className="w-4 h-4" />
+            </button>
+
+            {isAccountMenuOpen && (
+              <div className="absolute right-0 top-full mt-1 z-20 bg-background border border-primary/50 rounded-xl overflow-hidden shadow-xl flex flex-col min-w-40 animate-fade-in">
+                <button
+                  onClick={() => {
+                    modal.open("edit-profile");
+                    setIsAccountMenuOpen(false);
+                  }}
+                  className="px-4 py-2.5 tracking-widest text-left text-white hover:bg-primary/20 transition-colors flex items-center gap-2"
+                >
+                  <UserPen className="w-3 h-3" />
+                  Edit Profile
+                </button>
+                <button
+                  onClick={() => {
+                    modal.open("logout");
+                    setIsAccountMenuOpen(false);
+                  }}
+                  className="px-4 py-2.5 tracking-widest text-left text-error hover:bg-error/10 transition-colors flex items-center gap-2"
+                >
+                  <LogOut className="w-3 h-3" />
+                  Logout
+                </button>
+              </div>
+            )}
           </div>
         </div>
       ) : (
         <div className="flex gap-4 mb-12">
-          <Button variant="outline" className="flex-1 px-0 py-2.5">
+          <Button
+            variant="outline"
+            className="flex-1 px-0 py-2.5"
+            onClick={() => modal.open("login")}
+          >
             Login
           </Button>
-          <Button variant="outline" className="flex-1 px-0 py-2.5">
+          <Button
+            variant="outline"
+            className="flex-1 px-0 py-2.5"
+            onClick={() => modal.open("register")}
+          >
             Register
           </Button>
         </div>
       )}
 
-      {/* home button */}
       <Button
         variant="ghost"
+        onClick={() => navigate("/")}
         className={`flex items-center justify-start gap-5 w-full rounded-2xl mb-10 ${
           isHomeActive ? "bg-primary" : "hover:bg-primary/10"
         }`}
@@ -70,50 +151,70 @@ export const Sidebar: React.FC<SidebarProps> = ({ isHomeActive = false, worlds =
         <span>Home</span>
       </Button>
 
-      {/* tabs */}
       <Tabs activeTab={activeTab} setActiveTab={setActiveTab} items={tabItems} />
 
-      {/* tabs - kontent (worlds-dropdown/wiadomości) */}
       <div className="flex-1 flex flex-col">
         {activeTab === "worlds" && (
           <>
-            {/* Lista światów dla zalogowanych */}
             {isLoggedIn && worlds.length > 0 && (
-              <div className="flex flex-col gap-2 mb-8">
-                {worlds.map((worldData) => {
-                  const items: DropdownItem[] = worldData.rooms.map((room) => ({
-                    label: room.name ?? "Untitled Room",
-                    isActive: room.id === worldData.activeRoomId,
-                  }));
-
-                  return (
-                    <Dropdown
-                      key={worldData.world.id}
-                      title={worldData.world.name ?? "Untitled World"}
-                      items={items}
-                      defaultOpen={worldData.defaultOpen}
-                    />
-                  );
-                })}
+              <div className="flex flex-col mb-8">
+                {worlds.map((world) => (
+                  <Dropdown
+                    key={world.id}
+                    title={world.name ?? "Untitled World"}
+                    items={(channelsByWorldId[world.id] ?? []).map((ch) => ({
+                      label: ch.name ?? "Untitled Channel",
+                      isActive: false,
+                      onClick: () => navigate(`/world/${world.id}`),
+                    }))}
+                    defaultOpen={worldId === String(world.id)}
+                    isActive={worldId === String(world.id)}
+                    onEdit={() => {
+                      setEditingWorld(world);
+                      modal.open("edit-world");
+                    }}
+                    onDelete={() => {
+                      setDeletingWorld(world);
+                      modal.open("delete-world");
+                    }}
+                    onCreateItem={() => {
+                      setChannelCreationWorld(world);
+                      modal.open("create-channel");
+                    }}
+                  />
+                ))}
               </div>
             )}
 
-            {/* Przycisk dodawania światów */}
-            <Button variant="clear" className="flex items-center gap-5 justify-start w-full">
-              <PlusCircle className="w-5.5 h-5.5" />
-              <span>Create World</span>
-            </Button>
+            {isLoggedIn ? (
+              <button
+                className="flex items-center gap-5 justify-start w-full border border-dashed border-primary/30 rounded-xl px-4 py-3 text-white hover:border-primary/70 hover:bg-primary/5 hover:text-primary transition-all duration-200"
+                onClick={() => modal.open("create-world")}
+              >
+                <PlusCircle className="w-5.5 h-5.5" />
+                <span>Create World</span>
+              </button>
+            ) : (
+              <p className="text-input-placeholder tracking-widest text-center mt-4">
+                <button
+                  className="text-primary hover:underline"
+                  onClick={() => modal.open("login")}
+                >
+                  Login
+                </button>{" "}
+                to create worlds.
+              </p>
+            )}
           </>
         )}
 
         {activeTab === "messages" && (
-          <div className="text-input-placeholder  mt-10 text-center">
+          <div className="text-input-placeholder mt-10 text-center">
             {isLoggedIn ? "No new messages." : "Login to view messages."}
           </div>
         )}
       </div>
 
-      {/* stopkaa */}
       <div className="mt-12 flex flex-col items-center">
         <div className="mb-8 w-40 h-52 bg-linear-to-b from-primary/10 to-transparent border border-primary/20 rounded flex items-center justify-center text-center">
           <span className="text-primary">
@@ -138,7 +239,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isHomeActive = false, worlds =
           </a>
         </div>
 
-        <div className="text-input-placeholder text-center">©2026 Forum Chronicles</div>
+        <div className="text-input-placeholder text-center">© 2026 Forum Chronicles</div>
       </div>
     </aside>
   );

@@ -32,7 +32,7 @@ export const UserAttributesPopup = ({
     return (
       <div
         key={attr.key}
-        className="grid grid-cols-[2fr_1fr_1fr] items-center gap-4 tracking-wider py-2"
+        className="grid grid-cols-[2fr_1fr_1fr] items-center gap-4 text-white tracking-wider py-2"
       >
         <span className="font-medium truncate">{attr.name}</span>
         <span className="text-center">{attr.current}</span>

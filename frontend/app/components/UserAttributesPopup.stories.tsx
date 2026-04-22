@@ -14,7 +14,10 @@ const ModalWrapper = ({
   return (
     <div className="min-h-125 w-full flex items-center justify-center">
       {!isOpen && (
-        <button className="px-6 py-3 bg-primary rounded-xl" onClick={() => setIsOpen(true)}>
+        <button
+          className="px-6 py-3 bg-primary text-white rounded-xl"
+          onClick={() => setIsOpen(true)}
+        >
           Edit Attributes
         </button>
       )}

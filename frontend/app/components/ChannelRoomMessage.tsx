@@ -58,14 +58,18 @@ export const ChannelRoomMessage = ({
 
         <div className="flex flex-col items-start gap-2">
           {GameMaster && (
-            <Button variant="outline" onClick={() => console.log("Change attributes")}>
+            <Button
+              variant="outline"
+              onClick={() => console.log("Change attributes")}
+              className="text-white"
+            >
               Change attributes
             </Button>
           )}
 
           <div className="flex gap-4 mt-1">
             {actions.map((action) => (
-              <span key={action.id} className="whitespace-nowrap pb-0.5">
+              <span key={action.id} className="text-white tracking-widest whitespace-nowrap pb-0.5">
                 {action.value}
               </span>
             ))}

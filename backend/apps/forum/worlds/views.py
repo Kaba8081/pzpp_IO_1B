@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, cast
 
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema
@@ -54,7 +54,10 @@ class WorldView(APIView):
 
         if username:
             username = username.strip()
-            queryset = queryset.filter(worlduserprofiles__user__userprofile__username=username)
+            queryset = queryset.filter(
+                Q(owner__userprofile__username=username) |
+                Q(worlduserprofiles__user__userprofile__username=username)
+            ).distinct()
 
         serializer = WorldSerializer(queryset, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)

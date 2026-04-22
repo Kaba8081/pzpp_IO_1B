@@ -1,69 +1,143 @@
-import React, { useState } from "react";
-import { Globe, ChevronDown, ChevronUp } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import { ChevronRight, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
 
 export interface DropdownItem {
   label: string;
   isActive?: boolean;
   onClick?: () => void;
+  onDelete?: () => void;
 }
 
 interface DropdownProps {
   title: string;
   items: DropdownItem[];
   defaultOpen?: boolean;
-  icon?: React.ReactNode;
-  variant?: "sidebar" | "form";
+  isActive?: boolean;
+  onEdit?: () => void;
+  onDelete?: () => void;
+  onCreateItem?: () => void;
 }
 
 export const Dropdown: React.FC<DropdownProps> = ({
   title,
   items,
   defaultOpen = false,
-  icon = <Globe className="w-5.5 h-5.5" />,
-  variant = "sidebar",
+  isActive = false,
+  onEdit,
+  onDelete,
+  onCreateItem,
 }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
-  const buttonStyles = variant === "sidebar" ? "py-2 hover:text-primary" : "h-13";
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [isMenuOpen]);
 
-  const itemStyles = variant === "sidebar" ? "hover:text-primary" : "hover:text-white/70";
+  const hasActions = onEdit || onDelete;
 
   return (
-    <div className="w-full">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={`w-full flex items-center justify-between transition-colors ${buttonStyles}`}
+    <div className="mb-2">
+      <div
+        className={`w-full flex items-center gap-2 group rounded-lg transition-colors -mx-1 px-1 ${isActive ? "bg-primary/10" : "hover:bg-primary/5"}`}
       >
-        <div className="flex items-center gap-5">
-          {icon}
-          <span>{title}</span>
-        </div>
-        {isOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-      </button>
-
-      {isOpen && items.length > 0 && (
-        <div
-          className={`flex flex-col gap-5 pb-4 ${
-            variant === "sidebar"
-              ? "mt-2 ml-2.75 pl-8.5 border-l border-primary/40 py-2"
-              : "mt-1 ml-1"
-          }`}
+        <button
+          onClick={() => setIsOpen((v) => !v)}
+          className={`flex items-center gap-3 flex-1 transition-colors py-2 min-w-0 ${isActive ? "text-primary" : "text-white hover:text-primary"}`}
         >
-          {items.map((item, idx) => (
+          <ChevronRight
+            className={`w-4 h-4 shrink-0 transition-transform duration-200 ${isOpen ? "rotate-90" : ""}`}
+          />
+          <span className="truncate">{title}</span>
+        </button>
+
+        {hasActions && (
+          <div className="relative shrink-0" ref={menuRef}>
             <button
-              key={idx}
               onClick={(e) => {
-                e.preventDefault();
-                if (item.onClick) item.onClick();
-                setIsOpen(false);
+                e.stopPropagation();
+                setIsMenuOpen((v) => !v);
               }}
-              className={`text-left transition-colors ${
-                item.isActive ? (variant === "sidebar" ? "text-primary" : "") : itemStyles
-              }`}
+              className="p-1.5 text-input-placeholder hover:text-white hover:bg-primary/20 transition-all rounded-md opacity-0 group-hover:opacity-100"
             >
-              {item.label}
+              <MoreHorizontal className="w-4 h-4" />
             </button>
-          ))}
+
+            {isMenuOpen && (
+              <div className="absolute right-0 top-full mt-1 z-20 bg-background border border-primary/50 rounded-xl overflow-hidden shadow-xl flex flex-col min-w-36 animate-fade-in">
+                {onEdit && (
+                  <button
+                    onClick={() => {
+                      onEdit();
+                      setIsMenuOpen(false);
+                    }}
+                    className="px-4 py-2.5     tracking-widest text-left text-white hover:bg-primary/20 transition-colors flex items-center gap-2"
+                  >
+                    <Pencil className="w-3 h-3" />
+                    Edit
+                  </button>
+                )}
+                {onDelete && (
+                  <button
+                    onClick={() => {
+                      onDelete();
+                      setIsMenuOpen(false);
+                    }}
+                    className="px-4 py-2.5     tracking-widest text-left text-error hover:bg-error/10 transition-colors flex items-center gap-2"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                    Delete
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {isOpen && (
+        <div className="ml-2 border-l border-primary/40 pl-5 mt-1 pb-2 flex flex-col gap-1 animate-fade-in">
+          {items.length > 0 ? (
+            items.map((item, idx) => (
+              <div key={idx} className="flex items-center group/channel">
+                <button
+                  onClick={item.onClick}
+                  className={`flex-1 text-left py-1.5 transition-colors rounded ${
+                    item.isActive ? "text-primary" : "text-white/70 hover:text-white"
+                  }`}
+                >
+                  {item.label}
+                </button>
+                {item.onDelete && (
+                  <button
+                    onClick={item.onDelete}
+                    className="opacity-0 group-hover/channel:opacity-100 p-1 text-input-placeholder hover:text-error transition-colors"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+            ))
+          ) : (
+            <p className="text-input-placeholder     tracking-widest py-1.5">No channels yet</p>
+          )}
+          {onCreateItem && (
+            <button
+              onClick={onCreateItem}
+              className="flex items-center gap-2 text-input-placeholder hover:text-primary transition-colors py-1.5 mt-0.5"
+            >
+              <Plus className="w-3 h-3" />
+              Add channel
+            </button>
+          )}
         </div>
       )}
     </div>

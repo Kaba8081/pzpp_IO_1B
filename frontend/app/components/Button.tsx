@@ -19,7 +19,7 @@ export const Button: React.FC<ButtonProps> = ({
       "px-8 py-3 rounded-xl border-2 bg-transparent border-primary text-primary hover:bg-primary/10",
     danger: "px-8 py-3 rounded-xl border-2 bg-error border-error hover:brightness-110",
     ghost: "px-5 py-3.5",
-    clear: "bg-transparent border-none p-0 hover:text-primary transition-colors",
+    clear: "bg-transparent border-none p-0 hover:text-primary transition-colors text-white",
   };
 
   return (

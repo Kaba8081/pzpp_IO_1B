@@ -21,7 +21,7 @@ export const UsersSidebar = ({ masterOfGame, characters }: UsersSidebarProps) =>
           alt={`Avatar of ${displayName}`}
           className="w-10 h-10 rounded-full object-cover border border-background transition-all shrink-0"
         />
-        <span className="tracking-widest transition-colors truncate">{displayName}</span>
+        <span className="text-white tracking-widest transition-colors truncate">{displayName}</span>
       </div>
     );
   };

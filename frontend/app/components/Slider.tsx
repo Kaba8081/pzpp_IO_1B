@@ -39,7 +39,7 @@ export const Slider: React.FC<SliderProps> = ({ label, error, min, max, value, o
     <div className="flex flex-col gap-1 w-full mb-6">
       <div className="flex justify-between items-baseline ml-1 mb-1">
         <label className=" text-primary/80">{label}</label>
-        <span className=" bg-primary/10 px-1.5 py-0 border border-primary/20 rounded-sm">
+        <span className=" text-white bg-primary/10 px-1.5 py-0 border border-primary/20 rounded-sm">
           {value}
         </span>
       </div>

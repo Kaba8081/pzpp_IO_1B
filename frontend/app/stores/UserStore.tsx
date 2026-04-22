@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, type ReactNode } from "react";
-import type { SessionUser } from "@/types/models";
+import type { SessionUser, World } from "@/types/models";
 import { setCookie, getCookie, deleteCookie } from "@/utils/cookieUtils";
 
 const USER_COOKIE_NAME = "user";
@@ -17,6 +17,21 @@ interface UserContextType {
     open: (name: string) => void;
     close: () => void;
   };
+
+  worldsVersion: number;
+  bumpWorldsVersion: () => void;
+
+  channelsVersion: number;
+  bumpChannelsVersion: () => void;
+
+  editingWorld: World | null;
+  setEditingWorld: (world: World | null) => void;
+
+  deletingWorld: World | null;
+  setDeletingWorld: (world: World | null) => void;
+
+  channelCreationWorld: World | null;
+  setChannelCreationWorld: (world: World | null) => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -50,6 +65,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUserState] = useState<SessionUser | null>(() => readUserFromCookie());
 
   const [currentModal, setCurrentModal] = useState<string | undefined>(undefined);
+  const [worldsVersion, setWorldsVersion] = useState(0);
+  const [channelsVersion, setChannelsVersion] = useState(0);
+  const [editingWorld, setEditingWorld] = useState<World | null>(null);
+  const [deletingWorld, setDeletingWorld] = useState<World | null>(null);
+  const [channelCreationWorld, setChannelCreationWorld] = useState<World | null>(null);
 
   const setUser = (nextUser: SessionUser | null) => {
     setUserState(nextUser);
@@ -76,6 +96,16 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         logout,
         currentModal,
         modal,
+        worldsVersion,
+        bumpWorldsVersion: () => setWorldsVersion((v) => v + 1),
+        channelsVersion,
+        bumpChannelsVersion: () => setChannelsVersion((v) => v + 1),
+        editingWorld,
+        setEditingWorld,
+        deletingWorld,
+        setDeletingWorld,
+        channelCreationWorld,
+        setChannelCreationWorld,
       }}
     >
       {children}

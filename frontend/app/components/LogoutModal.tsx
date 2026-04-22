@@ -27,12 +27,16 @@ export const LogoutModal = () => {
 
         <LogOut size={44} className="text-error mb-4" strokeWidth={1.5} />
 
-        <h2 className="text-md mb-6">Logout</h2>
+        <h2 className="text-md tracking-widest mb-6">Logout</h2>
 
-        <p className="mb-8">Are you sure you want to logout of your account?</p>
+        <p className="tracking-widest mb-8">Are you sure you want to logout of your account?</p>
 
         <div className="flex gap-4 w-full">
-          <Button variant="outline" onClick={modal.close} className="flex-1 tracking-widest">
+          <Button
+            variant="outline"
+            onClick={modal.close}
+            className="flex-1 text-white tracking-widest"
+          >
             CANCEL
           </Button>
 

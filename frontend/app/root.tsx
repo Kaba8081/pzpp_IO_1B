@@ -9,6 +9,14 @@ import {
 
 import type { Route } from "./+types/root";
 import { Modal } from "./components/Modal";
+import { LogoutModal } from "./components/LogoutModal";
+import { LoginModal } from "./components/LoginModal";
+import { RegisterModal } from "./components/RegisterModal";
+import { CreateWorldModal } from "./components/CreateWorldModal";
+import { EditWorldModal } from "./components/EditWorldModal";
+import { DeleteWorldModal } from "./components/DeleteWorldModal";
+import { EditProfileModal } from "./components/EditProfileModal";
+import { CreateChannelModal } from "./components/CreateChannelModal";
 import "./app.css";
 import { UserProvider } from "./stores/UserStore";
 
@@ -42,6 +50,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <Modal name="test-modal">
             <div>Test Modal</div>
           </Modal>
+          <LogoutModal />
+          <LoginModal />
+          <RegisterModal />
+          <CreateWorldModal />
+          <EditWorldModal />
+          <DeleteWorldModal />
+          <EditProfileModal />
+          <CreateChannelModal />
         </UserProvider>
       </body>
     </html>
