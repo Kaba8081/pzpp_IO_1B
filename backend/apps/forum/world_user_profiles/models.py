@@ -11,6 +11,7 @@ class WorldUserProfiles(BaseModel):
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     name = models.CharField(max_length=64)
     description = models.CharField(max_length=512)
+    avatar = models.ImageField(upload_to='world_profile_avatars', null=True, blank=True)
 
     objects = WorldUserProfilesManager()
     all_objects = models.Manager()
