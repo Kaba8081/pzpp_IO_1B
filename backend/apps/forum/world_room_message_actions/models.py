@@ -3,6 +3,7 @@ from common.models import BaseModel
 from apps.forum.world_room_messages.models import   WorldRoomMessages
 from apps.forum.world_rules.models import WorldRules
 from apps.forum.world_user_profiles.models import WorldUserProfiles
+from apps.forum.world_room_message_actions.managers import WorldRoomMessageActionsManager
 
 
 class WorldRoomMessageActions(BaseModel):
@@ -11,6 +12,9 @@ class WorldRoomMessageActions(BaseModel):
     world_rule = models.ForeignKey(WorldRules, on_delete=models.DO_NOTHING)
     user_profile = models.ForeignKey(WorldUserProfiles, on_delete=models.DO_NOTHING)
     value = models.CharField(max_length=256)
+
+    objects = WorldRoomMessageActionsManager()
+    all_objects = models.Manager()
 
     def __str__(self) -> str:
         return str(self.id)
