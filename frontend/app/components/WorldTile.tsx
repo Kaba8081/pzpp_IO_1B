@@ -41,9 +41,13 @@ export const WorldTile = ({ world }: WorldTileProps) => {
       <div className="flex flex-wrap justify-center gap-x-8 gap-y-2 py-4 px-6">
         <div className="flex gap-2 xl:text-lg md:text-lg tracking-widest">Added:{dateAdded}</div>
 
-        <div className="flex gap-2 xl:text-lg md:text-lg tracking-widest">Author:Nickname</div>
+        <div className="flex gap-2 xl:text-lg md:text-lg tracking-widest">
+          Author:{world.owner_username ?? "Unknown"}
+        </div>
 
-        <div className="flex gap-2 xl:text-lg md:text-lg tracking-widest">Characters:#</div>
+        <div className="flex gap-2 xl:text-lg md:text-lg tracking-widest">
+          Characters:{world.total_user_profiles_count}
+        </div>
       </div>
 
       {/*Description section*/}

@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema
 from rest_framework import permissions, status
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -20,13 +21,36 @@ VALIDATION_ERROR_RESPONSE = OpenApiResponse(
     description="Validation errors keyed by field name."
 )
 
+_VALID_ORDERINGS = {"id", "-id", "distinct_user_count", "-distinct_user_count"}
+
 USERNAME_QUERY_PARAMETER = OpenApiParameter(
-	name="username",
-	required=False,
-	type=str,
-	location=OpenApiParameter.QUERY,
-	description="Reserved for future filtering by owner username.",
+    name="username",
+    required=False,
+    type=str,
+    location=OpenApiParameter.QUERY,
+    description="Filter worlds by owner or participant username.",
 )
+
+SEARCH_QUERY_PARAMETER = OpenApiParameter(
+    name="search",
+    required=False,
+    type=str,
+    location=OpenApiParameter.QUERY,
+    description="Case-insensitive substring search on world name.",
+)
+
+ORDERING_QUERY_PARAMETER = OpenApiParameter(
+    name="ordering",
+    required=False,
+    type=str,
+    location=OpenApiParameter.QUERY,
+    description="Sort order. Allowed: id, -id, distinct_user_count, -distinct_user_count.",
+)
+
+
+class WorldPagination(LimitOffsetPagination):
+    default_limit = 20
+    max_limit = 100
 
 
 class WorldView(APIView):
@@ -38,29 +62,43 @@ class WorldView(APIView):
 
     @extend_schema(
         tags=["Worlds"],
-        description="Returns all available worlds.",
-        parameters=[USERNAME_QUERY_PARAMETER],
+        description="Returns all available worlds (paginated).",
+        parameters=[USERNAME_QUERY_PARAMETER, SEARCH_QUERY_PARAMETER, ORDERING_QUERY_PARAMETER],
         responses={200: WorldSerializer(many=True)},
     )
     def get(self, request: "Request") -> Response:
-        username = request.query_params.get("username")
+        username = request.query_params.get("username", "").strip() or None
+        search = request.query_params.get("search", "").strip() or None
+        ordering = request.query_params.get("ordering", "id")
+        if ordering not in _VALID_ORDERINGS:
+            ordering = "id"
+
         world_manager = cast(WorldManager, Worlds.objects)
-
-
-        queryset = world_manager.get().annotate(
-            distinct_user_count=Count('worlduserprofiles__user', distinct=True),
-            total_user_profiles_count=Count('worlduserprofiles'),
-        ).order_by("id")
+        queryset = (
+            world_manager.get()
+            .annotate(
+                distinct_user_count=Count('worlduserprofiles__user', distinct=True),
+                total_user_profiles_count=Count('worlduserprofiles'),
+            )
+            .select_related('owner')
+            .prefetch_related('owner__userprofile_set')
+        )
 
         if username:
-            username = username.strip()
             queryset = queryset.filter(
                 Q(owner__userprofile__username=username) |
                 Q(worlduserprofiles__user__userprofile__username=username)
             ).distinct()
 
-        serializer = WorldSerializer(queryset, many=True, context={'request': request})
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        if search:
+            queryset = queryset.filter(name__icontains=search)
+
+        queryset = queryset.order_by(ordering)
+
+        paginator = WorldPagination()
+        page = paginator.paginate_queryset(queryset, request)
+        serializer = WorldSerializer(page, many=True, context={'request': request})
+        return paginator.get_paginated_response(serializer.data)
 
     @extend_schema(
         tags=["Worlds"],

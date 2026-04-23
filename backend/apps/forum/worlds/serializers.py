@@ -5,8 +5,14 @@ from apps.forum.worlds.models import Worlds
 class WorldSerializer(serializers.ModelSerializer):
 
     owner_id = serializers.IntegerField(read_only=True)
+    owner_username = serializers.SerializerMethodField()
     distinct_user_count = serializers.SerializerMethodField()
     total_user_profiles_count = serializers.SerializerMethodField()
+
+    def get_owner_username(self, obj: Worlds) -> str | None:
+        for profile in obj.owner.userprofile_set.all():  # uses prefetch cache
+            return profile.username
+        return None
 
     def get_distinct_user_count(self, obj: Worlds):
         return obj.worlduserprofiles_set.values('user').distinct().count() if hasattr(obj, 'worlduserprofiles_set') else 0 # pyright: ignore[reportAttributeAccessIssue]
@@ -21,6 +27,7 @@ class WorldSerializer(serializers.ModelSerializer):
             'name',
             'description',
             'owner_id',
+            'owner_username',
             'profile_picture',
             'distinct_user_count',
             'total_user_profiles_count',
