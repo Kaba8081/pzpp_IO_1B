@@ -1,3 +1,5 @@
+import { getStoredUser } from "@/stores/UserStore";
+
 export type HttpMethod = "GET" | "POST" | "PATCH" | "DELETE";
 
 type QueryValue = string | number | boolean | null | undefined;
@@ -11,6 +13,7 @@ export interface ApiRequestOptions<TBody = unknown, TParams extends QueryParams 
   params?: TParams;
   headers?: HeadersInit;
   signal?: AbortSignal;
+  requiresAuth?: boolean;
 }
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL as string | undefined;
@@ -80,8 +83,16 @@ export async function apiRequest<
   TBody = unknown,
   TParams extends QueryParams = QueryParams,
 >(url: string, options: ApiRequestOptions<TBody, TParams> = {}): Promise<TResponse> {
-  const { method = "GET", body, params, headers, signal } = options;
+  const { method = "GET", body, params, headers, signal, requiresAuth = false } = options;
   const requestHeaders = new Headers(headers);
+
+  if (requiresAuth) {
+    const accessToken = getStoredUser()?.accessToken;
+    if (!accessToken) {
+      throw new Error("Brak access token w UserStore.");
+    }
+    requestHeaders.set("Authorization", `Bearer ${accessToken}`);
+  }
 
   let requestBody: BodyInit | undefined;
   if (body !== undefined && method !== "GET") {
@@ -106,20 +117,20 @@ export async function apiRequest<
 
   if (!response.ok) {
     let errorMessage = response.statusText;
+    const rawBody = await response.text();
 
-    try {
-      const errorBody = await response.json();
-      if (typeof errorBody === "string") {
-        errorMessage = errorBody;
-      } else if (errorBody?.message && typeof errorBody.message === "string") {
-        errorMessage = errorBody.message;
-      } else {
-        errorMessage = JSON.stringify(errorBody);
-      }
-    } catch {
-      const text = await response.text();
-      if (text) {
-        errorMessage = text;
+    if (rawBody) {
+      try {
+        const errorBody = JSON.parse(rawBody);
+        if (typeof errorBody === "string") {
+          errorMessage = errorBody;
+        } else if (errorBody?.message && typeof errorBody.message === "string") {
+          errorMessage = errorBody.message;
+        } else {
+          errorMessage = JSON.stringify(errorBody);
+        }
+      } catch {
+        errorMessage = rawBody;
       }
     }
 

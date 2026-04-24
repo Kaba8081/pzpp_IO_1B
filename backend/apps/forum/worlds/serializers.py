@@ -4,7 +4,7 @@ from apps.forum.worlds.models import Worlds
 
 class WorldSerializer(serializers.ModelSerializer):
 
-    owner = serializers.IntegerField(read_only=True, source='owner_id')
+    owner_id = serializers.IntegerField(read_only=True)
     distinct_user_count = serializers.SerializerMethodField()
     total_user_profiles_count = serializers.SerializerMethodField()
 
@@ -20,10 +20,13 @@ class WorldSerializer(serializers.ModelSerializer):
             'id',
             'name',
             'description',
-            'owner',
+            'owner_id',
             'profile_picture',
             'distinct_user_count',
             'total_user_profiles_count',
+            'created_at',
+            'updated_at',
+            'deleted_at',
         ]
 
     def validate(self, attrs):

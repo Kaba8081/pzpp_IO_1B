@@ -140,3 +140,53 @@ class WorldDetailView(APIView):
         world.save(update_fields=["deleted_at"])
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class WorldThumbnailView(APIView):
+
+    def get_permissions(self):
+        if self.request.method in ["POST"]:
+            return [IsAuthenticated()]
+        return [permissions.AllowAny()]
+
+    @extend_schema(
+        tags=["Worlds"],
+        description="Upload or update a world's thumbnail image.",
+        request={
+            'application/json': None,
+            'multipart/form-data': {
+                'type': 'object',
+                'properties': {
+                    'image': {
+                        'type': 'string',
+                        'format': 'binary',
+                        'description': 'Image file to upload as the world thumbnail.'
+                    }
+                },
+                'required': ['image']
+            }
+        },
+        responses={
+            200: WorldSerializer,
+            400: VALIDATION_ERROR_RESPONSE,
+            403: OpenApiResponse(description="Forbidden."),
+            404: OpenApiResponse(description="World not found."),
+        },
+    )
+    def post(self, request: "Request", world_id: int) -> Response:
+        world_manager = cast(WorldManager, Worlds.objects)
+        world = cast(Worlds, get_object_or_404(world_manager.get(), id=world_id))
+
+        if world.owner != request.user:
+            return Response({
+                "error": "You do not have permission to update this world's thumbnail."
+                }, status=status.HTTP_403_FORBIDDEN)
+
+        file = request.FILES.get('image') # type: ignore
+        if not file:
+            return Response({"image": "No file provided."}, status=status.HTTP_400_BAD_REQUEST)
+
+        world.profile_picture = file # type: ignore
+        world.save(update_fields=["profile_picture"])
+
+        serializer = WorldSerializer(world, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)

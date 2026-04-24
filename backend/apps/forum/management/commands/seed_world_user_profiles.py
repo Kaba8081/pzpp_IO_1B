@@ -1,6 +1,8 @@
 # pylint: disable=W0718:broad-exception-caught
+from pathlib import Path
 import random
 
+from django.conf import settings
 from django.db import transaction
 from django.core.management import call_command
 
@@ -11,7 +13,11 @@ from apps.forum.factories import WorldUserProfileFactory
 
 class Command(BaseSeeder):
     help = "Seeds the local db with initial user world profile data"
-    config = SeederConfig()
+    config = SeederConfig(
+        prepare_images=True,
+        img_count=20,
+        img_folder=Path(settings.MEDIA_ROOT) / "world_profile_avatars"
+    )
 
     def prepare(self, *args, **kwargs) -> None:
         user_count = User.objects.count()
@@ -44,7 +50,12 @@ class Command(BaseSeeder):
             pairs = zip(users, worlds)
 
             for user, world in list(pairs)[:n]:
-                WorldUserProfileFactory(user=user, world=world)
+                avatar = self.get_random_image(self.config.img_folder)
+                WorldUserProfileFactory(
+                    user=user, 
+                    world=world,
+                    avatar=str(avatar) if avatar else None
+                )
         except Exception as e:
             self.stdout.write(self.style.ERROR("FAIL"))
             self.stdout.write(self.style.ERROR(f"An error occurred: {e}"))

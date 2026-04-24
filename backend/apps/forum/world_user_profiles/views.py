@@ -1,19 +1,23 @@
-from typing import TYPE_CHECKING, Any
-from rest_framework import status
+from typing import TYPE_CHECKING, Any, cast
+from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
 from apps.forum.world_user_profiles.models import WorldUserProfiles
 from apps.forum.world_user_profiles.serializers import WorldUserProfilesSerializer, WorldUserProfilesUpdateSerializer
 from apps.forum.world_room_messages.models import WorldRoomMessages
+from apps.forum.world_user_profiles.managers import WorldUserProfilesManager
 
 if TYPE_CHECKING:
     from rest_framework.request import Request
 
+VALIDATION_ERROR_RESPONSE = OpenApiResponse(
+    description="Validation errors keyed by field name."
+)
 
 class WorldProfilesByWorldView(APIView):
     permission_classes = [IsAuthenticated]
@@ -90,7 +94,7 @@ class ProfileView(APIView):
         profile = self.get_object(profile_id)
         if profile.user != request.user:
             return Response({"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN)
-            
+
         serializer = WorldUserProfilesSerializer(profile, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
@@ -109,12 +113,62 @@ class ProfileView(APIView):
         profile = self.get_object(profile_id)
         if profile.user != request.user:
             return Response({"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN)
-        
+
         now = timezone.now()
         profile.deleted_at = now
         profile.save()
-        
+
         # Soft-delete related messages
         WorldRoomMessages.objects.filter(user_profile=profile).update(deleted_at=now)
-        
+
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class ProfileAvatarView(APIView):
+
+    def get_permissions(self):
+        if self.request.method in ["POST"]:
+            return [IsAuthenticated()]
+        return [permissions.AllowAny()]
+
+    @extend_schema(
+        tags=["World Profiles"],
+        description="Upload or update a world profile's avatar image.",
+        request={
+            'application/json': None,
+            'multipart/form-data': {
+                'type': 'object',
+                'properties': {
+                    'image': {
+                        'type': 'string',
+                        'format': 'binary',
+                        'description': 'Image file to upload as the profile thumbnail.'
+                    }
+                },
+                'required': ['image']
+            }
+        },
+        responses={
+            200: WorldUserProfilesSerializer,
+            400: VALIDATION_ERROR_RESPONSE,
+            403: OpenApiResponse(description="Forbidden."),
+            404: OpenApiResponse(description="Profile not found."),
+        },
+    )
+    def post(self, request: "Request", profile_id: int) -> Response:
+        manager = cast(WorldUserProfilesManager, WorldUserProfiles.objects)
+        profile = cast(WorldUserProfiles, get_object_or_404(manager.get(), id=profile_id))
+
+        if profile.user != request.user:
+            return Response({
+                "error": "You do not have permission to update this user's avatar."
+            }, status=status.HTTP_403_FORBIDDEN)
+
+        file = request.FILES.get('image') # type: ignore
+        if not file:
+            return Response({"image": "No file provided."}, status=status.HTTP_400_BAD_REQUEST)
+
+        profile.avatar = file # type: ignore
+        profile.save(update_fields=["avatar"])
+
+        serializer = WorldUserProfilesSerializer(profile, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)

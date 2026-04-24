@@ -38,7 +38,7 @@ class Command(BaseSeeder):
                 owner = User.objects.get(id=random.choice(user_ids))
                 avatar = self.get_random_image(self.config.img_folder)
                 WorldFactory(
-                    owner=owner, 
+                    owner=owner,
                     profile_picture=str(avatar) if avatar else None
                 )
         except Exception as e:

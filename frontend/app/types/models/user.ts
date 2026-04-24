@@ -1,13 +1,7 @@
-import type { ISODateTime } from "./common";
+import type { AuthUser, AuthUserProfile } from "./auth";
 
-export interface User {
-  id: number;
-  email: string;
-  password: string;
-  is_superuser: boolean;
-  is_active: boolean;
-  is_staff: boolean;
-  created_at: ISODateTime | null;
-  updated_at: ISODateTime | null;
-  deleted_at: ISODateTime | null;
-}
+export type User = AuthUser;
+
+export type UpdateUserDto = Partial<
+  Pick<AuthUserProfile, "username" | "description" | "profile_picture">
+>;
