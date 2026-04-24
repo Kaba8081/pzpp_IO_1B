@@ -14,6 +14,7 @@ from apps.forum.world_room_messages.models import WorldRoomMessages
 from apps.forum.world_room_messages.serializers import WorldRoomMessagesSerializer
 from apps.forum.world_rooms.models import WorldRooms
 from apps.forum.world_room_message_actions.models import WorldRoomMessageActions
+from apps.forum.world_user_profiles.models import WorldUserProfiles
 
 if TYPE_CHECKING:
     from rest_framework.request import Request
@@ -59,6 +60,15 @@ class ChannelMessagesView(APIView):
         channel = get_object_or_404(WorldRooms, id=channel_id)
 
         data: dict[str, Any] = dict(request.data)  # type: ignore
+        user_profile_id = data.get('user_profile')
+        if not user_profile_id:
+            return Response({"detail": "User profile is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            WorldUserProfiles.objects.get(id=user_profile_id, user=request.user)
+        except WorldUserProfiles.DoesNotExist:
+            return Response({"detail": "Permission denied. Profile not found or not owned by user."}, status=status.HTTP_403_FORBIDDEN)
+
         data['room'] = channel.id
 
         serializer = WorldRoomMessagesSerializer(data=data)
@@ -83,6 +93,9 @@ class MessageDetailView(APIView):
     def patch(self, request: "Request", message_id: int) -> Response:
         message = get_object_or_404(WorldRoomMessages, id=message_id)
 
+        if message.user_profile.user != request.user:
+            return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
+
         serializer = WorldRoomMessagesSerializer(message, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
@@ -98,6 +111,9 @@ class MessageDetailView(APIView):
     )
     def delete(self, request: "Request", message_id: int) -> Response:
         message = get_object_or_404(WorldRoomMessages, id=message_id)
+
+        if message.user_profile.user != request.user:
+            return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
 
         with transaction.atomic():
             now = timezone.now()
