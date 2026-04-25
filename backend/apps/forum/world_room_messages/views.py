@@ -41,15 +41,15 @@ class ChannelMessagesView(APIView):
     def get(self, request: "Request", room_id: int) -> Response:
         channel = get_object_or_404(WorldRooms, id=room_id)
 
-        messages = WorldRoomMessages.objects.filter(room=channel).order_by('created_at')
+        messages = WorldRoomMessages.objects.filter(room=channel).select_related('user_profile').order_by('created_at')
 
         paginator = MessagePagination()
         page = paginator.paginate_queryset(messages, request, view=self)
         if page is not None:
-            serializer = WorldRoomMessagesSerializer(page, many=True)
+            serializer = WorldRoomMessagesSerializer(page, many=True, context={'request': request})
             return paginator.get_paginated_response(serializer.data)
 
-        serializer = WorldRoomMessagesSerializer(messages, many=True)
+        serializer = WorldRoomMessagesSerializer(messages, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @extend_schema(

@@ -5,9 +5,17 @@ from apps.forum.world_room_messages.models import WorldRoomMessages
 from apps.forum.world_rooms.models import WorldRooms
 from apps.forum.world_user_profiles.models import WorldUserProfiles
 
+
+class WorldUserProfileAuthorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WorldUserProfiles
+        fields = ['id', 'name', 'avatar']
+
+
 class WorldRoomMessagesSerializer(serializers.ModelSerializer):
     room = serializers.PrimaryKeyRelatedField(queryset=WorldRooms.objects.all())
     user_profile = serializers.PrimaryKeyRelatedField(queryset=WorldUserProfiles.objects.all())
+    author = WorldUserProfileAuthorSerializer(source='user_profile', read_only=True)
 
     class Meta:
         model = WorldRoomMessages

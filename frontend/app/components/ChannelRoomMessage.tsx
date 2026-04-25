@@ -4,7 +4,7 @@ import { useState } from "react";
 
 interface ChannelRoomMessageProps {
   message: WorldRoomMessage;
-  author?: WorldProfile;
+  author?: Pick<WorldProfile, "id" | "name" | "avatar">;
   actions?: WorldRoomMessageAction[];
   GameMaster: boolean;
 }
