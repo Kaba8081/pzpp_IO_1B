@@ -10,7 +10,7 @@ import {
   ChevronDown,
   ArrowRight,
   ChevronUp,
-} from "lucide-react"; // Używam Lucide do ikon, pasują do stylu
+} from "lucide-react";
 
 interface Attribute {
   id: string;
@@ -27,7 +27,6 @@ export const WorldEditorModal = ({
   onClose: () => void;
   onSave: (data: { attributes: Attribute[] }) => void;
 }) => {
-  // Stan dla listy atrybutów
   const [attributes, setAttributes] = useState<Attribute[]>([
     { id: "1", name: "ATTRIBUTES 2", type: "TEXT" },
     { id: "2", name: "ATTRIBUTES 2", type: "NUMBER" },
@@ -38,33 +37,28 @@ export const WorldEditorModal = ({
 
   if (!isOpen) return null;
 
-  // Funkcja do aktualizacji nazwy atrybutu
   const handleAttributeNameChange = (id: string, newName: string) => {
     setAttributes((prev) =>
       prev.map((attr) => (attr.id === id ? { ...attr, name: newName } : attr))
     );
   };
 
-  // Funkcja do usuwania atrybutu
   const removeAttribute = (id: string) => {
     setAttributes((prev) => prev.filter((attr) => attr.id !== id));
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background backdrop-blur-sm p-4">
-      {/* Główny Kontener Modala */}
       <div className="w-full max-w-5xl bg-[#050B0B] border border-primary rounded-xl overflow-hidden ">
         <div className="flex flex-col md:flex-row min-h-125">
-          {/* LEWA KOLUMNA: CREATE WORLD */}
           <div className="flex-1 p-8 border-r border-background">
             <h2 className="text-2xl font-serif text-white uppercase tracking-widest mb-8">
               Create World
             </h2>
 
             <div className="space-y-6">
-              {/* Channel Banner Upload */}
               <div className="relative group">
-                <div className="border-2 border-dashed border-input-placeholder rounded-lg p-4 flex flex-col bg-bg-bg-bg-input-bg       hover:border-primary transition-colors cursor-pointer">
+                <div className="border-2 border-dashed border-input-placeholder rounded-lg p-4 flex flex-col bg-bg-bg-bg-input-bg hover:border-primary transition-colors cursor-pointer">
                   <span className="text-[10px] text-white uppercase top-4 left-4">
                     Channel Banner
                   </span>
@@ -80,8 +74,7 @@ export const WorldEditorModal = ({
                 </div>
               </div>
 
-              {/* Channel Name Input */}
-              <div className="bg-bg-bg-bg-input-bg      rounded-lg p-4 flex justify-between items-center border border-input-placeholder hover:border-primary transition-colors cursor-pointer">
+              <div className="bg-bg-bg-bg-input-bg rounded-lg p-4 flex justify-between items-center border border-input-placeholder hover:border-primary transition-colors cursor-pointer">
                 <div className="flex flex-col">
                   <span className="text-[10px] text-input-placeholder uppercase">Channel Name</span>
                   <input
@@ -93,8 +86,7 @@ export const WorldEditorModal = ({
                 <Pencil size={18} className="text-white/60" />
               </div>
 
-              {/* Description Textarea */}
-              <div className="bg-bg-bg-bg-input-bg       rounded-lg p-4 border border-input-placeholder min-h-40 relative  hover:border-primary transition-colors cursor-pointer">
+              <div className="bg-bg-bg-bg-input-bg rounded-lg p-4 border border-input-placeholder min-h-40 relative  hover:border-primary transition-colors cursor-pointer">
                 <span className="text-[10px] text-input-placeholder uppercase block mb-2">
                   Description
                 </span>
@@ -107,7 +99,6 @@ export const WorldEditorModal = ({
             </div>
           </div>
 
-          {/* PRAWA KOLUMNA: REQUIRED ATTRIBUTES */}
           <div className="flex-1 p-8 bg-background-secondary">
             <h2 className="text-2xl font-serif text-white uppercase tracking-widest mb-8">
               Required Attributes
@@ -116,8 +107,7 @@ export const WorldEditorModal = ({
             <div className="space-y-4">
               {attributes.map((attr) => (
                 <div key={attr.id} className="flex gap-2 group">
-                  <div className="flex-1 bg-input-bg    rounded-lg p-4 flex justify-between items-center border border-input-placeholder  focus-within:border-primary transition-colors">
-                    {/* INPUT DLA NAZWY ATRYBUTU */}
+                  <div className="flex-1 bg-input-bg rounded-lg p-4 flex justify-between items-center border border-input-placeholder  focus-within:border-primary transition-colors">
                     <input
                       type="text"
                       value={attr.name}
@@ -131,21 +121,19 @@ export const WorldEditorModal = ({
                       onClick={() => removeAttribute(attr.id)}
                     />
                   </div>
-                  {/* TYP ATRYBUTU (READ ONLY) */}
+
                   <div className="w-24 bg-input-bg rounded-lg flex items-center justify-center border border-input-placeholder  text-[10px] text-white uppercase font-bold">
                     {attr.type}
                   </div>
                 </div>
               ))}
 
-              {/* NOWY ATRYBUT / PLACEHOLDER */}
               <div className="flex gap-2">
                 <div className="flex-1 bg-input-bg text-white rounded-lg p-4 flex justify-between items-center border border-input-placeholder  group">
                   <input type="text" placeholder="ADD NEW ATTRIBUTES" className="text-[11px]" />
                   <Plus size={18} className="text-white cursor-pointer hover:text-primary" />
                 </div>
 
-                {/* SELECT TYPU */}
                 <div className="relative w-24">
                   <button
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -183,7 +171,6 @@ export const WorldEditorModal = ({
           </div>
         </div>
 
-        {/* FOOTER */}
         <div className="p-6 border-t border-primary flex justify-between items-center bg-background">
           <button
             onClick={onClose}

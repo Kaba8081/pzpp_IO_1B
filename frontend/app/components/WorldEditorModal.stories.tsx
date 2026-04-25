@@ -49,9 +49,7 @@ type Story = StoryObj<typeof WorldEditorModal>;
 
 export const Default: Story = {
   render: (args) => <ModalWrapper {...args} />,
-  args: {
-    // Tutaj możesz dodać początkowe wartości, jeśli rozbudujesz propsy
-  },
+  args: {},
 };
 
 export const Interactive: Story = {
