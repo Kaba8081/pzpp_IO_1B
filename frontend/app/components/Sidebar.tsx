@@ -1,28 +1,40 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Home, PlusCircle, UserPen, LogOut, MoreVertical } from "lucide-react";
 import { useNavigate, useLocation, useParams } from "react-router";
 import { Button } from "@/components/ui/Button";
 import { Tabs, type TabItem } from "@/components/ui/Tabs";
 import { Dropdown } from "@/components/ui//Dropdown";
 import { useUserStore } from "@/stores/UserStore";
-import { getUserWorlds } from "@/services/world";
+import { getUserWorlds, getWorldById } from "@/services/world";
 import { getChannels } from "@/services/worldRoom";
 import type { World, Channel } from "@/types/models";
 
 export const Sidebar: React.FC = () => {
-  const { user, isLoggedIn, modal, worldsVersion, channelsVersion, setEditingWorld } =
-    useUserStore();
+  const {
+    user,
+    isLoggedIn,
+    modal,
+    worldsVersion,
+    removedWorldMembership,
+    channelsVersion,
+    setEditingWorld,
+  } = useUserStore();
   const navigate = useNavigate();
   const location = useLocation();
-  const { worldId } = useParams<{ worldId?: string }>();
+  const { worldId, roomId } = useParams<{ worldId?: string; roomId?: string }>();
 
   const [activeTab, setActiveTab] = useState<string>("worlds");
   const [worlds, setWorlds] = useState<World[]>([]);
+  const [currentWorld, setCurrentWorld] = useState<World | null>(null);
   const [channelsByWorldId, setChannelsByWorldId] = useState<Record<number, Channel[]>>({});
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const accountMenuRef = useRef<HTMLDivElement>(null);
 
   const isHomeActive = location.pathname === "/";
+  const sidebarWorlds = useMemo(() => {
+    if (!currentWorld || worlds.some((world) => world.id === currentWorld.id)) return worlds;
+    return [currentWorld, ...worlds];
+  }, [currentWorld, worlds]);
 
   useEffect(() => {
     if (!isAccountMenuOpen) return;
@@ -38,7 +50,6 @@ export const Sidebar: React.FC = () => {
   useEffect(() => {
     if (!isLoggedIn) {
       setWorlds([]);
-      setChannelsByWorldId({});
       return;
     }
     getUserWorlds()
@@ -47,13 +58,60 @@ export const Sidebar: React.FC = () => {
   }, [isLoggedIn, worldsVersion]);
 
   useEffect(() => {
-    if (!isLoggedIn || worlds.length === 0) return;
-    worlds.forEach((world) => {
+    if (!removedWorldMembership) return;
+    setWorlds((prev) => prev.filter((world) => world.id !== removedWorldMembership.worldId));
+    setChannelsByWorldId((prev) => {
+      const next = { ...prev };
+      delete next[removedWorldMembership.worldId];
+      return next;
+    });
+  }, [removedWorldMembership]);
+
+  useEffect(() => {
+    if (!worldId) {
+      setCurrentWorld(null);
+      return;
+    }
+
+    const parsedWorldId = parseInt(worldId);
+    if (!Number.isFinite(parsedWorldId)) {
+      setCurrentWorld(null);
+      return;
+    }
+
+    setCurrentWorld((prev) => (prev?.id === parsedWorldId ? prev : null));
+
+    if (worlds.some((world) => world.id === parsedWorldId)) {
+      setCurrentWorld(null);
+      return;
+    }
+
+    let isMounted = true;
+    getWorldById(parsedWorldId)
+      .then((world) => {
+        if (isMounted) setCurrentWorld(world);
+      })
+      .catch(() => {
+        if (isMounted) setCurrentWorld(null);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [worldId, worlds]);
+
+  useEffect(() => {
+    if (sidebarWorlds.length === 0) {
+      setChannelsByWorldId({});
+      return;
+    }
+
+    sidebarWorlds.forEach((world) => {
       getChannels(world.id)
         .then((channels) => setChannelsByWorldId((prev) => ({ ...prev, [world.id]: channels })))
         .catch(() => setChannelsByWorldId((prev) => ({ ...prev, [world.id]: [] })));
     });
-  }, [isLoggedIn, worlds, channelsVersion]);
+  }, [sidebarWorlds, channelsVersion]);
 
   const tabItems: TabItem[] = [
     { id: "worlds", label: "Worlds" },
@@ -148,33 +206,50 @@ export const Sidebar: React.FC = () => {
       <div className="flex-1 flex flex-col overflow-y-auto min-h-0">
         {activeTab === "worlds" && (
           <>
-            {isLoggedIn && worlds.length > 0 && (
+            {sidebarWorlds.length > 0 && (
               <div className="flex flex-col mb-8">
-                {worlds.map((world) => (
-                  <Dropdown
-                    key={world.id}
-                    title={world.name ?? "Untitled World"}
-                    items={(channelsByWorldId[world.id] ?? []).map((ch) => ({
-                      label: ch.name ?? "Untitled Channel",
-                      isActive: false,
-                      onClick: () => navigate(`/world/${world.id}/${ch.id}`),
-                    }))}
-                    defaultOpen={worldId === String(world.id)}
-                    isActive={worldId === String(world.id)}
-                    onEdit={() => {
-                      setEditingWorld(world);
-                      modal.open("world-modal");
-                    }}
-                    onDelete={() => {
-                      setEditingWorld(world);
-                      modal.open("world-modal");
-                    }}
-                    onCreateItem={() => {
-                      setEditingWorld(world);
-                      modal.open("channel-modal");
-                    }}
-                  />
-                ))}
+                {sidebarWorlds.map((world) => {
+                  const canManageWorld =
+                    isLoggedIn && worlds.some((userWorld) => userWorld.id === world.id);
+
+                  return (
+                    <Dropdown
+                      key={world.id}
+                      title={world.name ?? "Untitled World"}
+                      items={(channelsByWorldId[world.id] ?? []).map((ch) => ({
+                        label: ch.name ?? "Untitled Channel",
+                        isActive: roomId === String(ch.id),
+                        onClick: () => navigate(`/world/${world.id}/${ch.id}`),
+                      }))}
+                      defaultOpen={worldId === String(world.id)}
+                      isActive={worldId === String(world.id)}
+                      onEdit={
+                        canManageWorld
+                          ? () => {
+                              setEditingWorld(world);
+                              modal.open("world-modal");
+                            }
+                          : undefined
+                      }
+                      onDelete={
+                        canManageWorld
+                          ? () => {
+                              setEditingWorld(world);
+                              modal.open("world-modal");
+                            }
+                          : undefined
+                      }
+                      onCreateItem={
+                        canManageWorld
+                          ? () => {
+                              setEditingWorld(world);
+                              modal.open("channel-modal");
+                            }
+                          : undefined
+                      }
+                    />
+                  );
+                })}
               </div>
             )}
 

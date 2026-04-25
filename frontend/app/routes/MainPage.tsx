@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Check, ChevronDown, Loader2, Search } from "lucide-react";
+import { useNavigate } from "react-router";
 import { WorldTile } from "@/components/WorldTile";
 import { getAllWorlds } from "@/services/world/getAllWorlds.service";
+import { getChannels } from "@/services/worldRoom";
 import { useUserStore } from "@/stores/UserStore";
 import type { World } from "@/types/models";
 
@@ -14,6 +16,7 @@ const SORT_OPTIONS = [
 
 export default function MainPage() {
   const { worldsVersion } = useUserStore();
+  const navigate = useNavigate();
 
   const [searchInput, setSearchInput] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -91,6 +94,16 @@ export default function MainPage() {
     return () => observer.disconnect();
   }, [isLoading, hasMore, debouncedSearch, activeSort.ordering, fetchPage]);
 
+  const handleWorldClick = async (world: World) => {
+    try {
+      const channels = await getChannels(world.id);
+      const firstChannel = channels[0];
+      if (firstChannel) navigate(`/world/${world.id}/${firstChannel.id}`);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   return (
     <div className="flex-1 flex flex-col min-w-0 bg-background border-2 border-primary rounded-2xl overflow-hidden p-4 pt-18 sm:p-6 lg:p-8 m-2 sm:m-4 lg:ml-0">
       <div className="flex flex-col gap-4 mb-6 lg:mb-8 z-10 relative xl:flex-row xl:justify-between xl:items-start">
@@ -143,7 +156,7 @@ export default function MainPage() {
       <div className="flex-1 overflow-y-auto pr-0 sm:pr-4 scrollbar-thin scrollbar-thumb-primary scrollbar-track-transparent">
         <div className="flex flex-col gap-6">
           {worlds.map((world) => (
-            <WorldTile key={world.id} world={world} />
+            <WorldTile key={world.id} world={world} onClick={() => handleWorldClick(world)} />
           ))}
         </div>
 

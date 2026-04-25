@@ -3,9 +3,10 @@ import type { World } from "@/types/models";
 
 interface WorldTileProps {
   world: World;
+  onClick?: () => void;
 }
 
-export const WorldTile = ({ world }: WorldTileProps) => {
+export const WorldTile = ({ world, onClick }: WorldTileProps) => {
   const displayName = world.name || "Unnamed world";
   const displayDescription =
     world.description || "Creator has not added a description for this world yet.";
@@ -15,7 +16,17 @@ export const WorldTile = ({ world }: WorldTileProps) => {
     : "No Date";
 
   return (
-    <div className="group flex flex-col overflow-hidden rounded-xl bg-background border border-primary mb-6 last:mb-0 shadow-sm transition-all hover:shadow-2xl hover:-translate-y-2 cursor-pointer">
+    <div
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onClick={onClick}
+      onKeyDown={(e) => {
+        if (!onClick || (e.key !== "Enter" && e.key !== " ")) return;
+        e.preventDefault();
+        onClick();
+      }}
+      className="group flex flex-col overflow-hidden rounded-xl bg-background border border-primary mb-6 last:mb-0 shadow-sm transition-all hover:shadow-2xl hover:-translate-y-2 cursor-pointer"
+    >
       {/*Image section*/}
       <div className="relative h-64 w-full bg-background overflow-hidden">
         {hasImage ? (

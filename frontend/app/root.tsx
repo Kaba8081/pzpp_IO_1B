@@ -13,6 +13,7 @@ import { LogoutModal } from "./components/modals/LogoutModal";
 import { LoginRegisterModal } from "./components/modals/LoginRegisterModal";
 import { WorldChannelModal } from "./components/modals/WorldChannelModal";
 import { EditProfileModal } from "./components/modals/EditProfileModal";
+import { CharacterDeleteModal } from "./components/modals/CharacterDeleteModal";
 import "./app.css";
 import { UserProvider } from "./stores/UserStore";
 
@@ -50,6 +51,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <LoginRegisterModal />
           <WorldChannelModal />
           <EditProfileModal />
+          <CharacterDeleteModal />
         </UserProvider>
       </body>
     </html>

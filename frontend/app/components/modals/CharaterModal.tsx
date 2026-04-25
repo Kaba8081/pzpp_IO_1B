@@ -49,7 +49,7 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
   profileId,
   worldId,
 }: CharacterModalProps) => {
-  const { modal, setActiveProfile } = useUserStore();
+  const { modal, setActiveProfileForWorld, bumpWorldsVersion } = useUserStore();
   const [characterData, setCharacterData] = useState<Partial<WorldUserProfile>>({});
   const [errors, setErrors] = useState<CharacterErrors>({});
   const [avatar, setAvatar] = useState<string | null>(null);
@@ -97,7 +97,8 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
         description: characterData.description,
       });
       if (avatarFile) profile = await uploadWorldProfileAvatar(profile.id, avatarFile);
-      setActiveProfile(profile);
+      setActiveProfileForWorld(worldId, profile);
+      bumpWorldsVersion();
       modal.close();
     } catch (error) {
       setErrors((prev) => ({

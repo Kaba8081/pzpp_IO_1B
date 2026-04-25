@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { useOutletContext, useParams } from "react-router";
 import { Button } from "@/components/ui/Button";
 import { UsersSidebar } from "@/components/UsersSidebar";
@@ -14,9 +14,8 @@ import { createChannelMessage } from "@/services/worldRoom/createChannelMessage.
 import type { AppLayoutOutletContext } from "./AppLayout";
 
 export default function WorldRoomPage() {
-  const { activeProfile } = useUserStore();
+  const { activeProfile, currentModal, isLoggedIn, modal } = useUserStore();
   const { worldId, roomId } = useParams<{ worldId: string; roomId: string }>();
-  const { currentModal } = useUserStore();
   const [messageText, setMessageText] = useState("");
   const [messages, setMessages] = useState<WorldRoomMessageWithAuthor[]>([]);
   const [activeRoom, setActiveRoom] = useState<WorldRoom>();
@@ -25,10 +24,7 @@ export default function WorldRoomPage() {
     useOutletContext<AppLayoutOutletContext>();
   const isUsersSidebarOpen = mobileSidebar === "right";
 
-  const isInputDisabled = useMemo(
-    () => isSendingMessage || !activeProfile,
-    [isSendingMessage, activeProfile]
-  );
+  const isInputDisabled = isSendingMessage;
 
   // Fetch activeRoom + it's messages
   useEffect(() => {
@@ -62,17 +58,25 @@ export default function WorldRoomPage() {
 
   const handleSendMessage = async () => {
     if (!messageText || messageText.length === 0) return;
-    if (!roomId || !activeProfile) return;
+    if (!isLoggedIn) {
+      modal.open("login");
+      return;
+    }
+    if (!activeProfile) {
+      modal.open("create-character");
+      return;
+    }
+    if (!roomId) return;
     setSendingMessage(true);
 
     createChannelMessage(parseInt(roomId), {
       user_profile: activeProfile?.id,
       content: messageText,
     })
+      .then(() => setMessageText(""))
       .catch(console.error)
       .finally(() => {
         setSendingMessage(false);
-        setMessageText("");
       });
   };
 

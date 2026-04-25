@@ -87,7 +87,7 @@ class WorldView(APIView):
         if username:
             queryset = queryset.filter(
                 Q(owner__userprofile__username=username) |
-                Q(worlduserprofiles__user__userprofile__username=username)
+                Q(worlduserprofiles__deleted_at__isnull=True, worlduserprofiles__user__userprofile__username=username)
             ).distinct()
 
         if search:

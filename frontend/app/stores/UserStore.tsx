@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, type ReactNode } from "react";
+import React, { createContext, useCallback, useContext, useState, type ReactNode } from "react";
 import type { SessionUser, World, WorldUserProfile } from "@/types/models";
 import { setCookie, getCookie, deleteCookie } from "@/utils/cookieUtils";
 
@@ -20,6 +20,8 @@ interface UserContextType {
 
   worldsVersion: number;
   bumpWorldsVersion: () => void;
+  removedWorldMembership: { worldId: number; version: number } | null;
+  markWorldMembershipRemoved: (worldId: number) => void;
 
   channelsVersion: number;
   bumpChannelsVersion: () => void;
@@ -35,6 +37,11 @@ interface UserContextType {
 
   activeProfile: WorldUserProfile | null;
   setActiveProfile: (profile: WorldUserProfile | null) => void;
+  activeProfilesByWorld: Record<number, WorldUserProfile>;
+  setActiveProfileForWorld: (worldId: number, profile: WorldUserProfile | null) => void;
+
+  deletingCharacter: { worldId: number; profile: WorldUserProfile } | null;
+  setDeletingCharacter: (target: { worldId: number; profile: WorldUserProfile } | null) => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -69,11 +76,22 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
   const [currentModal, setCurrentModal] = useState<string | undefined>(undefined);
   const [worldsVersion, setWorldsVersion] = useState(0);
+  const [removedWorldMembership, setRemovedWorldMembership] = useState<{
+    worldId: number;
+    version: number;
+  } | null>(null);
   const [channelsVersion, setChannelsVersion] = useState(0);
   const [editingWorld, setEditingWorld] = useState<World | null>(null);
   const [deletingWorld, setDeletingWorld] = useState<World | null>(null);
   const [channelCreationWorld, setChannelCreationWorld] = useState<World | null>(null);
   const [activeProfile, setActiveProfile] = useState<WorldUserProfile | null>(null);
+  const [activeProfilesByWorld, setActiveProfilesByWorld] = useState<
+    Record<number, WorldUserProfile>
+  >({});
+  const [deletingCharacter, setDeletingCharacter] = useState<{
+    worldId: number;
+    profile: WorldUserProfile;
+  } | null>(null);
 
   const setUser = (nextUser: SessionUser | null) => {
     setUserState(nextUser);
@@ -82,7 +100,26 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = () => {
     setUser(null);
+    setActiveProfile(null);
+    setActiveProfilesByWorld({});
+    setDeletingCharacter(null);
   };
+
+  const setActiveProfileForWorld = useCallback(
+    (worldId: number, profile: WorldUserProfile | null) => {
+      setActiveProfile(profile);
+      setActiveProfilesByWorld((prev) => {
+        if (!profile) {
+          const rest = { ...prev };
+          delete rest[worldId];
+          return rest;
+        }
+
+        return { ...prev, [worldId]: profile };
+      });
+    },
+    []
+  );
 
   const modal = {
     open: (name: string) => setCurrentModal(name),
@@ -102,6 +139,12 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         modal,
         worldsVersion,
         bumpWorldsVersion: () => setWorldsVersion((v) => v + 1),
+        removedWorldMembership,
+        markWorldMembershipRemoved: (worldId) =>
+          setRemovedWorldMembership((prev) => ({
+            worldId,
+            version: (prev?.version ?? 0) + 1,
+          })),
         channelsVersion,
         bumpChannelsVersion: () => setChannelsVersion((v) => v + 1),
         editingWorld,
@@ -112,6 +155,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         setChannelCreationWorld,
         activeProfile,
         setActiveProfile,
+        activeProfilesByWorld,
+        setActiveProfileForWorld,
+        deletingCharacter,
+        setDeletingCharacter,
       }}
     >
       {children}

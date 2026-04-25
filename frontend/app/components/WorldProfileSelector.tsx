@@ -1,27 +1,101 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Button } from "./ui/Button";
 import { useUserStore } from "@/stores/UserStore";
-import { ArrowDownUp, Check, PlusCircle } from "lucide-react";
+import { ArrowDownUp, Check, PlusCircle, Trash2 } from "lucide-react";
 import { getWorldProfilesByWorld } from "@/services/worldUserProfile";
 import type { WorldUserProfile } from "@/types/models";
 import { useParams } from "react-router";
 
 const WorldProfileSelector: React.FC = () => {
-  const { isLoggedIn, activeProfile, setActiveProfile, modal, currentModal } = useUserStore();
+  const {
+    isLoggedIn,
+    activeProfile,
+    activeProfilesByWorld,
+    setActiveProfile,
+    setActiveProfileForWorld,
+    setDeletingCharacter,
+    modal,
+    currentModal,
+  } = useUserStore();
   const { worldId } = useParams<{ worldId: string }>();
   const [profiles, setProfiles] = useState<WorldUserProfile[]>([]);
+  const [profilesLoadedForWorld, setProfilesLoadedForWorld] = useState<number | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [isAvatarLoading, setIsAvatarLoading] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const previousWorldIdRef = useRef<string | undefined>(undefined);
+  const parsedWorldId = worldId ? parseInt(worldId) : null;
 
   useEffect(() => {
     setIsAvatarLoading(true);
   }, [activeProfile?.avatar]);
 
   useEffect(() => {
-    if (!isLoggedIn || !worldId) return;
-    getWorldProfilesByWorld(parseInt(worldId)).then(setProfiles).catch(console.error);
-  }, [isLoggedIn, worldId, currentModal]);
+    if (previousWorldIdRef.current === worldId) return;
+    previousWorldIdRef.current = worldId;
+    setProfiles([]);
+    setProfilesLoadedForWorld(null);
+
+    const rememberedProfile =
+      parsedWorldId && Number.isFinite(parsedWorldId)
+        ? (activeProfilesByWorld[parsedWorldId] ?? null)
+        : null;
+    setActiveProfile(rememberedProfile);
+  }, [activeProfilesByWorld, parsedWorldId, worldId, setActiveProfile]);
+
+  useEffect(() => {
+    if (!isLoggedIn || !worldId) {
+      setProfiles([]);
+      setProfilesLoadedForWorld(null);
+      setActiveProfile(null);
+      return;
+    }
+
+    const parsedWorldId = parseInt(worldId);
+    let isMounted = true;
+    setProfilesLoadedForWorld(null);
+
+    getWorldProfilesByWorld(parsedWorldId)
+      .then((nextProfiles) => {
+        if (!isMounted) return;
+        setProfiles(nextProfiles);
+        setProfilesLoadedForWorld(parsedWorldId);
+      })
+      .catch((error) => {
+        console.error(error);
+        if (!isMounted) return;
+        setProfiles([]);
+        setProfilesLoadedForWorld(parsedWorldId);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isLoggedIn, worldId, currentModal, setActiveProfile]);
+
+  useEffect(() => {
+    if (!parsedWorldId || profilesLoadedForWorld !== parsedWorldId) return;
+
+    const rememberedProfile = activeProfilesByWorld[parsedWorldId];
+    if (rememberedProfile) {
+      const freshProfile = profiles.find((profile) => profile.id === rememberedProfile.id);
+      if (freshProfile && activeProfile?.id !== freshProfile.id) {
+        setActiveProfile(freshProfile);
+      }
+      return;
+    }
+
+    if (activeProfile && !profiles.some((profile) => profile.id === activeProfile.id)) {
+      setActiveProfile(null);
+    }
+  }, [
+    activeProfile,
+    activeProfilesByWorld,
+    profiles,
+    profilesLoadedForWorld,
+    parsedWorldId,
+    setActiveProfile,
+  ]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -74,17 +148,34 @@ const WorldProfileSelector: React.FC = () => {
                 <div className="px-4 py-2 text-sm text-primary/50">No characters yet</div>
               ) : (
                 profiles.map((profile) => (
-                  <button
+                  <div
                     key={profile.id}
-                    className="w-full flex items-center justify-between px-4 py-2 text-sm hover:bg-primary/20 transition-colors"
-                    onClick={() => {
-                      setActiveProfile(profile);
-                      setIsOpen(false);
-                    }}
+                    className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-primary/20 transition-colors"
                   >
-                    <span>{profile.name}</span>
-                    {activeProfile?.id === profile.id && <Check className="w-4 h-4" />}
-                  </button>
+                    <button
+                      className="flex min-w-0 flex-1 items-center justify-between text-left"
+                      onClick={() => {
+                        if (parsedWorldId) setActiveProfileForWorld(parsedWorldId, profile);
+                        setIsOpen(false);
+                      }}
+                    >
+                      <span className="truncate">{profile.name}</span>
+                      {activeProfile?.id === profile.id && <Check className="w-4 h-4 shrink-0" />}
+                    </button>
+                    <button
+                      className="shrink-0 rounded-md p-1 text-input-placeholder hover:bg-error/10 hover:text-error transition-colors"
+                      aria-label={`Delete ${profile.name}`}
+                      onClick={() => {
+                        if (parsedWorldId) {
+                          setDeletingCharacter({ worldId: parsedWorldId, profile });
+                        }
+                        setIsOpen(false);
+                        modal.open("delete-character");
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 ))
               )}
               <button
