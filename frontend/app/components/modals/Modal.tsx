@@ -2,7 +2,7 @@ import React, { type ReactNode, useEffect, useState } from "react";
 import { useUserStore } from "@/stores/UserStore";
 
 interface ModalProps {
-  name: string;
+  name: string | string[];
   children: ReactNode;
   size?: "md" | "lg";
   padding?: "default" | "none";
@@ -33,11 +33,13 @@ export const Modal = ({
   contentClassName,
 }: ModalProps) => {
   const { currentModal, modal } = useUserStore();
-  const [mounted, setMounted] = useState(currentModal === name);
-  const [visible, setVisible] = useState(currentModal === name);
+  const isActive = Array.isArray(name) ? name.includes(currentModal ?? "") : currentModal === name;
+
+  const [mounted, setMounted] = useState(false);
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (currentModal === name) {
+    if (isActive) {
       setMounted(true);
       const t = setTimeout(() => setVisible(true), 10);
       return () => clearTimeout(t);
@@ -46,7 +48,7 @@ export const Modal = ({
       const t = setTimeout(() => setMounted(false), 200);
       return () => clearTimeout(t);
     }
-  }, [currentModal, name]);
+  }, [isActive]);
 
   if (!mounted) return null;
 

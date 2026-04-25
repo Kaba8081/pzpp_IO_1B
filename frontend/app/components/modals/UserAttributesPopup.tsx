@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Button } from "./Button";
+import { useEffect, useState } from "react";
+import { Button } from "../Button";
 
 export interface Attribute {
   key: string;
@@ -21,8 +21,22 @@ export const UserAttributesPopup = ({
   onClose,
 }: UserAttributesPopupProps) => {
   const [newValues, setNewValues] = useState<Record<string, string>>({});
+  const [mounted, setMounted] = useState(isOpen);
+  const [visible, setVisible] = useState(isOpen);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    if (isOpen) {
+      setMounted(true);
+      const t = setTimeout(() => setVisible(true), 10);
+      return () => clearTimeout(t);
+    } else {
+      setVisible(false);
+      const t = setTimeout(() => setMounted(false), 200);
+      return () => clearTimeout(t);
+    }
+  }, [isOpen]);
+
+  if (!mounted) return null;
 
   const handleInputChange = (key: string, val: string) => {
     setNewValues((prev) => ({ ...prev, [key]: val }));
@@ -51,11 +65,11 @@ export const UserAttributesPopup = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4"
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 transition-opacity duration-200 ${visible ? "opacity-100" : "opacity-0"}`}
       onClick={onClose}
     >
       <div
-        className="w-full max-w-120 bg-background border-2 border-primary rounded-[2.5rem] p-8 md:p-10 shadow-2xl"
+        className={`w-full max-w-120 bg-background border-2 border-primary rounded-[2.5rem] p-8 md:p-10 shadow-2xl transition-all duration-200 ${visible ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="grid mb-4 gap-4 grid-cols-[2fr_1fr_1fr] text-primary">

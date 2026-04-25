@@ -61,7 +61,7 @@ export const Sidebar: React.FC = () => {
   ];
 
   return (
-    <aside className="w-85 h-full bg-background border-2 border-primary rounded-2xl flex flex-col px-8 py-10 overflow-y-auto shrink-0">
+    <aside className="w-85 h-full bg-background border-2 border-primary rounded-2xl flex flex-col px-8 py-10 shrink-0">
       {isLoggedIn && user ? (
         <div className="flex items-center gap-5 mb-12">
           {user.profile?.profile_picture ? (
@@ -145,7 +145,7 @@ export const Sidebar: React.FC = () => {
 
       <Tabs activeTab={activeTab} setActiveTab={setActiveTab} items={tabItems} />
 
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col overflow-y-auto min-h-0">
         {activeTab === "worlds" && (
           <>
             {isLoggedIn && worlds.length > 0 && (

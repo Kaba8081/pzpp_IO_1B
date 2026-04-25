@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { MemoryRouter } from "react-router";
 import { UserProvider, useUserStore } from "@/stores/UserStore";
-import { WorldChannelModal } from "./WorldChannelModal";
+import { WorldChannelModal } from "./modals/WorldChannelModal";
 
 const meta: Meta<typeof WorldChannelModal> = {
   title: "Components/Modals/WorldChannelModal",

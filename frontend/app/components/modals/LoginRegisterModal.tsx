@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Eye, EyeOff, Mail, User, X } from "lucide-react";
-import { Input } from "./Input";
-import { Checkbox } from "./Checkbox";
+import { Input } from "../Input";
+import { Checkbox } from "../Checkbox";
 import { useUserStore } from "@/stores/UserStore";
 import { Modal } from "./Modal";
-import { Button } from "./Button";
+import { Button } from "../Button";
 import loginRegisterBanner from "@/images/login_register_banner.webp";
 import { AuthService } from "@/services/auth";
 
@@ -71,10 +71,6 @@ export const LoginRegisterModal = () => {
     setServerError(null);
   };
 
-  if (!isAuthModal(currentModal)) {
-    return null;
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitted(true);
@@ -116,7 +112,7 @@ export const LoginRegisterModal = () => {
   };
 
   return (
-    <Modal name={currentModal} size="lg" padding="none" contentClassName="m-0">
+    <Modal name={["login", "register"]} size="lg" padding="none" contentClassName="m-0">
       <div className="flex max-w-4xl flex-col overflow-hidden sm:flex-row">
         <div className="w-full lg:w-1/2 flex flex-col p-10">
           <header className="flex items-center justify-between mb-10">
@@ -125,20 +121,20 @@ export const LoginRegisterModal = () => {
                 onClick={() => handleTabSwitch("LOGIN")}
                 className={`pb-2 tracking-widest transition-all ${activeTab === "LOGIN" ? "border-b-2 border-primary" : "text-white"}`}
               >
-                LOGIN
+                Login
               </button>
               <button
                 onClick={() => handleTabSwitch("REGISTER")}
                 className={`pb-2 tracking-widest transition-all ${activeTab === "REGISTER" ? "border-b-2 border-primary" : "text-white"}`}
               >
-                REGISTER
+                Register
               </button>
             </nav>
             <button
               onClick={() => modal.close()}
               className="pb-2 flex items-center gap-2 tracking-widest transition-colors"
             >
-              SKIP
+              Skip
               <X size={15} />
             </button>
           </header>
@@ -154,7 +150,7 @@ export const LoginRegisterModal = () => {
                   onClick={() => handleTabSwitch(activeTab === "LOGIN" ? "REGISTER" : "LOGIN")}
                   className="text-primary hover:text-primary/70 transition-colors ml-2"
                 >
-                  {activeTab === "LOGIN" ? "SIGN UP" : "LOGIN"}
+                  {activeTab === "LOGIN" ? "Sign up" : "Login"}
                 </button>
               </p>
             </div>
@@ -166,7 +162,7 @@ export const LoginRegisterModal = () => {
 
               <Input
                 type="email"
-                label="EMAIL"
+                label="Email"
                 value={values.email}
                 placeholder="your@mail.com"
                 error={errors.email}
@@ -179,9 +175,9 @@ export const LoginRegisterModal = () => {
               {activeTab === "REGISTER" && (
                 <Input
                   type="text"
-                  label="USERNAME"
+                  label="Username"
                   value={values.username}
-                  placeholder="USERNAME"
+                  placeholder="Username"
                   error={errors.username}
                   icon={<User size={20} />}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -248,7 +244,7 @@ export const LoginRegisterModal = () => {
                 className="max-w-3xs mx-auto w-full"
                 disabled={isLoading}
               >
-                {activeTab === "LOGIN" ? "LOGIN" : "CREATE ACCOUNT"}
+                {activeTab === "LOGIN" ? "Login" : "Create account"}
               </Button>
             </form>
           </div>

@@ -79,7 +79,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
                       onEdit();
                       setIsMenuOpen(false);
                     }}
-                    className="px-4 py-2.5     tracking-widest text-left text-white hover:bg-primary/20 transition-colors flex items-center gap-2"
+                    className="px-4 py-2.5 tracking-widest text-left text-white hover:bg-primary/20 transition-colors flex items-center gap-2"
                   >
                     <Pencil className="w-3 h-3" />
                     Edit
@@ -91,7 +91,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
                       onDelete();
                       setIsMenuOpen(false);
                     }}
-                    className="px-4 py-2.5     tracking-widest text-left text-error hover:bg-error/10 transition-colors flex items-center gap-2"
+                    className="px-4 py-2.5 tracking-widest text-left text-error hover:bg-error/10 transition-colors flex items-center gap-2"
                   >
                     <Trash2 className="w-3 h-3" />
                     Delete
@@ -127,7 +127,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
               </div>
             ))
           ) : (
-            <p className="text-input-placeholder     tracking-widest py-1.5">No channels yet</p>
+            <p className="text-input-placeholder tracking-widest py-1.5">No channels yet</p>
           )}
           {onCreateItem && (
             <button

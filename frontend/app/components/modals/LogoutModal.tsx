@@ -2,7 +2,7 @@ import React from "react";
 import { LogOut, X } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useUserStore } from "@/stores/UserStore";
-import { Button } from "./Button";
+import { Button } from "../Button";
 import { Modal } from "./Modal";
 
 export const LogoutModal = () => {
@@ -37,11 +37,11 @@ export const LogoutModal = () => {
             onClick={modal.close}
             className="flex-1 text-white tracking-widest"
           >
-            CANCEL
+            Cancel
           </Button>
 
           <Button variant="danger" onClick={handleLogout} className="flex-1 tracking-widest">
-            LOGOUT
+            Logout
           </Button>
         </div>
       </div>

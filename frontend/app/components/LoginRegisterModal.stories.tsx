@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import React from "react";
 import { UserProvider, useUserStore } from "@/stores/UserStore";
-import { LoginRegisterModal } from "./LoginRegisterModal";
+import { LoginRegisterModal } from "./modals/LoginRegisterModal";
 import { MemoryRouter } from "react-router";
 
 const meta: Meta<typeof LoginRegisterModal> = {

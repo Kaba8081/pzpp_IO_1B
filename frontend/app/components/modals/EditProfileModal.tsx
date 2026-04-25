@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import { UserPen, X } from "lucide-react";
 import { useUserStore } from "@/stores/UserStore";
 import { updateCurrentUser } from "@/services/userService";
-import { Button } from "./Button";
-import { Input } from "./Input";
+import { Button } from "../Button";
+import { Input } from "../Input";
 import { Modal } from "./Modal";
 
 export const EditProfileModal = () => {
@@ -61,7 +61,7 @@ export const EditProfileModal = () => {
 
         <form onSubmit={handleSubmit}>
           <Input
-            label="USERNAME"
+            label="Username"
             type="text"
             placeholder="Your display name"
             value={username}
@@ -70,7 +70,7 @@ export const EditProfileModal = () => {
             disabled={loading}
           />
           <Input
-            label="DESCRIPTION (OPTIONAL)"
+            label="Description (optional)"
             type="text"
             placeholder="Tell us about yourself"
             value={description}
@@ -88,7 +88,7 @@ export const EditProfileModal = () => {
               className="flex-1 tracking-widest  "
               disabled={loading}
             >
-              CANCEL
+              Cancel
             </Button>
             <Button
               type="submit"
@@ -96,7 +96,7 @@ export const EditProfileModal = () => {
               className="flex-1 tracking-widest  "
               disabled={loading}
             >
-              {loading ? "SAVING..." : "SAVE CHANGES"}
+              {loading ? "Saving..." : "Save changes"}
             </Button>
           </div>
         </form>

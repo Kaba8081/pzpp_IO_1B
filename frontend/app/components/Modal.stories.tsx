@@ -1,6 +1,6 @@
 import React from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { Modal } from "./Modal";
+import { Modal } from "./modals/Modal";
 import { UserProvider, useUserStore } from "@/stores/UserStore";
 import { Button } from "./Button";
 

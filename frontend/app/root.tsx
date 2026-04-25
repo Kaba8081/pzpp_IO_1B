@@ -8,11 +8,11 @@ import {
 } from "react-router";
 
 import type { Route } from "./+types/root";
-import { Modal } from "./components/Modal";
-import { LogoutModal } from "./components/LogoutModal";
-import { LoginRegisterModal } from "./components/LoginRegisterModal";
-import { WorldChannelModal } from "./components/WorldChannelModal";
-import { EditProfileModal } from "./components/EditProfileModal";
+import { Modal } from "./components/modals/Modal";
+import { LogoutModal } from "./components/modals/LogoutModal";
+import { LoginRegisterModal } from "./components/modals/LoginRegisterModal";
+import { WorldChannelModal } from "./components/modals/WorldChannelModal";
+import { EditProfileModal } from "./components/modals/EditProfileModal";
 import "./app.css";
 import { UserProvider } from "./stores/UserStore";
 
