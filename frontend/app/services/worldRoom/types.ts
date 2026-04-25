@@ -3,13 +3,11 @@ import type { QueryParams } from "@/api/apiRequest";
 export interface CreateChannelDto {
   name: string;
   description?: string | null;
-  thumbnail?: string | null;
 }
 
 export interface UpdateChannelDto {
   name?: string;
   description?: string | null;
-  thumbnail?: string | null;
 }
 
 export interface MessagePaginationParams extends QueryParams {

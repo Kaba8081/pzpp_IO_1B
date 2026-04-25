@@ -23,6 +23,10 @@ VALIDATION_ERROR_RESPONSE = OpenApiResponse(
     description="Validation errors keyed by field name."
 )
 
+THUMBNAIL_UPDATE_NOT_ALLOWED_ERROR = {
+    "thumbnail": "Use the room thumbnail endpoint to update the thumbnail."
+}
+
 class WorldRoomsListView(APIView):
     def get_permissions(self):
         if self.request.method == "POST":
@@ -57,6 +61,10 @@ class WorldRoomsListView(APIView):
             return Response({"error": "World not found."}, status=status.HTTP_404_NOT_FOUND)
 
         data: dict[str, Any] = dict(request.data)  # type: ignore
+
+        if "thumbnail" in data:
+            return Response(THUMBNAIL_UPDATE_NOT_ALLOWED_ERROR, status=status.HTTP_400_BAD_REQUEST)
+
         data['world'] = world_id
 
         serializer = WorldRoomsSerializer(data=data)
@@ -101,12 +109,17 @@ class WorldRoomsDetailView(APIView):
         except WorldRooms.DoesNotExist:
             return Response({"error": "Channel not found."}, status=status.HTTP_404_NOT_FOUND)
 
+        data: dict[str, Any] = dict(request.data)  # type: ignore
+
+        if "thumbnail" in data:
+            return Response(THUMBNAIL_UPDATE_NOT_ALLOWED_ERROR, status=status.HTTP_400_BAD_REQUEST)
+
         # Later on this is where the permission check would go
         world = channel.world
         if world.owner != request.user:
             return Response({"error": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
 
-        serializer = WorldRoomsSerializer(channel, data=request.data, partial=True)
+        serializer = WorldRoomsSerializer(channel, data=data, partial=True)
 
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
