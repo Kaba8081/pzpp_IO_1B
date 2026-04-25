@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
-import { Button } from "../app/components/Button";
-import { Input } from "../app/components/Input";
-import { Toggle } from "../app/components/ui/Toggle";
-import { Slider } from "../app/components/Slider";
-import { Checkbox } from "../app/components/Checkbox";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Toggle } from "@/components/ui/Toggle";
+import { Slider } from "@/components/ui/Slider";
+import { Checkbox } from "@/components/ui/Checkbox";
 
 const ComponentShowcase = () => {
   const [values, setValues] = useState({

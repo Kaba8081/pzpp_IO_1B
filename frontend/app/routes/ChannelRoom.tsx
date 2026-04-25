@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { UsersSidebar } from "@/components/UsersSidebar";
 import { ChannelRoomMessage } from "@/components/ChannelRoomMessage";
 import { CharacterModal } from "@/components/modals/CharaterModal";
-import { SendHorizontal, Dices, User } from "lucide-react";
+import { SendHorizontal, Dices } from "lucide-react";
 import type { WorldRoom, WorldRoomMessageWithAuthor } from "@/types/models";
 import { WorldRoomManager } from "@/services/worldRoomManager";
 import { useUserStore } from "@/stores/UserStore";
@@ -15,7 +15,7 @@ import { createChannelMessage } from "@/services/worldRoom/createChannelMessage.
 export default function WorldRoomPage() {
   const { activeProfile } = useUserStore();
   const { worldId, roomId } = useParams<{ worldId: string; roomId: string }>();
-  const { modal, currentModal } = useUserStore();
+  const { currentModal } = useUserStore();
   const [messageText, setMessageText] = useState("");
   const [messages, setMessages] = useState<WorldRoomMessageWithAuthor[]>([]);
   const [activeRoom, setActiveRoom] = useState<WorldRoom>();
@@ -126,14 +126,6 @@ export default function WorldRoomPage() {
               ROLL A DICE
               <Dices size={20} className="text-primary" strokeWidth={1.5} />
             </Button>
-            <Button
-              variant="outline"
-              className="w-full sm:w-auto flex justify-center items-center gap-2"
-              onClick={() => modal.open("create-character")}
-            >
-              CREATE CHARACTER
-              <User size={20} className="text-primary" strokeWidth={1.5} />
-            </Button>
           </div>
         </div>
       </div>
@@ -144,6 +136,13 @@ export default function WorldRoomPage() {
 
       {currentModal === "create-character" && (
         <CharacterModal mode="create" worldId={worldId ? parseInt(worldId) : undefined} />
+      )}
+      {activeProfile && currentModal === "edit-character" && (
+        <CharacterModal
+          mode="edit"
+          worldId={worldId ? parseInt(worldId) : undefined}
+          profileId={activeProfile.id}
+        />
       )}
     </>
   );

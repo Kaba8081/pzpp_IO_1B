@@ -28,7 +28,7 @@ class WorldProfilesByWorldView(APIView):
     )
     def get(self, request: "Request", world_id: int) -> Response:
         profiles = WorldUserProfiles.objects.filter(user=request.user, world_id=world_id)
-        serializer = WorldUserProfilesSerializer(profiles, many=True)
+        serializer = WorldUserProfilesSerializer(profiles, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @extend_schema(
@@ -58,7 +58,7 @@ class AllProfilesView(APIView):
     )
     def get(self, request: "Request") -> Response:
         profiles = WorldUserProfiles.objects.filter(user=request.user)
-        serializer = WorldUserProfilesSerializer(profiles, many=True)
+        serializer = WorldUserProfilesSerializer(profiles, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -77,7 +77,7 @@ class ProfileView(APIView):
     )
     def get(self, request: "Request", profile_id: int) -> Response:
         profile = self.get_object(profile_id)
-        serializer = WorldUserProfilesSerializer(profile)
+        serializer = WorldUserProfilesSerializer(profile, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @extend_schema(
@@ -95,7 +95,7 @@ class ProfileView(APIView):
         if profile.user != request.user:
             return Response({"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN)
 
-        serializer = WorldUserProfilesSerializer(profile, data=request.data, partial=True)
+        serializer = WorldUserProfilesSerializer(profile, data=request.data, partial=True, context={'request': request})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)

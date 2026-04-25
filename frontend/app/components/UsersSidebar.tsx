@@ -1,4 +1,5 @@
 import type { UserProfile } from "@/types/models";
+import WorldProfileSelector from "./WorldProfileSelector";
 
 interface UsersSidebarProps {
   masterOfGame?: UserProfile;
@@ -6,10 +7,6 @@ interface UsersSidebarProps {
 }
 
 export const UsersSidebar = ({ masterOfGame, characters }: UsersSidebarProps) => {
-  if (!masterOfGame || !characters) {
-    return null;
-  }
-
   const renderUser = (user: UserProfile) => {
     const displayName = user.username || "Unknown Wanderer";
     const avatar = user.profile_picture || "https://via.placeholder.com/100";
@@ -27,24 +24,32 @@ export const UsersSidebar = ({ masterOfGame, characters }: UsersSidebarProps) =>
   };
 
   return (
-    <aside className="text-primary w-4xs lg:w-3xs xl:w-2xs h-full bg-background border border-primary rounded-2xl p-6 md:p-8 flex flex-col gap-10 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-      {/* MASTER OF GAME */}
-      <div className="flex flex-col gap-4">
-        <h3>Master of Game</h3>
-        <span>{renderUser(masterOfGame)}</span>
-      </div>
+    <aside className="text-primary w-4xs lg:w-3xs xl:w-2xs h-full bg-background border border-primary rounded-2xl flex flex-col gap-10 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      <div className="p-6 md:p-8">
+        {/* MASTER OF GAME */}
+        {masterOfGame && (
+          <div className="flex flex-col gap-4">
+            <h3>Master of Game</h3>
+            <span>{renderUser(masterOfGame)}</span>
+          </div>
+        )}
 
-      {/* Characters */}
-      <div className="flex flex-col gap-6">
-        <h3>
-          Number of <br /> Characters #{characters.length}
-        </h3>
+        {/* Characters */}
+        {characters && (
+          <div className="flex flex-col gap-6">
+            <h3>
+              Number of <br /> Characters #{characters.length}
+            </h3>
 
-        <div className="flex flex-col gap-5">{characters.map((char) => renderUser(char))}</div>
+            <div className="flex flex-col gap-5">{characters.map((char) => renderUser(char))}</div>
+          </div>
+        )}
       </div>
 
       {/* World profile section */}
-      {/* TODO: */}
+      <div className="mt-auto mb-6 md:mb-8">
+        <WorldProfileSelector />
+      </div>
     </aside>
   );
 };

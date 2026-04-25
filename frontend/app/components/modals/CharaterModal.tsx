@@ -92,11 +92,11 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
     if (!worldId || !validate()) return;
     setIsSubmitting(true);
     try {
-      const profile = await createWorldProfile(worldId, {
+      let profile = await createWorldProfile(worldId, {
         name: characterData.name!,
         description: characterData.description,
       });
-      if (avatarFile) await uploadWorldProfileAvatar(profile.id, avatarFile);
+      if (avatarFile) profile = await uploadWorldProfileAvatar(profile.id, avatarFile);
       setActiveProfile(profile);
       modal.close();
     } catch (error) {
