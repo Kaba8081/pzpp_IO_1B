@@ -12,7 +12,7 @@ export default function WorldRoomPage() {
   const [messageText, setMessageText] = useState("");
 
   if (!worldId) {
-    return <div className="text-white">Invalid world ID</div>;
+    return <div>Invalid world ID</div>;
   }
 
   // Mock data
@@ -102,6 +102,7 @@ export default function WorldRoomPage() {
           id: 1,
           world_id: parseInt(worldId),
           name: "The Forgotten Dungeon",
+          thumbnail: null,
           description: null,
           created_at: null,
           updated_at: null,
@@ -111,6 +112,7 @@ export default function WorldRoomPage() {
           id: 2,
           world_id: parseInt(worldId),
           name: "Tavern of Whispers",
+          thumbnail: null,
           description: null,
           created_at: null,
           updated_at: null,
@@ -120,6 +122,7 @@ export default function WorldRoomPage() {
           id: 3,
           world_id: parseInt(worldId),
           name: "Sacred Temple",
+          thumbnail: null,
           description: null,
           created_at: null,
           updated_at: null,
@@ -132,14 +135,14 @@ export default function WorldRoomPage() {
   ];
 
   return (
-    <div className="flex w-full h-screen bg-background-site text-white">
+    <div className="flex w-full h-screen bg-background-site">
       {/* Left Sidebar */}
       <Sidebar worlds={mockWorlds} isHomeActive={false} />
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0 border border-primary rounded-2xl bg-background relative m-4 ml-4 mr-2">
         <div className="relative m-5 h-1/4 shrink-0 overflow-hidden rounded-2xl bg-background-site flex items-center justify-center">
-          <h1 className="text-2xl uppercase tracking-[0.3em] text-white drop-shadow-[0_0_10px_rgba(6,140,124,0.8)]">
+          <h1 className="text-2xl">
             {mockWorlds[0].rooms.find((r) => r.id === parseInt(roomId || "1"))?.name || "Channel"}
           </h1>
         </div>
@@ -164,27 +167,27 @@ export default function WorldRoomPage() {
             value={messageText}
             onChange={(e) => setMessageText(e.target.value)}
             placeholder="YOUR MESSAGE"
-            className="w-full h-20 border-primary rounded-2xl border-2 p-4 text-xs tracking-widest uppercase text-white/90 focus:outline-none focus:border-primary resize-none mb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+            className="w-full h-20 border-primary rounded-2xl border-2 p-4 tracking-widest focus:outline-none focus:border-primary resize-none mb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
           />
 
           <div className="flex flex-col xl:flex-row lg:flex-row gap-3 w-full">
             <Button
               variant="outline"
-              className="w-full sm:w-auto text-xs flex justify-center items-center gap-2"
+              className="w-full sm:w-auto flex justify-center items-center gap-2"
             >
               SEND MESSAGE
               <SendHorizontal size={20} className="text-primary" strokeWidth={1.5} />
             </Button>
             <Button
               variant="outline"
-              className="w-full sm:w-auto text-xs flex justify-center items-center gap-2"
+              className="w-full sm:w-auto flex justify-center items-center gap-2"
             >
               ROLL A DICE
               <Dices size={20} className="text-primary" strokeWidth={1.5} />
             </Button>
             <Button
               variant="outline"
-              className="w-full sm:w-auto text-xs flex justify-center items-center gap-2"
+              className="w-full sm:w-auto flex justify-center items-center gap-2"
             >
               CREATE CHARACTER
               <User size={20} className="text-primary" strokeWidth={1.5} />

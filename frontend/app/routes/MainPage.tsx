@@ -56,7 +56,7 @@ export default function MainPage() {
   const sortOptions = ["USERS (MOST TO FEWEST)", "USERS (FEWEST TO MOST)"];
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-background-site p-4 gap-6  text-white">
+    <div className="flex h-screen w-full overflow-hidden bg-background-site p-4 gap-6 ">
       <div className="shrink-0 h-full">
         <Sidebar isHomeActive={true} worlds={[]} />
       </div>
@@ -64,21 +64,21 @@ export default function MainPage() {
       <div className="flex-1 flex flex-col bg-background border-2 border-primary rounded-2xl overflow-hidden p-8">
         <div className="flex justify-between items-start mb-8 z-10 relative">
           <div className="flex items-center gap-3 px-4 py-2.5 w-96 rounded-xl border border-primary/50 bg-background focus-within:border-primary transition-colors">
-            <Search className="w-5 h-5 text-white" />
+            <Search className="w-5 h-5" />
             <input
               type="text"
               placeholder="SEARCH"
-              className="w-full bg-transparent text-sm text-white placeholder-white/80 outline-none uppercase tracking-widest"
+              className="w-full bg-transparent placeholder-white/80 outline-none tracking-widest"
             />
           </div>
 
           <div className="flex items-center gap-3 relative">
-            <span className="text-xs uppercase tracking-widest font-bold">Sort By:</span>
+            <span className="tracking-widest">Sort By:</span>
 
             <div className="relative">
               <button
                 onClick={() => setIsSortOpen(!isSortOpen)}
-                className="flex items-center justify-between gap-3 w-64 px-4 py-2.5 border border-primary/50 rounded-xl bg-background text-xs uppercase tracking-widest font-bold hover:border-primary transition-colors"
+                className="flex items-center justify-between gap-3 w-64 px-4 py-2.5 border border-primary/50 rounded-xl bg-background tracking-widest hover:border-primary transition-colors"
               >
                 {activeSort}
                 <ChevronDown className="w-4 h-4" />
@@ -93,10 +93,10 @@ export default function MainPage() {
                         setActiveSort(option);
                         setIsSortOpen(false);
                       }}
-                      className="flex items-center justify-between px-4 py-3 text-xs uppercase tracking-widest font-bold text-left hover:bg-primary/20 transition-colors"
+                      className="flex items-center justify-between px-4 py-3 tracking-widest text-left hover:bg-primary/20 transition-colors"
                     >
                       {option}
-                      {activeSort === option && <Check className="w-4 h-4 text-white" />}
+                      {activeSort === option && <Check className="w-4 h-4" />}
                     </button>
                   ))}
                 </div>

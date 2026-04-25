@@ -24,17 +24,15 @@ export const Dropdown: React.FC<DropdownProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
-  const buttonStyles =
-    variant === "sidebar" ? "py-2 hover:text-primary" : "h-13 hover:text-white/80";
+  const buttonStyles = variant === "sidebar" ? "py-2 hover:text-primary" : "h-13";
 
-  const itemStyles =
-    variant === "sidebar" ? "text-white hover:text-primary" : "text-white hover:text-white/70";
+  const itemStyles = variant === "sidebar" ? "hover:text-primary" : "hover:text-white/70";
 
   return (
     <div className="w-full">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full flex items-center justify-between text-white text-sm font-bold transition-colors ${buttonStyles}`}
+        className={`w-full flex items-center justify-between transition-colors ${buttonStyles}`}
       >
         <div className="flex items-center gap-5">
           {icon}
@@ -59,12 +57,8 @@ export const Dropdown: React.FC<DropdownProps> = ({
                 if (item.onClick) item.onClick();
                 setIsOpen(false);
               }}
-              className={`text-left text-xs font-bold transition-colors ${
-                item.isActive
-                  ? variant === "sidebar"
-                    ? "text-primary"
-                    : "text-white font-extrabold"
-                  : itemStyles
+              className={`text-left transition-colors ${
+                item.isActive ? (variant === "sidebar" ? "text-primary" : "") : itemStyles
               }`}
             >
               {item.label}

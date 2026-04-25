@@ -16,7 +16,6 @@ const THUMB_STYLES = `
   [&::-webkit-slider-thumb]:bg-white
   [&::-webkit-slider-thumb]:border-2
   [&::-webkit-slider-thumb]:border-primary
-  [&::-webkit-slider-thumb]:shadow-[0_0_15px_rgba(6,140,124,0.4)]
   [&::-webkit-slider-thumb]:transition-transform
   [&::-webkit-slider-thumb]:duration-150
   [&::-webkit-slider-thumb]:active:scale-125
@@ -27,7 +26,6 @@ const THUMB_STYLES = `
   [&::-moz-range-thumb]:bg-white
   [&::-moz-range-thumb]:border-2
   [&::-moz-range-thumb]:border-primary
-  [&::-moz-range-thumb]:shadow-[0_0_15px_rgba(6,140,124,0.4)]
   [&::-moz-range-thumb]:transition-transform
   [&::-moz-range-thumb]:active:scale-125
   [&::-moz-range-thumb]:border-none
@@ -41,7 +39,7 @@ export const Slider: React.FC<SliderProps> = ({ label, error, min, max, value, o
     <div className="flex flex-col gap-1 w-full mb-6">
       <div className="flex justify-between items-baseline ml-1 mb-1">
         <label className=" text-primary/80">{label}</label>
-        <span className=" text-white font-bold bg-primary/10 px-1.5 py-0 border border-primary/20 rounded-sm">
+        <span className=" bg-primary/10 px-1.5 py-0 border border-primary/20 rounded-sm">
           {value}
         </span>
       </div>

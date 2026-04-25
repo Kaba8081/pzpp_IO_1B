@@ -38,7 +38,7 @@ export const Toggle: React.FC<ToggleProps> = ({ label, error, checked, onChange 
           />
         </div>
 
-        <span className=" text-sm text-white/90 select-none">{label}</span>
+        <span className="select-none">{label}</span>
       </label>
 
       {error && <p className=" text-error ml-1">{error}</p>}

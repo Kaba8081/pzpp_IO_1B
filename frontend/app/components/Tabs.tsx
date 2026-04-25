@@ -15,7 +15,7 @@ interface TabsProps {
 
 export const Tabs: React.FC<TabsProps> = ({ activeTab, setActiveTab, items }) => {
   return (
-    <div className="flex justify-around border-b border-primary/20 mb-8  font-bold">
+    <div className="flex justify-around border-b border-primary/20 mb-8">
       {items.map((tab) => (
         <Button
           key={tab.id}
@@ -23,8 +23,8 @@ export const Tabs: React.FC<TabsProps> = ({ activeTab, setActiveTab, items }) =>
           onClick={() => setActiveTab(tab.id)}
           className={`flex items-center gap-3 pb-2 relative border-b-2 ${
             activeTab === tab.id
-              ? "text-white border-primary"
-              : "text-input-placeholder hover:text-white border-transparent"
+              ? "border-primary"
+              : "text-input-placeholder hover:border-transparent"
           }`}
         >
           {tab.label}

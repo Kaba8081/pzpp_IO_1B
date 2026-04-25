@@ -28,7 +28,7 @@ export const ChannelRoomMessage = ({
 
       <div className="flex flex-col flex-1">
         <div className="flex justify-between items-center mb-1">
-          <span className="text-primary font-bold uppercase tracking-widest text-md whitespace-nowrap mr-4">
+          <span className="text-primary tracking-widest text-md whitespace-nowrap mr-4">
             {username}
           </span>
 
@@ -37,14 +37,14 @@ export const ChannelRoomMessage = ({
               <Button
                 variant="outline"
                 onClick={() => setIsPending(false)}
-                className="uppercase nowrap border-none"
+                className="nowrap border-none"
               >
                 Accept post
               </Button>
               <Button
                 variant="outline"
                 onClick={() => console.log("Post Declined")}
-                className="uppercase nowrap border-none text-error"
+                className="nowrap border-none text-error"
               >
                 Decline post
               </Button>
@@ -52,27 +52,20 @@ export const ChannelRoomMessage = ({
           )}
         </div>
 
-        <p className="text-white text-md leading-relaxed tracking-wide text-justify mb-3">
+        <p className="text-md leading-relaxed tracking-wide text-justify mb-3">
           {message.content || "No content provided."}
         </p>
 
         <div className="flex flex-col items-start gap-2">
           {GameMaster && (
-            <Button
-              variant="outline"
-              onClick={() => console.log("Change attributes")}
-              className="text-white text-xs uppercase"
-            >
+            <Button variant="outline" onClick={() => console.log("Change attributes")}>
               Change attributes
             </Button>
           )}
 
           <div className="flex gap-4 mt-1">
             {actions.map((action) => (
-              <span
-                key={action.id}
-                className="text-white text-xs uppercase tracking-[0.2em] whitespace-nowrap pb-0.5"
-              >
+              <span key={action.id} className="whitespace-nowrap pb-0.5">
                 {action.value}
               </span>
             ))}

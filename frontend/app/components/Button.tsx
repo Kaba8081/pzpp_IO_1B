@@ -11,17 +11,15 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const baseStyles =
-    "font-bold transition-all duration-300 cursor-pointer active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed";
+    "transition-all duration-300 cursor-pointer active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed";
 
   const variants = {
-    primary:
-      "px-8 py-3 rounded-[16px] border-2 bg-primary border-primary text-white hover:brightness-125 hover:shadow-[0_0_20px_rgba(6,140,124,0.4)]",
+    primary: "px-8 py-3 rounded-xl border-2 bg-primary border-primary hover:brightness-125",
     outline:
-      "px-8 py-3 rounded-[16px] border-2 bg-transparent border-primary text-primary hover:bg-primary/10",
-    danger:
-      "px-8 py-3 rounded-[16px] border-2 bg-error border-error text-white hover:brightness-110",
+      "px-8 py-3 rounded-xl border-2 bg-transparent border-primary text-primary hover:bg-primary/10",
+    danger: "px-8 py-3 rounded-xl border-2 bg-error border-error hover:brightness-110",
     ghost: "px-5 py-3.5",
-    clear: "text-sm bg-transparent border-none p-0 hover:text-primary transition-colors text-white",
+    clear: "bg-transparent border-none p-0 hover:text-primary transition-colors",
   };
 
   return (

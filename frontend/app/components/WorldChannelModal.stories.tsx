@@ -10,7 +10,7 @@ const meta: Meta<typeof WorldChannelModal> = {
     (Story) => (
       <MemoryRouter>
         <UserProvider>
-          <div className="min-h-screen w-full bg-background-site font-cinzel">
+          <div className="min-h-screen w-full bg-background-site">
             <Story />
           </div>
         </UserProvider>
@@ -34,7 +34,7 @@ const ModalTriggers = ({ mode }: { mode: "create" | "edit" }) => {
       <button
         type="button"
         onClick={() => modal.open("world-modal")}
-        className="rounded-xl border border-primary px-6 py-3 text-sm font-bold tracking-widest text-primary transition-colors hover:bg-primary hover:text-white"
+        className="rounded-xl border border-primary px-6 py-3 tracking-widest text-primary transition-colors hover:bg-primary hover:text-white"
       >
         {label}
       </button>
@@ -42,7 +42,7 @@ const ModalTriggers = ({ mode }: { mode: "create" | "edit" }) => {
         <button
           type="button"
           onClick={() => modal.open("channel-modal")}
-          className="rounded-xl border border-primary px-6 py-3 text-sm font-bold tracking-widest text-primary transition-colors hover:bg-primary hover:text-white"
+          className="rounded-xl border border-primary px-6 py-3 tracking-widest text-primary transition-colors hover:bg-primary hover:text-white"
         >
           EDIT CHANNELS
         </button>

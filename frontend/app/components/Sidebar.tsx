@@ -39,23 +39,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ isHomeActive = false, worlds =
               className="w-14 h-14 rounded-full border border-primary/50 object-cover"
             />
           ) : (
-            <div className="w-14 h-14 rounded-full border border-primary/50 bg-primary/15 flex items-center justify-center  text-sm font-bold text-primary">
+            <div className="w-14 h-14 rounded-full border border-primary/50 bg-primary/15 flex items-center justify-center text-primary">
               {(user.profile?.username || user.email).slice(0, 1).toUpperCase()}
             </div>
           )}
-          <div className=" uppercase">
-            <div className="text-sm text-input-placeholder font-bold mb-1">Account</div>
-            <div className="text-sm text-white font-bold">
-              {user.profile?.username || user.email}
-            </div>
+          <div>
+            <div className="text-input-placeholder mb-1">Account</div>
+            <div>{user.profile?.username || user.email}</div>
           </div>
         </div>
       ) : (
         <div className="flex gap-4 mb-12">
-          <Button variant="outline" className="flex-1 px-0 py-2.5 text-xs">
+          <Button variant="outline" className="flex-1 px-0 py-2.5">
             Login
           </Button>
-          <Button variant="outline" className="flex-1 px-0 py-2.5 text-xs">
+          <Button variant="outline" className="flex-1 px-0 py-2.5">
             Register
           </Button>
         </div>
@@ -65,7 +63,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isHomeActive = false, worlds =
       <Button
         variant="ghost"
         className={`flex items-center justify-start gap-5 w-full rounded-2xl mb-10 ${
-          isHomeActive ? "bg-primary text-white" : "text-white hover:bg-primary/10"
+          isHomeActive ? "bg-primary" : "hover:bg-primary/10"
         }`}
       >
         <Home className="w-5.5 h-5.5" />
@@ -109,7 +107,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isHomeActive = false, worlds =
         )}
 
         {activeTab === "messages" && (
-          <div className="text-input-placeholder  text-xs uppercase mt-10 text-center">
+          <div className="text-input-placeholder  mt-10 text-center">
             {isLoggedIn ? "No new messages." : "Login to view messages."}
           </div>
         )}
@@ -118,31 +116,29 @@ export const Sidebar: React.FC<SidebarProps> = ({ isHomeActive = false, worlds =
       {/* stopkaa */}
       <div className="mt-12 flex flex-col items-center">
         <div className="mb-8 w-40 h-52 bg-linear-to-b from-primary/10 to-transparent border border-primary/20 rounded flex items-center justify-center text-center">
-          <span className="text-xs text-primary  font-bold">
+          <span className="text-primary">
             LOGO
             <br />
             PLACEHOLDER
           </span>
         </div>
 
-        <div className="flex gap-6 text-[10px] text-input-placeholder  mb-5">
+        <div className="flex gap-6 text-input-placeholder mb-5">
           <a
             href="#"
-            className="hover:text-white transition-colors underline underline-offset-[5px] decoration-gray-600 hover:decoration-primary"
+            className="hover:transition-colors underline underline-offset-[5px] decoration-gray-600 hover:decoration-primary"
           >
             Terms of service
           </a>
           <a
             href="#"
-            className="hover:text-white transition-colors underline underline-offset-[5px] decoration-gray-600 hover:decoration-primary"
+            className="hover:transition-colors underline underline-offset-[5px] decoration-gray-600 hover:decoration-primary"
           >
             Help
           </a>
         </div>
 
-        <div className="text-[10px] text-input-placeholder  text-center">
-          ©2026 Forum Chronicles
-        </div>
+        <div className="text-input-placeholder text-center">©2026 Forum Chronicles</div>
       </div>
     </aside>
   );

@@ -10,7 +10,7 @@ const meta: Meta<typeof LogoutModal> = {
     (Story) => (
       <MemoryRouter>
         <UserProvider>
-          <div className="bg-background-site min-h-screen w-full font-cinzel">
+          <div className="bg-background-site min-h-screen w-full">
             <Story />
           </div>
         </UserProvider>
@@ -32,7 +32,7 @@ const ModalTrigger = () => {
     <div className="flex items-center justify-center h-screen">
       <button
         onClick={() => modal.open("logout")}
-        className="px-6 py-3 border border-primary text-primary hover:bg-primary transition-colors font-cinzel font-bold tracking-widest text-sm rounded-xl"
+        className="px-6 py-3 border border-primary text-primary hover:bg-primary transition-colors tracking-widest rounded-xl"
       >
         OPEN LOGOUT MODAL
       </button>

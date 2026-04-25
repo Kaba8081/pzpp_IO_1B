@@ -315,9 +315,7 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
   };
 
   const renderError = (message?: string) =>
-    message ? (
-      <p className="mt-2 text-[10px] uppercase tracking-widest text-error">{message}</p>
-    ) : null;
+    message ? <p className="mt-2 tracking-widest text-error">{message}</p> : null;
 
   return (
     <div
@@ -325,13 +323,13 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
       onClick={modal.close}
     >
       <div
-        className="relative flex max-h-[92vh] w-full max-w-250 flex-col overflow-hidden rounded-2xl border border-primary bg-background font-cinzel text-white shadow-2xl"
+        className="relative flex max-h-[92vh] w-full max-w-250 flex-col overflow-hidden rounded-2xl border border-primary bg-background shadow-2xl"
         onClick={(event) => event.stopPropagation()}
       >
         {activeModal === "world" ? (
           <div className="flex flex-col gap-10 overflow-y-auto p-6 md:flex-row md:p-10">
             <div className="flex flex-1 flex-col gap-6">
-              <h2 className="mb-2 text-2xl font-bold tracking-wider">
+              <h2 className="mb-2 text-2xl tracking-wider">
                 {isEditing ? "Edit world" : "Create world"}
               </h2>
 
@@ -363,14 +361,12 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
                 />
                 <div className="absolute inset-0 bg-black/35" />
                 <div className="relative z-10">
-                  <div className="mb-1 text-[10px] uppercase tracking-widest text-white/70">
-                    World banner
-                  </div>
-                  <div className="text-sm font-bold tracking-wider">Drag and drop image</div>
+                  <div className="mb-1 tracking-widest">World banner</div>
+                  <div className="tracking-wider">Drag and drop image</div>
                 </div>
                 <button
                   type="button"
-                  className="relative z-10 flex items-center gap-3 rounded-xl border border-primary/50 bg-black/40 px-4 py-2 text-xs transition-all hover:bg-primary/20"
+                  className="relative z-10 flex items-center gap-3 rounded-xl border border-primary/50 bg-black/40 px-4 py-2 transition-all hover:bg-primary/20"
                   onClick={(event) => {
                     event.stopPropagation();
                     worldInputRef.current?.click();
@@ -391,9 +387,7 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
               <div className="rounded-2xl border border-transparent bg-input-bg p-4 transition-colors focus-within:border-primary">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex-1">
-                    <div className="mb-1 text-[10px] uppercase tracking-widest text-input-placeholder">
-                      World name
-                    </div>
+                    <div className="mb-1 tracking-widest text-input-placeholder">World name</div>
                     <input
                       type="text"
                       value={worldName}
@@ -402,32 +396,30 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
                         setWorldErrors((currentErrors) => ({ ...currentErrors, name: undefined }));
                       }}
                       placeholder="Enter world name..."
-                      className="w-full bg-transparent text-sm font-bold tracking-wider text-white outline-none placeholder:text-input-placeholder/50"
+                      className="w-full bg-transparent tracking-wider outline-none placeholder:text-input-placeholder/50"
                     />
                   </div>
-                  <Edit2 className="h-4 w-4 text-white/50" />
+                  <Edit2 className="h-4 w-4/50" />
                 </div>
                 {renderError(worldErrors.name)}
               </div>
 
               <div className="flex h-40 flex-col rounded-2xl border border-transparent bg-input-bg p-4 transition-colors focus-within:border-primary">
                 <div className="mb-2 flex items-start justify-between">
-                  <div className="text-[10px] uppercase tracking-widest text-input-placeholder">
-                    Description
-                  </div>
-                  <FileText className="h-4 w-4 text-white/50" />
+                  <div className="tracking-widest text-input-placeholder">Description</div>
+                  <FileText className="h-4 w-4/50" />
                 </div>
                 <textarea
                   value={worldDescription}
                   onChange={(event) => setWorldDescription(event.target.value)}
                   placeholder="Enter description..."
-                  className="w-full flex-1 resize-none bg-transparent text-xs leading-relaxed text-white/80 outline-none placeholder:text-input-placeholder/50"
+                  className="w-full flex-1 resize-none bg-transparent leading-relaxed/80 outline-none placeholder:text-input-placeholder/50"
                 />
               </div>
             </div>
 
             <div className="flex flex-1 flex-col gap-6 md:border-l md:border-primary/20 md:pl-10">
-              <h2 className="mb-2 text-2xl font-bold tracking-wider">Required attributes</h2>
+              <h2 className="mb-2 text-2xl tracking-wider">Required attributes</h2>
               <div className="flex flex-col gap-4">
                 {attributes.map((attribute) => (
                   <div key={attribute.id} className="grid gap-3 md:grid-cols-[1fr_9rem_2.75rem]">
@@ -444,14 +436,14 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
                             },
                           }));
                         }}
-                        className="h-5 w-full bg-transparent text-xs font-bold uppercase tracking-widest text-white/80 outline-none placeholder:text-input-placeholder/50"
+                        className="h-5 w-full bg-transparent tracking-widest outline-none placeholder:text-input-placeholder/50"
                         placeholder="Attribute name"
                       />
                       {renderError(worldErrors.attributeNames?.[attribute.id])}
                     </div>
 
                     {isEditing ? (
-                      <div className="flex h-13 items-center rounded-xl border border-primary/40 bg-primary/15 px-4 text-xs font-bold tracking-widest text-primary">
+                      <div className="flex h-13 items-center rounded-xl border border-primary/40 bg-primary/15 px-4 tracking-widest text-primary">
                         {attribute.type}
                       </div>
                     ) : (
@@ -464,7 +456,7 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
                               currentId === attribute.id ? null : attribute.id
                             )
                           }
-                          className="flex h-13 w-full items-center justify-between rounded-xl border border-primary bg-primary px-4 text-xs font-bold tracking-widest text-white outline-none transition-colors hover:bg-primary/80"
+                          className="flex h-13 w-full items-center justify-between rounded-xl border border-primary bg-primary px-4 tracking-widest outline-none transition-colors hover:bg-primary/80"
                         >
                           {attribute.type}
                           <ChevronDown
@@ -484,10 +476,10 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
                                   updateAttribute(attribute.id, { type });
                                   setOpenAttributeTypeId(null);
                                 }}
-                                className={`block h-11 w-full px-4 text-left text-xs font-bold tracking-widest transition-colors ${
+                                className={`block h-11 w-full px-4 text-left tracking-widest transition-colors ${
                                   attribute.type === type
-                                    ? "bg-primary text-white"
-                                    : "text-white/80 hover:bg-primary/20 hover:text-white"
+                                    ? "bg-primary"
+                                    : "text-white hover:bg-primary/20"
                                 }`}
                               >
                                 {type}
@@ -501,7 +493,7 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
                     <button
                       type="button"
                       onClick={() => removeAttribute(attribute.id)}
-                      className="flex h-13 items-center justify-center rounded-xl border border-white/15 text-white/60 transition-colors hover:border-error hover:text-error"
+                      className="flex h-13 items-center justify-center rounded-xl border border-white/15 transition-colors hover:border-error hover:text-error"
                       aria-label="Delete attribute"
                     >
                       <X className="h-4 w-4" />
@@ -515,10 +507,8 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
                   onClick={addAttribute}
                   className="mt-2 flex h-13 items-center justify-between rounded-xl border border-transparent bg-input-bg p-4 transition-colors hover:border-primary"
                 >
-                  <span className="text-xs uppercase tracking-widest text-white/50">
-                    Add new attribute
-                  </span>
-                  <Plus className="h-5 w-5 text-white/50" />
+                  <span className="tracking-widest">Add new attribute</span>
+                  <Plus className="h-5 w-5" />
                 </button>
               </div>
             </div>
@@ -526,14 +516,14 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
         ) : (
           <div className="flex flex-col gap-10 overflow-y-auto p-6 md:flex-row md:p-10">
             <div className="flex flex-1 flex-col gap-4">
-              <h2 className="mb-2 text-2xl font-bold tracking-wider">Edit channels</h2>
+              <h2 className="mb-2 text-2xl tracking-wider">Edit channels</h2>
 
               <button
                 type="button"
                 onClick={addChannel}
                 className="flex h-20 shrink-0 items-center justify-center gap-3 rounded-xl border border-primary/40 bg-input-bg transition-colors hover:border-primary"
               >
-                <span className="text-sm uppercase tracking-widest">Add new channel</span>
+                <span className="tracking-widest">Add new channel</span>
                 <Plus className="h-5 w-5" />
               </button>
 
@@ -605,11 +595,11 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
                       }}
                     />
                     <div className="absolute inset-0 bg-black/55 transition-colors group-hover:bg-black/35" />
-                    <div className="absolute left-3 top-1/2 z-10 flex -translate-y-1/2 items-center rounded-lg border border-white/20 bg-black/55 p-2 text-white/70">
+                    <div className="absolute left-3 top-1/2 z-10 flex -translate-y-1/2 items-center rounded-lg border border-white/20 bg-black/55 p-2">
                       <GripVertical className="h-4 w-4" />
                     </div>
                     <div className="absolute inset-0 flex items-center justify-center px-4 text-center">
-                      <span className="text-lg font-bold uppercase tracking-widest drop-shadow-md">
+                      <span className="text-lg tracking-widest drop-shadow-md">
                         {channel.name || "Untitled channel"}
                       </span>
                     </div>
@@ -621,15 +611,13 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
 
             <div className="flex flex-1 flex-col gap-6 md:border-l md:border-primary/20 md:pl-10">
               <div className="mb-2 flex items-center justify-between gap-4">
-                <h2 className="text-2xl font-bold tracking-wider">Channel</h2>
+                <h2 className="text-2xl tracking-wider">Channel</h2>
                 <button
                   type="button"
                   onClick={deleteSelectedChannel}
-                  className="flex items-center gap-2 rounded-xl bg-error px-4 py-2 text-white transition-colors hover:bg-error/80"
+                  className="flex items-center gap-2 rounded-xl bg-error px-4 py-2 transition-colors hover:bg-error/80"
                 >
-                  <span className="text-[10px] font-bold uppercase tracking-widest">
-                    Delete channel
-                  </span>
+                  <span className="tracking-widest">Delete channel</span>
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>
@@ -664,14 +652,12 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
                     />
                     <div className="absolute inset-0 bg-black/35" />
                     <div className="relative z-10">
-                      <div className="mb-1 text-[10px] uppercase tracking-widest text-white/70">
-                        Channel banner
-                      </div>
-                      <div className="text-sm font-bold tracking-wider">Drag and drop image</div>
+                      <div className="mb-1 tracking-widest">Channel banner</div>
+                      <div className="tracking-wider">Drag and drop image</div>
                     </div>
                     <button
                       type="button"
-                      className="relative z-10 flex items-center gap-3 rounded-xl border border-white/30 bg-black/40 px-4 py-2 text-xs transition-colors hover:border-primary"
+                      className="relative z-10 flex items-center gap-3 rounded-xl border border-white/30 bg-black/40 px-4 py-2 transition-colors hover:border-primary"
                       onClick={(event) => {
                         event.stopPropagation();
                         channelInputRef.current?.click();
@@ -691,7 +677,7 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
                   <div className="rounded-2xl border border-transparent bg-input-bg p-4 transition-colors focus-within:border-primary">
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex-1">
-                        <div className="mb-1 text-[10px] uppercase tracking-widest text-input-placeholder">
+                        <div className="mb-1 tracking-widest text-input-placeholder">
                           Channel name
                         </div>
                         <input
@@ -704,28 +690,28 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
                               name: undefined,
                             }));
                           }}
-                          className="w-full bg-transparent text-sm font-bold uppercase tracking-wider text-white outline-none placeholder:text-input-placeholder/50"
+                          className="w-full bg-transparent tracking-wider outline-none placeholder:text-input-placeholder/50"
                           placeholder="Enter channel name..."
                         />
                       </div>
-                      <Edit2 className="h-4 w-4 text-white/50" />
+                      <Edit2 className="h-4 w-4" />
                     </div>
                     {renderError(channelErrors.name)}
                   </div>
 
                   <div className="flex h-32 flex-col rounded-2xl border border-transparent bg-input-bg p-4 transition-colors focus-within:border-primary">
                     <div className="mb-2 flex items-start justify-between">
-                      <div className="text-[10px] uppercase tracking-widest text-input-placeholder">
+                      <div className="tracking-widest text-input-placeholder">
                         Short description
                       </div>
-                      <FileText className="h-4 w-4 text-white/50" />
+                      <FileText className="h-4 w-4" />
                     </div>
                     <textarea
                       value={selectedChannel.description}
                       onChange={(event) =>
                         updateSelectedChannel({ description: event.target.value })
                       }
-                      className="w-full flex-1 resize-none bg-transparent text-xs leading-relaxed text-white/80 outline-none placeholder:text-input-placeholder/50"
+                      className="w-full flex-1 resize-none bg-transparent leading-relaxed outline-none placeholder:text-input-placeholder/50"
                       placeholder="Enter short description..."
                     />
                   </div>
@@ -743,7 +729,7 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
               className="flex items-center gap-3 rounded-xl border border-error/70 px-5 py-2.5 text-error transition-colors hover:bg-error/10"
             >
               <X className="h-4 w-4" />
-              <span className="text-xs font-bold uppercase tracking-widest">Exit</span>
+              <span className="tracking-widest">Exit</span>
             </button>
 
             {activeModal === "channel" && (
@@ -753,7 +739,7 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
                 className="flex items-center gap-3 rounded-xl border border-white/20 px-5 py-2.5 transition-colors hover:border-white"
               >
                 <ArrowLeft className="h-4 w-4" />
-                <span className="text-xs font-bold uppercase tracking-widest">Back to world</span>
+                <span className="tracking-widest">Back to world</span>
               </button>
             )}
             {isEditing && activeModal === "world" && (
@@ -762,12 +748,12 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
                 onClick={deleteWorld}
                 className={`flex items-center gap-3 rounded-xl border px-5 py-2.5 transition-colors ${
                   isConfirmingWorldDelete
-                    ? "border-error bg-error text-white hover:bg-error/80"
+                    ? "border-error bg-error hover:bg-error/80"
                     : "border-error/70 text-error hover:bg-error/10"
                 }`}
               >
                 <Trash2 className="h-4 w-4" />
-                <span className="text-xs font-bold uppercase tracking-widest">
+                <span className="tracking-widest">
                   {isConfirmingWorldDelete ? "Confirm delete" : "Delete world"}
                 </span>
               </button>
@@ -781,16 +767,16 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
                 onClick={() => modal.open("channel-modal")}
                 className="flex items-center gap-3 rounded-xl border border-primary px-6 py-2.5 text-primary transition-colors hover:bg-primary/10"
               >
-                <span className="text-xs font-bold uppercase tracking-widest">Go to channels</span>
+                <span className="tracking-widest">Go to channels</span>
                 <ArrowRight className="h-4 w-4" />
               </button>
             )}
             <button
               type="button"
               onClick={saveCurrentStep}
-              className="flex items-center gap-3 rounded-xl bg-primary px-8 py-2.5 text-white transition-colors hover:bg-primary/80"
+              className="flex items-center gap-3 rounded-xl bg-primary px-8 py-2.5 transition-colors hover:bg-primary/80"
             >
-              <span className="text-xs font-bold uppercase tracking-widest">
+              <span className="tracking-widest">
                 {activeModal === "world"
                   ? isEditing
                     ? "Save world"

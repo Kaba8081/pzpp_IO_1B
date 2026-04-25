@@ -105,41 +105,41 @@ export const LoginRegisterModal = () => {
   return (
     <Modal name={currentModal} size="lg" padding="none" contentClassName="m-0">
       <div className="flex max-w-4xl flex-col overflow-hidden sm:flex-row">
-        <div className="w-full lg:w-1/2 flex flex-col p-10 text-white">
+        <div className="w-full lg:w-1/2 flex flex-col p-10">
           <header className="flex items-center justify-between mb-10">
             <nav className="flex items-center gap-5">
               <button
                 onClick={() => setActiveTab("LOGIN")}
-                className={`pb-2 font-bold font-cinzel text-xs tracking-widest transition-all ${activeTab === "LOGIN" ? "text-white border-b-2 border-primary" : "text-white/50 hover:text-white"}`}
+                className={`pb-2 tracking-widest transition-all ${activeTab === "LOGIN" ? "border-b-2 border-primary" : "text-white"}`}
               >
                 LOGIN
               </button>
               <button
                 onClick={() => setActiveTab("REGISTER")}
-                className={`pb-2 font-bold font-cinzel text-xs tracking-widest transition-all ${activeTab === "REGISTER" ? "text-white border-b-2 border-primary" : "text-white/50 hover:text-white"}`}
+                className={`pb-2 tracking-widest transition-all ${activeTab === "REGISTER" ? "border-b-2 border-primary" : "text-white"}`}
               >
                 REGISTER
               </button>
             </nav>
             <button
               onClick={() => modal.close()}
-              className="pb-2 flex items-center gap-2 text-white font-bold font-cinzel text-xs tracking-widest transition-colors"
+              className="pb-2 flex items-center gap-2 tracking-widest transition-colors"
             >
               SKIP
-              <X size={15} className="text-white" />
+              <X size={15} />
             </button>
           </header>
 
           <div className="flex-1 flex flex-col gap-3">
             <div className="mb-5">
-              <h1 className="font-cinzel text-2xl font-bold tracking-widest text-white uppercase mb-4">
+              <h1 className="text-2xl tracking-widest mb-4">
                 {activeTab === "LOGIN" ? "Continue Your Journey" : "Start Your Adventure"}
               </h1>
-              <p className="text-xs text-white tracking-widest">
+              <p className="tracking-widest">
                 {activeTab === "LOGIN" ? "New explorer?" : "Already a explorer?"}
                 <button
                   onClick={() => setActiveTab(activeTab === "LOGIN" ? "REGISTER" : "LOGIN")}
-                  className="text-primary hover:text-primary/70 font-bold transition-colors uppercase ml-2"
+                  className="text-primary hover:text-primary/70 transition-colors ml-2"
                 >
                   {activeTab === "LOGIN" ? "SIGN UP" : "LOGIN"}
                 </button>
@@ -148,9 +148,7 @@ export const LoginRegisterModal = () => {
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-5 w-full max-w-lg mx-auto">
               {serverError && (
-                <p className="text-error text-xs font-bold uppercase tracking-wider text-center">
-                  {serverError}
-                </p>
+                <p className="text-error tracking-wider text-center">{serverError}</p>
               )}
 
               <Input
@@ -225,7 +223,7 @@ export const LoginRegisterModal = () => {
               {activeTab === "LOGIN" && (
                 <button
                   type="button"
-                  className="text-primary hover:text-primary/70 transition-colors text-xs tracking-widest text-left uppercase"
+                  className="text-primary hover:text-primary/70 transition-colors tracking-widest text-left"
                 >
                   Forgot your password?
                 </button>

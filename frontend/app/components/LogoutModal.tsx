@@ -20,25 +20,19 @@ export const LogoutModal = () => {
       <div className="flex flex-col items-center text-center p-6">
         <button
           onClick={modal.close}
-          className="absolute top-4 right-4 text-white hover:text-primary transition-colors"
+          className="absolute top-4 right-4 hover:text-primary transition-colors"
         >
           <X size={24} />
         </button>
 
         <LogOut size={44} className="text-error mb-4" strokeWidth={1.5} />
 
-        <h2 className="font-cinzel text-md tracking-[0.2em] uppercase mb-6">Logout</h2>
+        <h2 className="text-md mb-6">Logout</h2>
 
-        <p className="font-cinzel text-xs font-bold tracking-[0.1em] uppercase mb-8">
-          Are you sure you want to logout of your account?
-        </p>
+        <p className="mb-8">Are you sure you want to logout of your account?</p>
 
         <div className="flex gap-4 w-full">
-          <Button
-            variant="outline"
-            onClick={modal.close}
-            className="flex-1 text-white font-cinzel tracking-widest"
-          >
+          <Button variant="outline" onClick={modal.close} className="flex-1 tracking-widest">
             CANCEL
           </Button>
 

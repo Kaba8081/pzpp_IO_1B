@@ -35,7 +35,7 @@ const ComponentShowcase = () => {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-lg bg-input-bg/30 p-8 rounded-2xl border border-input-border shadow-2xl">
-        <h1 className="text-3xl font-bold text-white mb-8 text-center">example form</h1>
+        <h1 className="text-3xl mb-8 text-center">example form</h1>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <Input

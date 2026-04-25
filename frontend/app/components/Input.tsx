@@ -27,7 +27,7 @@ export const Input: React.FC<InputProps> = ({
     <div className={cn("group flex w-full flex-col", wrapperClassName)}>
       <div
         className={cn(
-          "relative flex w-full flex-col justify-center rounded-2xl border bg-input-bg px-5 text-white transition-all duration-300",
+          "relative flex w-full flex-col justify-center rounded-2xl border bg-input-bg px-5 transition-all duration-300",
           label ? "pb-2 pt-6" : "py-4",
           error
             ? "border-error ring-1 ring-error"
@@ -36,10 +36,7 @@ export const Input: React.FC<InputProps> = ({
         )}
       >
         {label && (
-          <label
-            htmlFor={inputId}
-            className="pointer-events-none absolute left-5 top-2 tracking-[0.2em] text-white/50"
-          >
+          <label htmlFor={inputId} className="pointer-events-none absolute left-5 top-2">
             {label}
           </label>
         )}
@@ -48,16 +45,16 @@ export const Input: React.FC<InputProps> = ({
           id={inputId}
           {...props}
           className={cn(
-            "w-full border-none bg-transparent leading-none tracking-widest text-white outline-none placeholder-input-placeholder",
+            "w-full border-none bg-transparent leading-none tracking-widest outline-none placeholder-input-placeholder",
             icon ? "pr-10" : "",
             className
           )}
         />
 
-        {icon && <div className="absolute right-6 top-1/2 -translate-y-1/2 text-white">{icon}</div>}
+        {icon && <div className="absolute right-6 top-1/2 -translate-y-1/2">{icon}</div>}
       </div>
 
-      {error && <p className="text-error font-bold ml-1 mt-1 tracking-wider">{error}</p>}
+      {error && <p className="text-error ml-1 mt-1 tracking-wider">{error}</p>}
     </div>
   );
 };
