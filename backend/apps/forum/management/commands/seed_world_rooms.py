@@ -39,7 +39,7 @@ class Command(BaseSeeder):
                 avatar = self.get_random_image(self.config.img_folder)
                 WorldRoomFactory(
                     world=world,
-                    thumbnail=str(avatar) if avatar else None
+                    thumbnail=self.to_media_relative_path(avatar)
                 )
         except Exception as e:
             self.stdout.write(self.style.ERROR("FAIL"))

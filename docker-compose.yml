@@ -1,0 +1,81 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: pzpp-backend
+    command: >
+      sh -c "python manage.py init_db &&
+      python manage.py migrate &&
+      python manage.py init_admin &&
+      if [ \"$$DJANGO_DEBUG\" = \"False\" ] || [ \"$$DJANGO_DEBUG\" = \"false\" ] || [ \"$$DJANGO_DEBUG\" = \"0\" ]; then
+        python manage.py collectstatic --noinput &&
+        exec gunicorn pzpp.wsgi:application --bind 0.0.0.0:8000;
+      else
+        exec python manage.py runserver 0.0.0.0:8000;
+      fi"
+    env_file:
+      - ./backend/.env
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+    volumes:
+      - ./backend:/app
+      - backend_assets:/app/assets
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python manage.py check_services"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+
+  db:
+    image: postgres:16-alpine
+    container_name: pzpp-db
+    env_file:
+      - ./backend/.env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: pzpp-redis
+    restart: always
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: pzpp-nginx
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "8000:80"
+    volumes:
+      - backend_assets:/app/assets:ro
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  backend_assets:
+  redis_data:
+    driver: local
