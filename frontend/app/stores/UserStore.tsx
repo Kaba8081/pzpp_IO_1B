@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, type ReactNode } from "react";
-import type { SessionUser, World } from "@/types/models";
+import type { SessionUser, World, WorldUserProfile } from "@/types/models";
 import { setCookie, getCookie, deleteCookie } from "@/utils/cookieUtils";
 
 const USER_COOKIE_NAME = "user";
@@ -32,6 +32,9 @@ interface UserContextType {
 
   channelCreationWorld: World | null;
   setChannelCreationWorld: (world: World | null) => void;
+
+  activeProfile: WorldUserProfile | null;
+  setActiveProfile: (profile: WorldUserProfile | null) => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -70,6 +73,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [editingWorld, setEditingWorld] = useState<World | null>(null);
   const [deletingWorld, setDeletingWorld] = useState<World | null>(null);
   const [channelCreationWorld, setChannelCreationWorld] = useState<World | null>(null);
+  const [activeProfile, setActiveProfile] = useState<WorldUserProfile | null>(null);
 
   const setUser = (nextUser: SessionUser | null) => {
     setUserState(nextUser);
@@ -106,6 +110,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         setDeletingWorld,
         channelCreationWorld,
         setChannelCreationWorld,
+        activeProfile,
+        setActiveProfile,
       }}
     >
       {children}

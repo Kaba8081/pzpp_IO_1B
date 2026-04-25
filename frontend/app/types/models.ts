@@ -18,7 +18,7 @@ export type { World } from "./models/world";
 export type { WorldAttribute } from "./models/worldAttribute";
 export type { WorldUserProfile, WorldProfile } from "./models/worldUserProfile";
 export type { WorldRoom, Channel } from "./models/worldRoom";
-export type { WorldRoomMessage } from "./models/worldRoomMessage";
+export type { WorldRoomMessage, WorldRoomMessageWithAuthor } from "./models/worldRoomMessage";
 export type { WorldRoomMessageAction } from "./models/worldRoomMessageAction";
 export type { WorldRole } from "./models/worldRole";
 export type { WorldUserHasRole } from "./models/worldUserHasRole";

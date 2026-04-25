@@ -1,19 +1,30 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useParams } from "react-router";
 import { Button } from "@/components/Button";
 import { UsersSidebar } from "@/components/UsersSidebar";
 import { ChannelRoomMessage } from "@/components/ChannelRoomMessage";
+import { CharacterModal } from "@/components/modals/CharaterModal";
 import { SendHorizontal, Dices, User } from "lucide-react";
-import type { WorldRoomMessage, WorldRoom } from "@/types/models";
+import type { WorldRoom, WorldRoomMessageWithAuthor } from "@/types/models";
 import { WorldRoomManager } from "@/services/worldRoomManager";
+import { useUserStore } from "@/stores/UserStore";
+import { createChannelMessage } from "@/services/worldRoom/createChannelMessage.service";
 
 export default function WorldRoomPage() {
+  const { activeProfile } = useUserStore();
   const { worldId, roomId } = useParams<{ worldId: string; roomId: string }>();
+  const { modal, currentModal } = useUserStore();
   const [messageText, setMessageText] = useState("");
-  const [messages, setMessages] = useState<WorldRoomMessage[]>([]);
+  const [messages, setMessages] = useState<WorldRoomMessageWithAuthor[]>([]);
   const [activeRoom, setActiveRoom] = useState<WorldRoom>();
+  const [isSendingMessage, setSendingMessage] = useState<boolean>(false);
+
+  const isInputDisabled = useMemo(
+    () => isSendingMessage || !activeProfile,
+    [isSendingMessage, activeProfile]
+  );
 
   // Fetch activeRoom + it's messages
   useEffect(() => {
@@ -45,6 +56,22 @@ export default function WorldRoomPage() {
     };
   }, [roomId]);
 
+  const handleSendMessage = async () => {
+    if (!messageText || messageText.length === 0) return;
+    if (!roomId || !activeProfile) return;
+    setSendingMessage(true);
+
+    createChannelMessage(parseInt(roomId), {
+      user_profile: activeProfile?.id,
+      content: messageText,
+    })
+      .catch(console.error)
+      .finally(() => {
+        setSendingMessage(false);
+        setMessageText("");
+      });
+  };
+
   if (!worldId) {
     return <div>Invalid world ID</div>;
   }
@@ -67,7 +94,7 @@ export default function WorldRoomPage() {
               <ChannelRoomMessage
                 key={msg.id}
                 message={msg}
-                author={undefined}
+                author={msg.author}
                 GameMaster={false}
               />
             ))}
@@ -80,12 +107,14 @@ export default function WorldRoomPage() {
             onChange={(e) => setMessageText(e.target.value)}
             placeholder="YOUR MESSAGE"
             className="w-full h-20 border-primary rounded-2xl border-2 p-4 tracking-widest text-white/90 focus:outline-none focus:border-primary resize-none mb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+            disabled={isInputDisabled}
           />
 
           <div className="flex flex-col xl:flex-row lg:flex-row gap-3 w-full">
             <Button
               variant="outline"
               className="w-full sm:w-auto flex justify-center items-center gap-2"
+              onClick={handleSendMessage}
             >
               SEND MESSAGE
               <SendHorizontal size={20} className="text-primary" strokeWidth={1.5} />
@@ -100,6 +129,7 @@ export default function WorldRoomPage() {
             <Button
               variant="outline"
               className="w-full sm:w-auto flex justify-center items-center gap-2"
+              onClick={() => modal.open("create-character")}
             >
               CREATE CHARACTER
               <User size={20} className="text-primary" strokeWidth={1.5} />
@@ -111,6 +141,10 @@ export default function WorldRoomPage() {
       <div className="shrink-0 transition-all duration-300 m-4 mr-4 ml-2">
         <UsersSidebar masterOfGame={undefined} characters={undefined} />
       </div>
+
+      {currentModal === "create-character" && (
+        <CharacterModal mode="create" worldId={worldId ? parseInt(worldId) : undefined} />
+      )}
     </>
   );
 }
