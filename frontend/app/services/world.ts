@@ -5,6 +5,7 @@ import { createWorld } from "./world/createWorld.service";
 import { updateWorld } from "./world/updateWorld.service";
 import { deleteWorld } from "./world/deleteWorld.service";
 import { getWorldProfiles } from "./world/getWorldProfiles.service";
+import { uploadWorldImage } from "./world/uploadWorldImage.service";
 
 export {
   getAllWorlds,
@@ -14,4 +15,5 @@ export {
   updateWorld,
   deleteWorld,
   getWorldProfiles,
+  uploadWorldImage,
 };

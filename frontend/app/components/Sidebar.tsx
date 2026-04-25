@@ -10,16 +10,8 @@ import { getChannels } from "@/services/worldRoom";
 import type { World, Channel } from "@/types/models";
 
 export const Sidebar: React.FC = () => {
-  const {
-    user,
-    isLoggedIn,
-    modal,
-    worldsVersion,
-    channelsVersion,
-    setEditingWorld,
-    setDeletingWorld,
-    setChannelCreationWorld,
-  } = useUserStore();
+  const { user, isLoggedIn, modal, worldsVersion, channelsVersion, setEditingWorld } =
+    useUserStore();
   const navigate = useNavigate();
   const location = useLocation();
   const { worldId } = useParams<{ worldId?: string }>();
@@ -171,15 +163,15 @@ export const Sidebar: React.FC = () => {
                     isActive={worldId === String(world.id)}
                     onEdit={() => {
                       setEditingWorld(world);
-                      modal.open("edit-world");
+                      modal.open("world-modal");
                     }}
                     onDelete={() => {
-                      setDeletingWorld(world);
-                      modal.open("delete-world");
+                      setEditingWorld(world);
+                      modal.open("world-modal");
                     }}
                     onCreateItem={() => {
-                      setChannelCreationWorld(world);
-                      modal.open("create-channel");
+                      setEditingWorld(world);
+                      modal.open("channel-modal");
                     }}
                   />
                 ))}
@@ -189,7 +181,10 @@ export const Sidebar: React.FC = () => {
             {isLoggedIn ? (
               <button
                 className="flex items-center gap-5 justify-start w-full border border-dashed border-primary/30 rounded-xl px-4 py-3 text-white hover:border-primary/70 hover:bg-primary/5 hover:text-primary transition-all duration-200"
-                onClick={() => modal.open("create-world")}
+                onClick={() => {
+                  setEditingWorld(null);
+                  modal.open("world-modal");
+                }}
               >
                 <PlusCircle className="w-5.5 h-5.5" />
                 <span>Create World</span>

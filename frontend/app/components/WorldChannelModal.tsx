@@ -13,6 +13,19 @@ import {
 } from "lucide-react";
 import { useUserStore } from "@/stores/UserStore";
 import { bannerPool } from "./worldChannelBanners";
+import {
+  createWorld,
+  updateWorld,
+  deleteWorld as deleteWorldApi,
+  uploadWorldImage,
+} from "@/services/world";
+import {
+  getChannels,
+  createChannel,
+  updateChannel,
+  deleteChannel,
+  uploadChannelImage,
+} from "@/services/worldRoom";
 
 type ActiveModal = "world" | "channel";
 type AttributeType = "TEXT" | "NUMBER";
@@ -25,6 +38,8 @@ interface AttributeDraft {
 
 interface ChannelDraft {
   id: number;
+  serverId?: number;
+  imageFile?: File;
   name: string;
   description: string;
   image: string;
@@ -50,7 +65,6 @@ export interface WorldChannelModalProps {
     description: string;
     profile_picture: string;
   };
-  onDeleteWorld?: () => void;
 }
 
 const defaultChannels: ChannelDraft[] = [
@@ -93,15 +107,31 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
   mode,
   worldId,
   initialData,
-  onDeleteWorld,
 }) => {
-  const { currentModal, modal } = useUserStore();
+  const { currentModal, modal, editingWorld, bumpWorldsVersion, bumpChannelsVersion } =
+    useUserStore();
+
   const worldInputRef = useRef<HTMLInputElement>(null);
   const channelInputRef = useRef<HTMLInputElement>(null);
+  const originalChannelIds = useRef<Set<number>>(new Set());
 
-  const [worldName, setWorldName] = useState(initialData?.name ?? "");
-  const [worldDescription, setWorldDescription] = useState(initialData?.description ?? "");
-  const [worldImage, setWorldImage] = useState(initialData?.profile_picture || bannerPool[3]);
+  const effectiveWorldId = worldId ?? editingWorld?.id;
+  const effectiveInitialData =
+    initialData ??
+    (editingWorld
+      ? {
+          name: editingWorld.name ?? "",
+          description: editingWorld.description ?? "",
+          profile_picture: editingWorld.profile_picture ?? "",
+        }
+      : undefined);
+
+  const [worldName, setWorldName] = useState(effectiveInitialData?.name ?? "");
+  const [worldDescription, setWorldDescription] = useState(effectiveInitialData?.description ?? "");
+  const [worldImage, setWorldImage] = useState(
+    effectiveInitialData?.profile_picture || bannerPool[3]
+  );
+  const [worldImageFile, setWorldImageFile] = useState<File | null>(null);
   const [attributes, setAttributes] = useState<AttributeDraft[]>(defaultAttributes);
   const [worldErrors, setWorldErrors] = useState<WorldErrors>({});
   const [worldDragActive, setWorldDragActive] = useState(false);
@@ -115,6 +145,11 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
   const [draggedChannelId, setDraggedChannelId] = useState<number | null>(null);
   const [dragOverChannelId, setDragOverChannelId] = useState<number | null>(null);
 
+  const [createdWorldId, setCreatedWorldId] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [channelsLoaded, setChannelsLoaded] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
+
   const activeModal: ActiveModal | null = useMemo(() => {
     if (currentModal === "world-modal") return "world";
     if (currentModal === "channel-modal") return "channel";
@@ -123,15 +158,88 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
 
   const selectedChannel =
     channels.find((channel) => channel.id === selectedChannelId) ?? channels[0];
-  const modalMode = mode ?? (worldId ? "edit" : "create");
+  const modalMode = mode ?? (effectiveWorldId ? "edit" : "create");
   const isEditing = modalMode === "edit";
 
+  // Reset world fields when the target world changes (edit→create or between worlds)
   useEffect(() => {
-    setWorldName(initialData?.name ?? "");
-    setWorldDescription(initialData?.description ?? "");
-    setWorldImage(initialData?.profile_picture || bannerPool[3]);
+    setWorldName(effectiveInitialData?.name ?? "");
+    setWorldDescription(effectiveInitialData?.description ?? "");
+    setWorldImage(effectiveInitialData?.profile_picture || bannerPool[3]);
+    setWorldImageFile(null);
     setIsConfirmingWorldDelete(false);
-  }, [initialData]);
+    setServerError(null);
+  }, [
+    effectiveWorldId,
+    effectiveInitialData?.name,
+    effectiveInitialData?.description,
+    effectiveInitialData?.profile_picture,
+  ]);
+
+  // Reset session state when the modal opens fresh (world-modal, not returning from channel step)
+  const prevModalRef = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    const wasNull = prevModalRef.current == null;
+    prevModalRef.current = currentModal;
+
+    if (currentModal === "world-modal" && wasNull) {
+      setCreatedWorldId(null);
+      setServerError(null);
+      setWorldErrors({});
+      setChannelErrors({});
+      if (!effectiveWorldId) {
+        setWorldName("");
+        setWorldDescription("");
+        setWorldImage(bannerPool[3]);
+        setWorldImageFile(null);
+        setAttributes(defaultAttributes);
+        setChannels(defaultChannels);
+        setSelectedChannelId(defaultChannels[0].id);
+      }
+    }
+
+    if (currentModal === "channel-modal" && wasNull) {
+      setServerError(null);
+      setChannelErrors({});
+      if (!effectiveWorldId) {
+        setChannels(defaultChannels);
+        setSelectedChannelId(defaultChannels[0].id);
+        setChannelsLoaded(true);
+      }
+    }
+  }, [currentModal, effectiveWorldId]);
+
+  // Load existing channels when opening channel-modal in edit mode
+  useEffect(() => {
+    if (!effectiveWorldId || activeModal !== "channel") return;
+
+    setChannels([]);
+    setChannelsLoaded(false);
+
+    let mounted = true;
+    getChannels(effectiveWorldId)
+      .then((serverChannels) => {
+        if (!mounted) return;
+        originalChannelIds.current = new Set(serverChannels.map((ch) => ch.id));
+        const drafts: ChannelDraft[] = serverChannels.map((ch, i) => ({
+          id: ch.id,
+          serverId: ch.id,
+          name: ch.name ?? "",
+          description: ch.description ?? "",
+          image: ch.thumbnail ?? bannerPool[i % bannerPool.length],
+        }));
+        setChannels(drafts);
+        setSelectedChannelId(drafts[0]?.id ?? -1);
+        setChannelsLoaded(true);
+      })
+      .catch(() => {
+        setChannelsLoaded(true);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [effectiveWorldId, activeModal]);
 
   if (!activeModal) return null;
 
@@ -175,7 +283,7 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
   const addChannel = () => {
     const nextNumber = channels.length + 1;
     const id = Date.now();
-    const nextChannel = {
+    const nextChannel: ChannelDraft = {
       id,
       name: `CHANNEL ${nextNumber}`,
       description: "",
@@ -220,14 +328,24 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
     setChannelErrors({});
   };
 
-  const deleteWorld = () => {
+  const handleDeleteWorld = async () => {
     if (!isConfirmingWorldDelete) {
       setIsConfirmingWorldDelete(true);
       return;
     }
 
-    onDeleteWorld?.();
-    modal.close();
+    setIsLoading(true);
+    setServerError(null);
+    try {
+      await deleteWorldApi(effectiveWorldId!);
+      bumpWorldsVersion();
+      modal.close();
+    } catch (error) {
+      setServerError(error instanceof Error ? error.message : "Failed to delete world.");
+      setIsConfirmingWorldDelete(false);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const validateWorld = () => {
@@ -271,15 +389,107 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
     return Object.keys(nextErrors).length === 0;
   };
 
-  const saveCurrentStep = () => {
+  const saveCurrentStep = async () => {
     const isValid = activeModal === "world" ? validateWorld() : validateChannel();
+    if (!isValid) return;
 
-    if (isValid) {
-      if (activeModal === "world" && !isEditing) {
-        modal.open("channel-modal");
+    setIsLoading(true);
+    setServerError(null);
+
+    try {
+      if (activeModal === "world") {
+        if (!isEditing) {
+          // Create mode — step 1: create or update the world
+          let targetWorldId = createdWorldId;
+          if (!targetWorldId) {
+            const world = await createWorld({
+              name: worldName,
+              description: worldDescription,
+            });
+            targetWorldId = world.id;
+            setCreatedWorldId(world.id);
+          } else {
+            await updateWorld(targetWorldId, {
+              name: worldName,
+              description: worldDescription,
+            });
+          }
+          if (worldImageFile) {
+            await uploadWorldImage(targetWorldId, worldImageFile);
+            setWorldImageFile(null);
+          }
+          bumpWorldsVersion();
+          modal.open("channel-modal");
+        } else {
+          // Edit mode — save world changes and close
+          await updateWorld(effectiveWorldId!, {
+            name: worldName,
+            description: worldDescription,
+          });
+          if (worldImageFile) {
+            await uploadWorldImage(effectiveWorldId!, worldImageFile);
+          }
+          bumpWorldsVersion();
+          modal.close();
+        }
       } else {
+        // Channel step
+        const targetWorldId = isEditing ? effectiveWorldId! : createdWorldId!;
+
+        if (isEditing) {
+          // Delete channels that were removed from the draft
+          const currentServerIds = new Set(
+            channels.filter((ch) => ch.serverId !== undefined).map((ch) => ch.serverId!)
+          );
+          for (const originalId of originalChannelIds.current) {
+            if (!currentServerIds.has(originalId)) {
+              await deleteChannel(originalId);
+            }
+          }
+
+          // Create new / update existing channels
+          for (const channel of channels) {
+            if (channel.serverId !== undefined) {
+              await updateChannel(channel.serverId, {
+                name: channel.name,
+                description: channel.description,
+              });
+              if (channel.imageFile) {
+                await uploadChannelImage(channel.serverId, channel.imageFile);
+              }
+            } else {
+              const created = await createChannel(targetWorldId, {
+                name: channel.name,
+                description: channel.description,
+              });
+              if (channel.imageFile) {
+                await uploadChannelImage(created.id, channel.imageFile);
+              }
+            }
+          }
+        } else {
+          // Create mode — create all draft channels
+          for (const channel of channels) {
+            const created = await createChannel(targetWorldId, {
+              name: channel.name,
+              description: channel.description,
+            });
+            if (channel.imageFile) {
+              await uploadChannelImage(created.id, channel.imageFile);
+            }
+          }
+        }
+
+        bumpChannelsVersion();
+        bumpWorldsVersion();
         modal.close();
       }
+    } catch (error) {
+      setServerError(
+        error instanceof Error ? error.message : "An error occurred. Please try again."
+      );
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -290,6 +500,7 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
       file,
       (image) => {
         setWorldImage(image);
+        setWorldImageFile(file);
         setWorldErrors((currentErrors) => ({ ...currentErrors, image: undefined }));
       },
       (message) =>
@@ -307,7 +518,7 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
     readImage(
       file,
       (image) => {
-        updateSelectedChannel({ image });
+        updateSelectedChannel({ image, imageFile: file });
         setChannelErrors({});
       },
       (message) => setChannelErrors((currentErrors) => ({ ...currentErrors, channels: message }))
@@ -721,12 +932,17 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
           </div>
         )}
 
+        {serverError && (
+          <p className="px-10 pb-2 tracking-widest text-error text-center">{serverError}</p>
+        )}
+
         <div className="flex flex-col gap-4 border-t border-primary/30 bg-background-site p-6 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-wrap gap-4">
             <button
               type="button"
               onClick={modal.close}
-              className="flex items-center gap-3 rounded-xl border border-error/70 px-5 py-2.5 text-error transition-colors hover:bg-error/10"
+              disabled={isLoading}
+              className="flex items-center gap-3 rounded-xl border border-error/70 px-5 py-2.5 text-error transition-colors hover:bg-error/10 disabled:opacity-50"
             >
               <X className="h-4 w-4" />
               <span className="tracking-widest">Exit</span>
@@ -736,7 +952,8 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
               <button
                 type="button"
                 onClick={() => modal.open("world-modal")}
-                className="flex items-center gap-3 rounded-xl border border-white/20 px-5 py-2.5 transition-colors hover:border-white"
+                disabled={isLoading}
+                className="flex items-center gap-3 rounded-xl border border-white/20 px-5 py-2.5 transition-colors hover:border-white disabled:opacity-50"
               >
                 <ArrowLeft className="h-4 w-4" />
                 <span className="tracking-widest">Back to world</span>
@@ -745,8 +962,9 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
             {isEditing && activeModal === "world" && (
               <button
                 type="button"
-                onClick={deleteWorld}
-                className={`flex items-center gap-3 rounded-xl border px-5 py-2.5 transition-colors ${
+                onClick={handleDeleteWorld}
+                disabled={isLoading}
+                className={`flex items-center gap-3 rounded-xl border px-5 py-2.5 transition-colors disabled:opacity-50 ${
                   isConfirmingWorldDelete
                     ? "border-error bg-error hover:bg-error/80"
                     : "border-error/70 text-error hover:bg-error/10"
@@ -765,7 +983,8 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
               <button
                 type="button"
                 onClick={() => modal.open("channel-modal")}
-                className="flex items-center gap-3 rounded-xl border border-primary px-6 py-2.5 text-primary transition-colors hover:bg-primary/10"
+                disabled={isLoading}
+                className="flex items-center gap-3 rounded-xl border border-primary px-6 py-2.5 text-primary transition-colors hover:bg-primary/10 disabled:opacity-50"
               >
                 <span className="tracking-widest">Go to channels</span>
                 <ArrowRight className="h-4 w-4" />
@@ -774,22 +993,26 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
             <button
               type="button"
               onClick={saveCurrentStep}
-              className="flex items-center gap-3 rounded-xl bg-primary px-8 py-2.5 transition-colors hover:bg-primary/80"
+              disabled={isLoading || (isEditing && activeModal === "channel" && !channelsLoaded)}
+              className="flex items-center gap-3 rounded-xl bg-primary px-8 py-2.5 transition-colors hover:bg-primary/80 disabled:opacity-50"
             >
               <span className="tracking-widest">
-                {activeModal === "world"
-                  ? isEditing
-                    ? "Save world"
-                    : "Next step"
-                  : isEditing
-                    ? "Save channels"
-                    : "Create world"}
+                {isLoading
+                  ? "Saving..."
+                  : activeModal === "world"
+                    ? isEditing
+                      ? "Save world"
+                      : "Next step"
+                    : isEditing
+                      ? "Save channels"
+                      : "Create world"}
               </span>
-              {activeModal === "world" && !isEditing ? (
-                <ArrowRight className="h-4 w-4" />
-              ) : (
-                <Plus className="h-4 w-4" />
-              )}
+              {!isLoading &&
+                (activeModal === "world" && !isEditing ? (
+                  <ArrowRight className="h-4 w-4" />
+                ) : (
+                  <Plus className="h-4 w-4" />
+                ))}
             </button>
           </div>
         </div>

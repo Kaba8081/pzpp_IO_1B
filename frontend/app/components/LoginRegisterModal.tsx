@@ -5,7 +5,7 @@ import { Checkbox } from "./Checkbox";
 import { useUserStore } from "@/stores/UserStore";
 import { Modal } from "./Modal";
 import { Button } from "./Button";
-import loginRegisterBanner from "@/images/login_register_banner.jpg";
+import loginRegisterBanner from "@/images/login_register_banner.webp";
 import { AuthService } from "@/services/auth";
 
 type AuthTab = "LOGIN" | "REGISTER";
@@ -20,7 +20,10 @@ const getInitialTab = (modalName: (typeof AUTH_MODAL_NAMES)[number]): AuthTab =>
 
 export const LoginRegisterModal = () => {
   const { currentModal, modal, setUser } = useUserStore();
-  const [activeTab, setActiveTab] = useState<AuthTab>("LOGIN");
+  const [activeTab, setActiveTab] = useState<AuthTab>(() =>
+    isAuthModal(currentModal) ? getInitialTab(currentModal) : "LOGIN"
+  );
+  const [prevModal, setPrevModal] = useState<string | undefined>(currentModal);
   const [agreeToPolicy, setAgreeToPolicy] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -34,6 +37,13 @@ export const LoginRegisterModal = () => {
     email: "",
     username: "",
   });
+
+  if (prevModal !== currentModal) {
+    setPrevModal(currentModal);
+    if (isAuthModal(currentModal)) {
+      setActiveTab(getInitialTab(currentModal));
+    }
+  }
 
   const isRegister = activeTab === "REGISTER";
   const errors = {
@@ -51,12 +61,15 @@ export const LoginRegisterModal = () => {
   };
 
   useEffect(() => {
-    if (isAuthModal(currentModal)) {
-      setActiveTab(getInitialTab(currentModal));
-    }
     setIsSubmitted(false);
     setServerError(null);
   }, [currentModal]);
+
+  const handleTabSwitch = (tab: AuthTab) => {
+    setActiveTab(tab);
+    setIsSubmitted(false);
+    setServerError(null);
+  };
 
   if (!isAuthModal(currentModal)) {
     return null;
@@ -109,13 +122,13 @@ export const LoginRegisterModal = () => {
           <header className="flex items-center justify-between mb-10">
             <nav className="flex items-center gap-5">
               <button
-                onClick={() => setActiveTab("LOGIN")}
+                onClick={() => handleTabSwitch("LOGIN")}
                 className={`pb-2 tracking-widest transition-all ${activeTab === "LOGIN" ? "border-b-2 border-primary" : "text-white"}`}
               >
                 LOGIN
               </button>
               <button
-                onClick={() => setActiveTab("REGISTER")}
+                onClick={() => handleTabSwitch("REGISTER")}
                 className={`pb-2 tracking-widest transition-all ${activeTab === "REGISTER" ? "border-b-2 border-primary" : "text-white"}`}
               >
                 REGISTER
@@ -138,7 +151,7 @@ export const LoginRegisterModal = () => {
               <p className="tracking-widest">
                 {activeTab === "LOGIN" ? "New explorer?" : "Already a explorer?"}
                 <button
-                  onClick={() => setActiveTab(activeTab === "LOGIN" ? "REGISTER" : "LOGIN")}
+                  onClick={() => handleTabSwitch(activeTab === "LOGIN" ? "REGISTER" : "LOGIN")}
                   className="text-primary hover:text-primary/70 transition-colors ml-2"
                 >
                   {activeTab === "LOGIN" ? "SIGN UP" : "LOGIN"}
@@ -242,7 +255,7 @@ export const LoginRegisterModal = () => {
         </div>
 
         <div
-          className="w-1/2 bg-cover bg-center self-stretch hidden lg:block"
+          className="w-1/2 bg-cover bg-center hidden lg:block object-fill"
           style={{ backgroundImage: `url(${loginRegisterBanner})` }}
         ></div>
       </div>

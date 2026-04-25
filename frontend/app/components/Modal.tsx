@@ -69,7 +69,7 @@ export const Modal = ({
         )}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className={cn("mt-2", contentClassName)}>{children}</div>
+        <div className={contentClassName}>{children}</div>
       </div>
     </div>
   );

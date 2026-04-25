@@ -78,7 +78,7 @@ export const EditProfileModal = () => {
             disabled={loading}
           />
 
-          {error && <p className="text-error     tracking-widest text-center mb-4">{error}</p>}
+          {error && <p className="text-error tracking-widest text-center mb-4">{error}</p>}
 
           <div className="flex gap-4 mt-2">
             <Button
