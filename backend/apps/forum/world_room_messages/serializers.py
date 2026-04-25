@@ -1,5 +1,6 @@
-from rest_framework import serializers
+from django.conf import settings
 from django.core.exceptions import ValidationError
+from rest_framework import serializers
 
 from apps.forum.world_room_messages.models import WorldRoomMessages
 from apps.forum.world_rooms.models import WorldRooms
@@ -7,6 +8,22 @@ from apps.forum.world_user_profiles.models import WorldUserProfiles
 
 
 class WorldUserProfileAuthorSerializer(serializers.ModelSerializer):
+    avatar = serializers.SerializerMethodField()
+
+    def get_avatar(self, obj) -> str | None:
+        if not obj.avatar:
+            return None
+        url = obj.avatar.url
+        request = self.context.get('request')
+        if request is not None:
+            return request.build_absolute_uri(url)
+        site_url = getattr(settings, 'SITE_URL', '').rstrip('/')
+        if not site_url:
+            return url
+        if not url.startswith('/'):
+            url = f'/{url}'
+        return f'{site_url}{url}'
+
     class Meta:
         model = WorldUserProfiles
         fields = ['id', 'name', 'avatar']
