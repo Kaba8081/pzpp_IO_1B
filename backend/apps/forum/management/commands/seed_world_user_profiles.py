@@ -54,7 +54,7 @@ class Command(BaseSeeder):
                 WorldUserProfileFactory(
                     user=user, 
                     world=world,
-                    avatar=str(avatar) if avatar else None
+                    avatar=self.to_media_relative_path(avatar)
                 )
         except Exception as e:
             self.stdout.write(self.style.ERROR("FAIL"))

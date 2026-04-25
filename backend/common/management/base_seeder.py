@@ -81,6 +81,14 @@ class BaseSeeder(BaseCommand, abc.ABC):
             return None
         return random.choice(images)
 
+    def to_media_relative_path(self, image_path: Path | None) -> str | None:
+        if image_path is None:
+            return None
+
+        media_root = Path(settings.MEDIA_ROOT).resolve()
+        image_path = image_path.resolve()
+        return str(image_path.relative_to(media_root)).replace('\\', '/')
+
     def _prepare_images(
         self,
         path: Path,

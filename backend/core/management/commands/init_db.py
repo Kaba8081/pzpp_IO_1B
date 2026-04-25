@@ -32,7 +32,7 @@ class Command(BaseCommand):
         try:
             con = psycopg2.connect(
                 dbname = 'postgres',
-                user = 'postgres',
+                user = db_config['USER'],
                 password = password,
                 host = db_config.get('HOST', 'localhost'),
                 port = db_config.get('PORT', '5432')
@@ -48,14 +48,14 @@ class Command(BaseCommand):
             cursor.close()
             con.close()
 
-        except Exception as e:
+        except psycopg2.Error as e:
             self.stderr.write(self.style.ERROR(f"Error creating database: {e}"))
 
         # Ensure the newly created user has permissions on public schema
         try:
             con = psycopg2.connect(
                 dbname=db_config["NAME"],
-                user = 'postgres',
+                user = db_config['USER'],
                 password = password,
                 host = db_config.get('HOST', 'localhost'),
                 port = db_config.get('PORT', '5432')
@@ -70,7 +70,7 @@ class Command(BaseCommand):
 
             self.stdout.write(self.style.SUCCESS("Database created and permissions granted!"))
 
-        except Exception as e:
+        except psycopg2.Error as e:
             self.stderr.write(self.style.ERROR(f"Error granting permissions on schema public: {e}"))
 
     @staticmethod
