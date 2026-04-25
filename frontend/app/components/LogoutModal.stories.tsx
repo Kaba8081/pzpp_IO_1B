@@ -10,7 +10,7 @@ const meta: Meta<typeof LogoutModal> = {
     (Story) => (
       <MemoryRouter>
         <UserProvider>
-          <div className="bg-background-site min-h-screen w-full font-sans">
+          <div className="bg-background-site min-h-screen w-full font-cinzel">
             <Story />
           </div>
         </UserProvider>
