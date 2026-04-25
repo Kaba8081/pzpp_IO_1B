@@ -1,18 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import {
-  ArrowLeft,
-  ArrowRight,
-  ChevronDown,
-  Edit2,
-  FileText,
-  GripVertical,
-  Plus,
-  Trash2,
-  Upload,
-  X,
-} from "lucide-react";
+import { ArrowLeft, ArrowRight, ChevronDown, GripVertical, Plus, Trash2, X } from "lucide-react";
 import { useUserStore } from "@/stores/UserStore";
 import { bannerPool } from "@/components/ui/worldChannelBanners";
+import { Input } from "@/components/ui/Input";
 import {
   createWorld,
   updateWorld,
@@ -123,7 +113,6 @@ const ImageUploadDropzone: React.FC<ImageUploadDropzoneProps> = ({
   onFileSelect,
   fallbackImage,
   containerHeightClassName,
-  uploadButtonClassName,
   imageClassName,
 }) => (
   <div
@@ -155,88 +144,12 @@ const ImageUploadDropzone: React.FC<ImageUploadDropzoneProps> = ({
       <div className="mb-1">{title}</div>
       <div>Drag and drop image</div>
     </div>
-    <button
-      type="button"
-      className={uploadButtonClassName}
-      onClick={(e) => {
-        e.stopPropagation();
-        inputRef.current?.click();
-      }}
-    >
-      Upload <Upload className="h-4 w-4" />
-    </button>
     <input
       ref={inputRef}
       type="file"
       accept="image/*"
       className="hidden"
       onChange={(e) => onFileSelect(e.target.files?.[0])}
-    />
-  </div>
-);
-
-interface LabeledInputCardProps {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  placeholder: string;
-  error?: string;
-}
-
-const LabeledInputCard: React.FC<LabeledInputCardProps> = ({
-  label,
-  value,
-  onChange,
-  placeholder,
-  error,
-}) => (
-  <div className="rounded-2xl border border-transparent bg-input-bg p-4 transition-colors focus-within:border-primary">
-    <div className="flex items-center justify-between gap-4">
-      <div className="flex-1">
-        <div className="mb-1 text-input-placeholder">{label}</div>
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          className="w-full bg-transparent outline-none placeholder:text-input-placeholder/50"
-        />
-      </div>
-      <Edit2 className="h-4 w-4/50" />
-    </div>
-    <ErrorText message={error} />
-  </div>
-);
-
-interface LabeledTextAreaCardProps {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  placeholder: string;
-  containerClassName?: string;
-  textAreaClassName?: string;
-}
-
-const LabeledTextAreaCard: React.FC<LabeledTextAreaCardProps> = ({
-  label,
-  value,
-  onChange,
-  placeholder,
-  containerClassName,
-  textAreaClassName,
-}) => (
-  <div
-    className={`flex flex-col rounded-2xl border border-transparent bg-input-bg p-4 transition-colors focus-within:border-primary ${containerClassName ?? ""}`}
-  >
-    <div className="mb-2 flex items-start justify-between">
-      <div className="text-input-placeholder">{label}</div>
-      <FileText className="h-4 w-4" />
-    </div>
-    <textarea
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      className={`w-full flex-1 resize-none bg-transparent outline-none placeholder:text-input-placeholder/50 ${textAreaClassName ?? ""}`}
     />
   </div>
 );
@@ -307,15 +220,13 @@ const AttributeRow: React.FC<AttributeRowProps> = ({
   onRemove,
 }) => (
   <div className="grid gap-3 md:grid-cols-[1fr_9rem_2.75rem]">
-    <div className="rounded-xl border border-transparent bg-input-bg p-4 transition-colors focus-within:border-primary">
-      <input
-        value={attribute.name}
-        onChange={(e) => onNameChange(e.target.value)}
-        className="h-5 w-full bg-transparent outline-none placeholder:text-input-placeholder/50"
-        placeholder="Attribute name"
-      />
-      <ErrorText message={nameError} />
-    </div>
+    <Input
+      value={attribute.name}
+      onChange={(e) => onNameChange(e.target.value)}
+      placeholder="Attribute name"
+      error={nameError}
+      fieldClassName="h-13"
+    />
     {isEditing ? (
       <div className="flex h-13 items-center rounded-xl border border-primary/40 bg-primary/15 px-4 text-primary">
         {attribute.type}
@@ -792,23 +703,23 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
               />
               <ErrorText message={worldErrors.image} />
 
-              <LabeledInputCard
+              <Input
                 label="World name"
                 value={worldName}
-                onChange={(value) => {
-                  setWorldName(value);
-                  setWorldErrors((e) => ({ ...e, name: undefined }));
+                onChange={(e) => {
+                  setWorldName(e.target.value);
+                  setWorldErrors((er) => ({ ...er, name: undefined }));
                 }}
                 placeholder="Enter world name..."
                 error={worldErrors.name}
               />
-              <LabeledTextAreaCard
+              <Input
+                multiline
                 label="Description"
                 value={worldDescription}
-                onChange={setWorldDescription}
+                onChange={(e) => setWorldDescription(e.target.value)}
                 placeholder="Enter description..."
-                containerClassName="h-40"
-                textAreaClassName=""
+                fieldClassName="min-h-32"
               />
             </div>
 
@@ -844,7 +755,7 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
                 <button
                   type="button"
                   onClick={addAttribute}
-                  className="mt-2 flex h-13 items-center justify-between rounded-xl border border-transparent bg-input-bg p-4 transition-colors hover:border-primary"
+                  className="mt-2 flex h-13 items-center justify-between rounded-xl border border-input-stroke-hover/60 bg-input-bg p-4 transition-colors hover:border-primary"
                 >
                   <span>Add new attribute</span>
                   <Plus className="h-5 w-5" />
@@ -860,7 +771,7 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
               <button
                 type="button"
                 onClick={addChannel}
-                className="flex h-20 shrink-0 items-center justify-center gap-3 rounded-xl border border-primary/40 bg-input-bg transition-colors hover:border-primary"
+                className="flex h-20 shrink-0 items-center justify-center gap-3 rounded-xl border border-input-stroke-hover/60 bg-input-bg transition-colors hover:border-primary"
               >
                 <span>Add new channel</span>
                 <Plus className="h-5 w-5" />
@@ -931,23 +842,23 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
                     uploadButtonClassName="relative z-10 flex items-center gap-3 rounded-xl border border-white/30 bg-black/40 px-4 py-2 transition-colors hover:border-primary"
                     imageClassName="transition-opacity"
                   />
-                  <LabeledInputCard
+                  <Input
                     label="Channel name"
                     value={selectedChannel.name}
-                    onChange={(value) => {
-                      updateSelectedChannel({ name: value });
-                      setChannelErrors((e) => ({ ...e, name: undefined }));
+                    onChange={(e) => {
+                      updateSelectedChannel({ name: e.target.value });
+                      setChannelErrors((er) => ({ ...er, name: undefined }));
                     }}
                     placeholder="Enter channel name..."
                     error={channelErrors.name}
                   />
-                  <LabeledTextAreaCard
+                  <Input
+                    multiline
                     label="Short description"
                     value={selectedChannel.description}
-                    onChange={(value) => updateSelectedChannel({ description: value })}
+                    onChange={(e) => updateSelectedChannel({ description: e.target.value })}
                     placeholder="Enter short description..."
-                    containerClassName="h-32"
-                    textAreaClassName=""
+                    fieldClassName="min-h-32"
                   />
                 </>
               )}

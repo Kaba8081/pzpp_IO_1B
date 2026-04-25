@@ -211,14 +211,6 @@ export const Sidebar: React.FC = () => {
       </div>
 
       <div className="mt-12 flex flex-col items-center">
-        <div className="mb-8 w-40 h-52 bg-linear-to-b from-primary/10 to-transparent border border-primary/20 rounded flex items-center justify-center text-center">
-          <span className="text-primary">
-            LOGO
-            <br />
-            PLACEHOLDER
-          </span>
-        </div>
-
         <div className="flex gap-6 text-input-placeholder mb-5">
           <a
             href="#"
