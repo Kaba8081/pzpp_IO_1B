@@ -12,6 +12,7 @@ import { WorldRoomManager } from "@/services/worldRoomManager";
 import { useUserStore } from "@/stores/UserStore";
 import { createChannelMessage } from "@/services/worldRoom/createChannelMessage.service";
 import type { AppLayoutOutletContext } from "./AppLayout";
+import { connectWorldRoomChannel } from "@/services/worldRoom/worldRoomChannel";
 
 export default function WorldRoomPage() {
   const { activeProfile } = useUserStore();
@@ -30,7 +31,7 @@ export default function WorldRoomPage() {
     [isSendingMessage, activeProfile]
   );
 
-  // Fetch activeRoom + it's messages
+  // Fetch activeRoom + its messages
   useEffect(() => {
     if (!roomId) return;
 
@@ -58,6 +59,20 @@ export default function WorldRoomPage() {
     return () => {
       isMounted = false;
     };
+  }, [roomId]);
+
+  // Subscribe to live messages via WebSocket
+  useEffect(() => {
+    if (!roomId) return;
+
+    const channel = connectWorldRoomChannel(parseInt(roomId));
+    const unsub = channel.subscribe("room.message.created", (e) => {
+      setMessages((prev) =>
+        prev.some((m) => m.id === e.message.id) ? prev : [...prev, e.message]
+      );
+    });
+
+    return unsub;
   }, [roomId]);
 
   const handleSendMessage = async () => {
@@ -151,9 +166,8 @@ export default function WorldRoomPage() {
       )}
 
       <div
-        className={`fixed inset-y-0 right-0 z-40 h-dvh p-3 transition-transform duration-300 lg:static lg:z-auto lg:h-auto lg:p-0 lg:transition-all lg:translate-x-0 lg:shrink-0 lg:m-4 lg:mr-4 lg:ml-2 ${
-          isUsersSidebarOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`fixed inset-y-0 right-0 z-40 h-dvh p-3 transition-transform duration-300 lg:static lg:z-auto lg:h-auto lg:p-0 lg:transition-all lg:translate-x-0 lg:shrink-0 lg:m-4 lg:mr-4 lg:ml-2 ${isUsersSidebarOpen ? "translate-x-0" : "translate-x-full"
+          }`}
       >
         <UsersSidebar masterOfGame={undefined} characters={undefined} />
       </div>
