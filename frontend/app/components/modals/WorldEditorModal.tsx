@@ -70,14 +70,14 @@ export const WorldEditorModal = ({
       >
         <div className="flex flex-col md:flex-row min-h-125">
           <div className="flex-1 p-8 border-r border-background">
-            <h2 className="text-2xl font-serif tracking-widest mb-8">Create World</h2>
+            <h2 className="text-2xl font-serif mb-8">Create World</h2>
 
             <div className="space-y-6">
               <div className="relative group">
                 <div className="border-2 border-dashed border-input-placeholder rounded-lg p-4 flex flex-col bg-bg-bg-bg-input-bg hover:border-primary transition-colors cursor-pointer">
                   <span className="top-4 left-4">Channel Banner</span>
                   <div className="flex items-center justify-between">
-                    <span className="font-medium tracking-tighter">Drag and Drop Image</span>
+                    <span>Drag and Drop Image</span>
                     <div className="flex items-center gap-2 mb-4">
                       <span>Upload</span>
                       <Upload size={20} />
@@ -101,7 +101,7 @@ export const WorldEditorModal = ({
               <div className="bg-bg-bg-bg-input-bg rounded-lg p-4 border border-input-placeholder min-h-40 relative  hover:border-primary transition-colors cursor-pointer">
                 <span className="text-input-placeholder block mb-2">Description</span>
                 <textarea
-                  className="bg-transparent leading-relaxed w-full h-full outline-none"
+                  className="bg-transparent w-full h-full outline-none"
                   defaultValue="Place"
                 />
                 <FileText size={18} className="absolute top-4 right-4" />
@@ -110,7 +110,7 @@ export const WorldEditorModal = ({
           </div>
 
           <div className="flex-1 p-8 bg-background-secondary">
-            <h2 className="text-2xl font-serif tracking-widest mb-8">Required Attributes</h2>
+            <h2 className="text-2xl font-serif mb-8">Required Attributes</h2>
 
             <div className="space-y-4">
               {attributes.map((attr) => (
@@ -186,7 +186,7 @@ export const WorldEditorModal = ({
           >
             <Delete size={16} />
 
-            <span className="font-serif tracking-widest">Exit</span>
+            <span className="font-serif">Exit</span>
           </button>
 
           <button

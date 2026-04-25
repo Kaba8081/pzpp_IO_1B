@@ -45,7 +45,7 @@ export const Input: React.FC<InputProps> = ({
           id={inputId}
           {...props}
           className={cn(
-            "w-full border-none bg-transparent leading-none tracking-widest outline-none placeholder-input-placeholder",
+            "w-full border-none bg-transparent leading-none outline-none placeholder-input-placeholder",
             icon ? "pr-10" : "",
             className
           )}
@@ -54,7 +54,7 @@ export const Input: React.FC<InputProps> = ({
         {icon && <div className="absolute right-6 top-1/2 -translate-y-1/2">{icon}</div>}
       </div>
 
-      {error && <p className="text-error ml-1 mt-1 tracking-wider">{error}</p>}
+      {error && <p className="text-error ml-1 mt-1">{error}</p>}
     </div>
   );
 };

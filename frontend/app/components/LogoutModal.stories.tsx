@@ -32,7 +32,7 @@ const ModalTrigger = () => {
     <div className="flex items-center justify-center h-screen">
       <button
         onClick={() => modal.open("logout")}
-        className="px-6 py-3 border border-primary text-primary hover:bg-primary transition-colors tracking-widest rounded-xl"
+        className="px-6 py-3 border border-primary text-primary hover:bg-primary transition-colors rounded-xl"
       >
         OPEN LOGOUT MODAL
       </button>

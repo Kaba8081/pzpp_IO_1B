@@ -56,7 +56,7 @@ export const EditProfileModal = () => {
 
         <div className="flex flex-col items-center mb-8">
           <UserPen size={44} className="text-primary mb-4" strokeWidth={1.5} />
-          <h2 className="text-md tracking-widest">Edit Profile</h2>
+          <h2>Edit Profile</h2>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -78,24 +78,19 @@ export const EditProfileModal = () => {
             disabled={loading}
           />
 
-          {error && <p className="text-error tracking-widest text-center mb-4">{error}</p>}
+          {error && <p className="text-error text-center mb-4">{error}</p>}
 
           <div className="flex gap-4 mt-2">
             <Button
               type="button"
               variant="outline"
               onClick={handleClose}
-              className="flex-1 tracking-widest  "
+              className="flex-1  "
               disabled={loading}
             >
               Cancel
             </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              className="flex-1 tracking-widest  "
-              disabled={loading}
-            >
+            <Button type="submit" variant="primary" className="flex-1  " disabled={loading}>
               {loading ? "Saving..." : "Save changes"}
             </Button>
           </div>

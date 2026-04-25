@@ -119,20 +119,20 @@ export const LoginRegisterModal = () => {
             <nav className="flex items-center gap-5">
               <button
                 onClick={() => handleTabSwitch("LOGIN")}
-                className={`pb-2 tracking-widest transition-all ${activeTab === "LOGIN" ? "border-b-2 border-primary" : "text-white"}`}
+                className={`pb-2 transition-all ${activeTab === "LOGIN" ? "border-b-2 border-primary" : "text-white"}`}
               >
                 Login
               </button>
               <button
                 onClick={() => handleTabSwitch("REGISTER")}
-                className={`pb-2 tracking-widest transition-all ${activeTab === "REGISTER" ? "border-b-2 border-primary" : "text-white"}`}
+                className={`pb-2 transition-all ${activeTab === "REGISTER" ? "border-b-2 border-primary" : "text-white"}`}
               >
                 Register
               </button>
             </nav>
             <button
               onClick={() => modal.close()}
-              className="pb-2 flex items-center gap-2 tracking-widest transition-colors"
+              className="pb-2 flex items-center gap-2 transition-colors"
             >
               Skip
               <X size={15} />
@@ -141,10 +141,10 @@ export const LoginRegisterModal = () => {
 
           <div className="flex-1 flex flex-col gap-3">
             <div className="mb-5">
-              <h1 className="text-2xl tracking-widest mb-4">
+              <h1 className="text-2xl mb-4">
                 {activeTab === "LOGIN" ? "Continue Your Journey" : "Start Your Adventure"}
               </h1>
-              <p className="tracking-widest">
+              <p>
                 {activeTab === "LOGIN" ? "New explorer?" : "Already a explorer?"}
                 <button
                   onClick={() => handleTabSwitch(activeTab === "LOGIN" ? "REGISTER" : "LOGIN")}
@@ -156,9 +156,7 @@ export const LoginRegisterModal = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-5 w-full max-w-lg mx-auto">
-              {serverError && (
-                <p className="text-error tracking-wider text-center">{serverError}</p>
-              )}
+              {serverError && <p className="text-error text-center">{serverError}</p>}
 
               <Input
                 type="email"
@@ -232,7 +230,7 @@ export const LoginRegisterModal = () => {
               {activeTab === "LOGIN" && (
                 <button
                   type="button"
-                  className="text-primary hover:text-primary/70 transition-colors tracking-widest text-left"
+                  className="text-primary hover:text-primary/70 transition-colors text-left"
                 >
                   Forgot your password?
                 </button>

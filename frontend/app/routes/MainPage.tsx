@@ -101,17 +101,17 @@ export default function MainPage() {
             placeholder="Search"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            className="w-full bg-transparent text-white placeholder-white/80 outline-none tracking-widest"
+            className="w-full bg-transparent text-white placeholder-white/80 outline-none"
           />
         </div>
 
         <div className="flex items-center gap-3 relative">
-          <span className="tracking-widest">Sort By:</span>
+          <span>Sort By:</span>
 
           <div className="relative">
             <button
               onClick={() => setIsSortOpen((o) => !o)}
-              className="flex items-center justify-between gap-3 w-64 px-4 py-2.5 border border-primary/50 rounded-xl bg-background tracking-widest hover:border-primary transition-colors"
+              className="flex items-center justify-between gap-3 w-64 px-4 py-2.5 border border-primary/50 rounded-xl bg-background hover:border-primary transition-colors"
             >
               {activeSort.label}
               <ChevronDown className="w-4 h-4" />
@@ -126,7 +126,7 @@ export default function MainPage() {
                       setActiveSort(option);
                       setIsSortOpen(false);
                     }}
-                    className="flex items-center justify-between px-4 py-3 tracking-widest text-left hover:bg-primary/20 transition-colors"
+                    className="flex items-center justify-between px-4 py-3 text-left hover:bg-primary/20 transition-colors"
                   >
                     {option.label}
                     {activeSort.ordering === option.ordering && (
@@ -154,9 +154,7 @@ export default function MainPage() {
         )}
 
         {!isLoading && worlds.length === 0 && (
-          <div className="flex justify-center py-16 text-white/50 tracking-widest">
-            No worlds found.
-          </div>
+          <div className="flex justify-center py-16 text-white/50">No worlds found.</div>
         )}
 
         <div ref={sentinelRef} className="h-1" />

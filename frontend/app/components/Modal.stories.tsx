@@ -38,7 +38,7 @@ type Story = StoryObj<typeof Modal>;
 export const Default: Story = {
   render: () => (
     <ModalDemo>
-      <h3 className="text-lg font-semibold mb-2">Example modal</h3>
+      <h3 className="b-2">Example modal</h3>
       <p>Some content</p>
     </ModalDemo>
   ),

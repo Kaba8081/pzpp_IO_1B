@@ -21,7 +21,7 @@ export const UsersSidebar = ({ masterOfGame, characters }: UsersSidebarProps) =>
           alt={`Avatar of ${displayName}`}
           className="w-10 h-10 rounded-full object-cover border border-background transition-all shrink-0"
         />
-        <span className="text-white tracking-widest transition-colors truncate">{displayName}</span>
+        <span className="text-white transition-colors truncate">{displayName}</span>
       </div>
     );
   };
@@ -30,13 +30,13 @@ export const UsersSidebar = ({ masterOfGame, characters }: UsersSidebarProps) =>
     <aside className="text-primary w-4xs lg:w-3xs xl:w-2xs h-full bg-background border border-primary rounded-2xl p-6 md:p-8 flex flex-col gap-10 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
       {/* MASTER OF GAME */}
       <div className="flex flex-col gap-4">
-        <h3 className="text-lg tracking-widest">Master of Game</h3>
+        <h3>Master of Game</h3>
         <span>{renderUser(masterOfGame)}</span>
       </div>
 
       {/* Characters */}
       <div className="flex flex-col gap-6">
-        <h3 className="text-lg tracking-widest leading-relaxed">
+        <h3>
           Number of <br /> Characters #{characters.length}
         </h3>
 

@@ -34,7 +34,7 @@ const ModalTriggers = ({ mode }: { mode: "create" | "edit" }) => {
       <button
         type="button"
         onClick={() => modal.open("world-modal")}
-        className="rounded-xl border border-primary px-6 py-3 tracking-widest text-primary transition-colors hover:bg-primary hover:text-white"
+        className="rounded-xl border border-primary px-6 py-3 text-primary transition-colors hover:bg-primary hover:text-white"
       >
         {label}
       </button>
@@ -42,7 +42,7 @@ const ModalTriggers = ({ mode }: { mode: "create" | "edit" }) => {
         <button
           type="button"
           onClick={() => modal.open("channel-modal")}
-          className="rounded-xl border border-primary px-6 py-3 tracking-widest text-primary transition-colors hover:bg-primary hover:text-white"
+          className="rounded-xl border border-primary px-6 py-3 text-primary transition-colors hover:bg-primary hover:text-white"
         >
           EDIT CHANNELS
         </button>

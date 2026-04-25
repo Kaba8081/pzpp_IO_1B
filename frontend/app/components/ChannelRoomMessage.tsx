@@ -28,9 +28,7 @@ export const ChannelRoomMessage = ({
 
       <div className="flex flex-col flex-1">
         <div className="flex justify-between items-center mb-1">
-          <span className="text-primary tracking-widest text-md whitespace-nowrap mr-4">
-            {username}
-          </span>
+          <span className="text-primary whitespace-nowrap mr-4">{username}</span>
 
           {GameMaster && isPending && (
             <div className="flex gap-3">
@@ -52,9 +50,7 @@ export const ChannelRoomMessage = ({
           )}
         </div>
 
-        <p className="text-md leading-relaxed tracking-wide text-justify mb-3">
-          {message.content || "No content provided."}
-        </p>
+        <p className="text-justify mb-3">{message.content || "No content provided."}</p>
 
         <div className="flex flex-col items-start gap-2">
           {GameMaster && (
@@ -69,7 +65,7 @@ export const ChannelRoomMessage = ({
 
           <div className="flex gap-4 mt-1">
             {actions.map((action) => (
-              <span key={action.id} className="text-white tracking-widest whitespace-nowrap pb-0.5">
+              <span key={action.id} className="text-white whitespace-nowrap pb-0.5">
                 {action.value}
               </span>
             ))}

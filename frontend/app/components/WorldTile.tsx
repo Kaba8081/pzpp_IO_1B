@@ -33,26 +33,22 @@ export const WorldTile = ({ world }: WorldTileProps) => {
         <div className="absolute inset-0 bg-black/20" />
 
         <div className="absolute inset-0 flex items-center justify-center p-4">
-          <h3 className="text-lg tracking-widest text-center">{world.name || "World Name"}</h3>
+          <h3 className="text-center">{world.name || "World Name"}</h3>
         </div>
       </div>
 
       {/*Metadata section*/}
       <div className="flex flex-wrap justify-center gap-x-8 gap-y-2 py-4 px-6">
-        <div className="flex gap-2 xl:text-lg md:text-lg tracking-widest">Added:{dateAdded}</div>
+        <div className="flex gap-2">Added:{dateAdded}</div>
 
-        <div className="flex gap-2 xl:text-lg md:text-lg tracking-widest">
-          Author:{world.owner_username ?? "Unknown"}
-        </div>
+        <div className="flex gap-2">Author:{world.owner_username ?? "Unknown"}</div>
 
-        <div className="flex gap-2 xl:text-lg md:text-lg tracking-widest">
-          Characters:{world.total_user_profiles_count}
-        </div>
+        <div className="flex gap-2">Characters:{world.total_user_profiles_count}</div>
       </div>
 
       {/*Description section*/}
       <div className="flex flex-col p-6 sm:p-8 grow">
-        <p className="line-clamp-4 tracking-widest" title={displayDescription}>
+        <p className="line-clamp-4" title={displayDescription}>
           {displayDescription}
         </p>
       </div>

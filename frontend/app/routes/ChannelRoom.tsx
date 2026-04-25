@@ -56,7 +56,7 @@ export default function WorldRoomPage() {
     <>
       <div className="flex-1 flex flex-col min-w-0 border border-primary rounded-2xl bg-background relative m-4 ml-0 mr-2">
         <div className="relative m-5 h-1/4 shrink-0 overflow-hidden rounded-2xl bg-background-site flex items-center justify-center">
-          <h1 className="text-2xl tracking-widest text-white drop-shadow-[0_0_10px_rgba(6,140,124,0.8)]">
+          <h1 className="text-2xl text-white drop-shadow-[0_0_10px_rgba(6,140,124,0.8)]">
             {activeRoom?.name ?? "Channel"}
           </h1>
         </div>
@@ -79,7 +79,7 @@ export default function WorldRoomPage() {
             value={messageText}
             onChange={(e) => setMessageText(e.target.value)}
             placeholder="YOUR MESSAGE"
-            className="w-full h-20 border-primary rounded-2xl border-2 p-4 tracking-widest text-white/90 focus:outline-none focus:border-primary resize-none mb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+            className="w-full h-20 border-primary rounded-2xl border-2 p-4 text-white/90 focus:outline-none focus:border-primary resize-none mb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
           />
 
           <div className="flex flex-col xl:flex-row lg:flex-row gap-3 w-full">

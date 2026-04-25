@@ -94,7 +94,7 @@ export const Sidebar: React.FC = () => {
                     modal.open("edit-profile");
                     setIsAccountMenuOpen(false);
                   }}
-                  className="px-4 py-2.5 tracking-widest text-left text-white hover:bg-primary/20 transition-colors flex items-center gap-2"
+                  className="px-4 py-2.5 text-left text-white hover:bg-primary/20 transition-colors flex items-center gap-2"
                 >
                   <UserPen className="w-3 h-3" />
                   Edit Profile
@@ -104,7 +104,7 @@ export const Sidebar: React.FC = () => {
                     modal.open("logout");
                     setIsAccountMenuOpen(false);
                   }}
-                  className="px-4 py-2.5 tracking-widest text-left text-error hover:bg-error/10 transition-colors flex items-center gap-2"
+                  className="px-4 py-2.5 text-left text-error hover:bg-error/10 transition-colors flex items-center gap-2"
                 >
                   <LogOut className="w-3 h-3" />
                   Logout
@@ -190,7 +190,7 @@ export const Sidebar: React.FC = () => {
                 <span>Create World</span>
               </button>
             ) : (
-              <p className="text-input-placeholder tracking-widest text-center mt-4">
+              <p className="text-input-placeholder text-center mt-4">
                 <button
                   className="text-primary hover:underline"
                   onClick={() => modal.open("login")}

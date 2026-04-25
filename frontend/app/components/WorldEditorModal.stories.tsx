@@ -15,7 +15,7 @@ const ModalWrapper = ({
     <div className="min-h-screen w-full flex items-center justify-center bg-[#020505]">
       {!isOpen && (
         <button
-          className="px-8 py-4 bg-[#00CCCC] text-black rounded-xl tracking-widest hover:bg-[#00e6e6] transition-colors"
+          className="px-8 py-4 bg-[#00CCCC] text-black rounded-xl hover:bg-[#00e6e6] transition-colors"
           onClick={() => setIsOpen(true)}
         >
           Open Create World Modal

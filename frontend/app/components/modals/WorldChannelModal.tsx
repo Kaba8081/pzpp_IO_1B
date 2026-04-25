@@ -97,7 +97,7 @@ const readImage = (
 };
 
 const ErrorText = ({ message }: { message?: string }) =>
-  message ? <p className="mt-2 tracking-widest text-error">{message}</p> : null;
+  message ? <p className="mt-2 text-error">{message}</p> : null;
 
 interface ImageUploadDropzoneProps {
   title: string;
@@ -152,8 +152,8 @@ const ImageUploadDropzone: React.FC<ImageUploadDropzoneProps> = ({
     />
     <div className="absolute inset-0 bg-black/35" />
     <div className="relative z-10">
-      <div className="mb-1 tracking-widest">{title}</div>
-      <div className="tracking-wider">Drag and drop image</div>
+      <div className="mb-1">{title}</div>
+      <div>Drag and drop image</div>
     </div>
     <button
       type="button"
@@ -193,13 +193,13 @@ const LabeledInputCard: React.FC<LabeledInputCardProps> = ({
   <div className="rounded-2xl border border-transparent bg-input-bg p-4 transition-colors focus-within:border-primary">
     <div className="flex items-center justify-between gap-4">
       <div className="flex-1">
-        <div className="mb-1 tracking-widest text-input-placeholder">{label}</div>
+        <div className="mb-1 text-input-placeholder">{label}</div>
         <input
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full bg-transparent tracking-wider outline-none placeholder:text-input-placeholder/50"
+          className="w-full bg-transparent outline-none placeholder:text-input-placeholder/50"
         />
       </div>
       <Edit2 className="h-4 w-4/50" />
@@ -229,7 +229,7 @@ const LabeledTextAreaCard: React.FC<LabeledTextAreaCardProps> = ({
     className={`flex flex-col rounded-2xl border border-transparent bg-input-bg p-4 transition-colors focus-within:border-primary ${containerClassName ?? ""}`}
   >
     <div className="mb-2 flex items-start justify-between">
-      <div className="tracking-widest text-input-placeholder">{label}</div>
+      <div className="text-input-placeholder">{label}</div>
       <FileText className="h-4 w-4" />
     </div>
     <textarea
@@ -261,7 +261,7 @@ const AttributeTypeSelect: React.FC<AttributeTypeSelectProps> = ({
       type="button"
       aria-expanded={isOpen}
       onClick={onToggle}
-      className="flex h-13 w-full items-center justify-between rounded-xl border border-primary bg-primary px-4 tracking-widest outline-none transition-colors hover:bg-primary/80"
+      className="flex h-13 w-full items-center justify-between rounded-xl border border-primary bg-primary px-4 outline-none transition-colors hover:bg-primary/80"
     >
       {value}
       <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`} />
@@ -273,7 +273,7 @@ const AttributeTypeSelect: React.FC<AttributeTypeSelectProps> = ({
             key={type}
             type="button"
             onClick={() => onSelect(type)}
-            className={`block h-11 w-full px-4 text-left tracking-widest transition-colors ${
+            className={`block h-11 w-full px-4 text-left transition-colors ${
               value === type ? "bg-primary" : "text-white hover:bg-primary/20"
             }`}
           >
@@ -311,13 +311,13 @@ const AttributeRow: React.FC<AttributeRowProps> = ({
       <input
         value={attribute.name}
         onChange={(e) => onNameChange(e.target.value)}
-        className="h-5 w-full bg-transparent tracking-widest outline-none placeholder:text-input-placeholder/50"
+        className="h-5 w-full bg-transparent outline-none placeholder:text-input-placeholder/50"
         placeholder="Attribute name"
       />
       <ErrorText message={nameError} />
     </div>
     {isEditing ? (
-      <div className="flex h-13 items-center rounded-xl border border-primary/40 bg-primary/15 px-4 tracking-widest text-primary">
+      <div className="flex h-13 items-center rounded-xl border border-primary/40 bg-primary/15 px-4 text-primary">
         {attribute.type}
       </div>
     ) : (
@@ -400,9 +400,7 @@ const ChannelCard: React.FC<ChannelCardProps> = ({
       <GripVertical className="h-4 w-4" />
     </div>
     <div className="absolute inset-0 flex items-center justify-center px-4 text-center">
-      <span className="text-lg tracking-widest drop-shadow-md">
-        {channel.name || "Untitled channel"}
-      </span>
+      <span className="drop-shadow-md">{channel.name || "Untitled channel"}</span>
     </div>
   </div>
 );
@@ -778,9 +776,7 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
         {displayModal === "world" ? (
           <div className="flex flex-col gap-10 overflow-y-auto p-6 md:flex-row md:p-10">
             <div className="flex flex-1 flex-col gap-6">
-              <h2 className="mb-2 text-2xl tracking-wider">
-                {isEditing ? "Edit world" : "Create world"}
-              </h2>
+              <h2 className="mb-2 text-2xl">{isEditing ? "Edit world" : "Create world"}</h2>
 
               <ImageUploadDropzone
                 title="World banner"
@@ -812,12 +808,12 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
                 onChange={setWorldDescription}
                 placeholder="Enter description..."
                 containerClassName="h-40"
-                textAreaClassName="leading-relaxed/80"
+                textAreaClassName=""
               />
             </div>
 
             <div className="flex flex-1 flex-col gap-6 md:border-l md:border-primary/20 md:pl-10">
-              <h2 className="mb-2 text-2xl tracking-wider">Required attributes</h2>
+              <h2 className="mb-2 text-2xl">Required attributes</h2>
               <div className="flex flex-col gap-4">
                 {attributes.map((attribute) => (
                   <AttributeRow
@@ -850,7 +846,7 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
                   onClick={addAttribute}
                   className="mt-2 flex h-13 items-center justify-between rounded-xl border border-transparent bg-input-bg p-4 transition-colors hover:border-primary"
                 >
-                  <span className="tracking-widest">Add new attribute</span>
+                  <span>Add new attribute</span>
                   <Plus className="h-5 w-5" />
                 </button>
               </div>
@@ -859,14 +855,14 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
         ) : (
           <div className="flex flex-col gap-10 overflow-y-auto p-6 md:flex-row md:p-10">
             <div className="flex flex-1 flex-col gap-4">
-              <h2 className="mb-2 text-2xl tracking-wider">Edit channels</h2>
+              <h2 className="mb-2 text-2xl">Edit channels</h2>
 
               <button
                 type="button"
                 onClick={addChannel}
                 className="flex h-20 shrink-0 items-center justify-center gap-3 rounded-xl border border-primary/40 bg-input-bg transition-colors hover:border-primary"
               >
-                <span className="tracking-widest">Add new channel</span>
+                <span>Add new channel</span>
                 <Plus className="h-5 w-5" />
               </button>
 
@@ -909,13 +905,13 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
 
             <div className="flex flex-1 flex-col gap-6 md:border-l md:border-primary/20 md:pl-10">
               <div className="mb-2 flex items-center justify-between gap-4">
-                <h2 className="text-2xl tracking-wider">Channel</h2>
+                <h2 className="text-2xl">Channel</h2>
                 <button
                   type="button"
                   onClick={deleteSelectedChannel}
                   className="flex items-center gap-2 rounded-xl bg-error px-4 py-2 transition-colors hover:bg-error/80"
                 >
-                  <span className="tracking-widest">Delete channel</span>
+                  <span>Delete channel</span>
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>
@@ -951,7 +947,7 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
                     onChange={(value) => updateSelectedChannel({ description: value })}
                     placeholder="Enter short description..."
                     containerClassName="h-32"
-                    textAreaClassName="leading-relaxed"
+                    textAreaClassName=""
                   />
                 </>
               )}
@@ -959,9 +955,7 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
           </div>
         )}
 
-        {serverError && (
-          <p className="px-10 pb-2 text-center tracking-widest text-error">{serverError}</p>
-        )}
+        {serverError && <p className="px-10 pb-2 text-center text-error">{serverError}</p>}
 
         <div className="flex flex-col gap-4 border-t border-primary/30 bg-background-site p-6 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-wrap gap-4">
@@ -972,7 +966,7 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
               className="flex items-center gap-3 rounded-xl border border-error/70 px-5 py-2.5 text-error transition-colors hover:bg-error/10 disabled:opacity-50"
             >
               <X className="h-4 w-4" />
-              <span className="tracking-widest">Exit</span>
+              <span>Exit</span>
             </button>
             {displayModal === "channel" && (
               <button
@@ -982,7 +976,7 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
                 className="flex items-center gap-3 rounded-xl border border-white/20 px-5 py-2.5 transition-colors hover:border-white disabled:opacity-50"
               >
                 <ArrowLeft className="h-4 w-4" />
-                <span className="tracking-widest">Back to world</span>
+                <span>Back to world</span>
               </button>
             )}
             {isEditing && displayModal === "world" && (
@@ -997,9 +991,7 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
                 }`}
               >
                 <Trash2 className="h-4 w-4" />
-                <span className="tracking-widest">
-                  {isConfirmingWorldDelete ? "Confirm delete" : "Delete world"}
-                </span>
+                <span>{isConfirmingWorldDelete ? "Confirm delete" : "Delete world"}</span>
               </button>
             )}
           </div>
@@ -1012,7 +1004,7 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
                 disabled={isLoading}
                 className="flex items-center gap-3 rounded-xl border border-primary px-6 py-2.5 text-primary transition-colors hover:bg-primary/10 disabled:opacity-50"
               >
-                <span className="tracking-widest">Go to channels</span>
+                <span>Go to channels</span>
                 <ArrowRight className="h-4 w-4" />
               </button>
             )}
@@ -1022,7 +1014,7 @@ export const WorldChannelModal: React.FC<WorldChannelModalProps> = ({
               disabled={isLoading || (isEditing && displayModal === "channel" && !channelsLoaded)}
               className="flex items-center gap-3 rounded-xl bg-primary px-8 py-2.5 transition-colors hover:bg-primary/80 disabled:opacity-50"
             >
-              <span className="tracking-widest">
+              <span>
                 {isLoading
                   ? "Saving..."
                   : displayModal === "world"
