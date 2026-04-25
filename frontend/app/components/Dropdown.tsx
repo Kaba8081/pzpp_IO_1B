@@ -24,13 +24,11 @@ export const Dropdown: React.FC<DropdownProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
-  // Dynamiczne style przycisku (w formularzu wymuszamy równe 52px wysokości, co centruje tekst)
   const buttonStyles =
     variant === "sidebar" ? "py-2 hover:text-primary" : "h-13 hover:text-white/80";
 
-  // Dynamiczne style dla opcji po najechaniu myszką
   const itemStyles =
-    variant === "sidebar" ? "text-white hover:text-primary" : "text-white hover:text-white/70"; // Rozwiązuje problem zlewania się z tłem!
+    variant === "sidebar" ? "text-white hover:text-primary" : "text-white hover:text-white/70";
 
   return (
     <div className="w-full">
