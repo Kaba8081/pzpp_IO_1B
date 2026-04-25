@@ -1,16 +1,17 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { useParams } from "react-router";
+import { useOutletContext, useParams } from "react-router";
 import { Button } from "@/components/ui/Button";
 import { UsersSidebar } from "@/components/UsersSidebar";
 import { ChannelRoomMessage } from "@/components/ChannelRoomMessage";
 import { CharacterModal } from "@/components/modals/CharaterModal";
-import { SendHorizontal, Dices } from "lucide-react";
+import { SendHorizontal, Dices, PanelRightOpen, X } from "lucide-react";
 import type { WorldRoom, WorldRoomMessageWithAuthor } from "@/types/models";
 import { WorldRoomManager } from "@/services/worldRoomManager";
 import { useUserStore } from "@/stores/UserStore";
 import { createChannelMessage } from "@/services/worldRoom/createChannelMessage.service";
+import type { AppLayoutOutletContext } from "./AppLayout";
 
 export default function WorldRoomPage() {
   const { activeProfile } = useUserStore();
@@ -20,6 +21,9 @@ export default function WorldRoomPage() {
   const [messages, setMessages] = useState<WorldRoomMessageWithAuthor[]>([]);
   const [activeRoom, setActiveRoom] = useState<WorldRoom>();
   const [isSendingMessage, setSendingMessage] = useState<boolean>(false);
+  const { mobileSidebar, setMobileSidebar, closeMobileSidebar } =
+    useOutletContext<AppLayoutOutletContext>();
+  const isUsersSidebarOpen = mobileSidebar === "right";
 
   const isInputDisabled = useMemo(
     () => isSendingMessage || !activeProfile,
@@ -81,11 +85,21 @@ export default function WorldRoomPage() {
 
   return (
     <>
-      <div className="flex-1 flex flex-col min-w-0 border border-primary rounded-2xl bg-background relative m-4 ml-0 mr-2">
-        <div className="relative m-5 h-1/4 shrink-0 overflow-hidden rounded-2xl bg-background-site flex items-center justify-center">
-          <h1 className="text-2xl text-white drop-shadow-[0_0_10px_rgba(6,140,124,0.8)]">
-            {activeRoom?.name ?? "Channel"}
-          </h1>
+      <div className="flex-1 flex flex-col min-w-0 border border-primary rounded-2xl bg-background relative m-2 sm:m-4 lg:ml-0 lg:mr-2">
+        <button
+          type="button"
+          onClick={() =>
+            setMobileSidebar((openSidebar) => (openSidebar === "right" ? null : "right"))
+          }
+          aria-label={isUsersSidebarOpen ? "Close users sidebar" : "Open users sidebar"}
+          aria-expanded={isUsersSidebarOpen}
+          className="fixed right-5 top-5 z-50 flex h-10 w-10 items-center justify-center rounded-xl border border-primary bg-background text-primary shadow-xl lg:hidden"
+        >
+          {isUsersSidebarOpen ? <X className="h-5 w-5" /> : <PanelRightOpen className="h-5 w-5" />}
+        </button>
+
+        <div className="relative m-3 h-36 shrink-0 overflow-hidden rounded-2xl bg-background-site flex items-center justify-center sm:m-5 sm:h-1/4">
+          <h1 className="text-2xl">{activeRoom?.name ?? "Channel"}</h1>
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
@@ -101,7 +115,7 @@ export default function WorldRoomPage() {
           </div>
         </div>
 
-        <div className="max-w-full flex flex-col p-6 border-t border-primary">
+        <div className="max-w-full flex flex-col p-4 sm:p-6 border-t border-primary">
           <textarea
             value={messageText}
             onChange={(e) => setMessageText(e.target.value)}
@@ -110,7 +124,7 @@ export default function WorldRoomPage() {
             disabled={isInputDisabled}
           />
 
-          <div className="flex flex-col xl:flex-row lg:flex-row gap-3 w-full">
+          <div className="flex flex-row text-sm gap-3 w-full">
             <Button
               variant="outline"
               className="w-full sm:w-auto flex justify-center items-center gap-2"
@@ -119,18 +133,28 @@ export default function WorldRoomPage() {
               SEND MESSAGE
               <SendHorizontal size={20} className="text-primary" strokeWidth={1.5} />
             </Button>
-            <Button
-              variant="outline"
-              className="w-full sm:w-auto flex justify-center items-center gap-2"
-            >
-              ROLL A DICE
+            <Button variant="outline" className="flex justify-center items-center gap-2">
+              <span className="hidden md:block">ROLL A DICE</span>
               <Dices size={20} className="text-primary" strokeWidth={1.5} />
             </Button>
           </div>
         </div>
       </div>
 
-      <div className="shrink-0 transition-all duration-300 m-4 mr-4 ml-2">
+      {isUsersSidebarOpen && (
+        <button
+          type="button"
+          aria-label="Close users sidebar overlay"
+          className="fixed inset-0 z-30 bg-background-site/75 lg:hidden"
+          onClick={closeMobileSidebar}
+        />
+      )}
+
+      <div
+        className={`fixed inset-y-0 right-0 z-40 h-dvh p-3 transition-transform duration-300 lg:static lg:z-auto lg:h-auto lg:p-0 lg:transition-all lg:translate-x-0 lg:shrink-0 lg:m-4 lg:mr-4 lg:ml-2 ${
+          isUsersSidebarOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
         <UsersSidebar masterOfGame={undefined} characters={undefined} />
       </div>
 

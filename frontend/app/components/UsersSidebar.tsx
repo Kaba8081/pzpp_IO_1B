@@ -24,7 +24,7 @@ export const UsersSidebar = ({ masterOfGame, characters }: UsersSidebarProps) =>
   };
 
   return (
-    <aside className="text-primary w-4xs lg:w-3xs xl:w-2xs h-full bg-background border border-primary rounded-2xl flex flex-col gap-10 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+    <aside className="text-primary w-[calc(100vw-1.5rem)] md:w-18rem lg:w-3xs xl:w-2xs h-full bg-background border border-primary rounded-2xl flex flex-col gap-10 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
       <div className="p-6 md:p-8">
         {/* MASTER OF GAME */}
         {masterOfGame && (

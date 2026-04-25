@@ -61,7 +61,7 @@ export const Sidebar: React.FC = () => {
   ];
 
   return (
-    <aside className="w-85 h-full bg-background border-2 border-primary rounded-2xl flex flex-col px-8 py-10 shrink-0">
+    <aside className="w-[min(21.25rem,calc(100vw-1.5rem))] lg:w-85 h-full bg-background border-2 border-primary rounded-2xl flex flex-col px-6 py-8 lg:px-8 lg:py-10 shrink-0">
       {isLoggedIn && user ? (
         <div className="flex items-center gap-5 mb-12">
           {user.profile?.profile_picture ? (
