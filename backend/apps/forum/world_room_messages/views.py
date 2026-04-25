@@ -33,8 +33,8 @@ class ChannelMessagesView(APIView):
         tags=["Messages"],
         responses={200: WorldRoomMessagesSerializer(many=True)},
     )
-    def get(self, request: "Request", channel_id: int) -> Response:
-        channel = get_object_or_404(WorldRooms, id=channel_id)
+    def get(self, request: "Request", room_id: int) -> Response:
+        channel = get_object_or_404(WorldRooms, id=room_id)
 
         messages = WorldRoomMessages.objects.filter(room=channel).order_by('created_at')
 
@@ -56,8 +56,8 @@ class ChannelMessagesView(APIView):
             404: None,
         },
     )
-    def post(self, request: "Request", channel_id: int) -> Response:
-        channel = get_object_or_404(WorldRooms, id=channel_id)
+    def post(self, request: "Request", room_id: int) -> Response:
+        channel = get_object_or_404(WorldRooms, id=room_id)
 
         data: dict[str, Any] = dict(request.data)  # type: ignore
         user_profile_id = data.get('user_profile')
