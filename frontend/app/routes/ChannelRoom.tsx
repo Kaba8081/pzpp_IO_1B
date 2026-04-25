@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { useParams } from "react-router";
-import { Button } from "@/components/Button";
+import { Button } from "@/components/ui/Button";
 import { UsersSidebar } from "@/components/UsersSidebar";
 import { ChannelRoomMessage } from "@/components/ChannelRoomMessage";
 import { CharacterModal } from "@/components/modals/CharaterModal";

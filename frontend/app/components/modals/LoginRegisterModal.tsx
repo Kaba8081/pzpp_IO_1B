@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Eye, EyeOff, Mail, User, X } from "lucide-react";
-import { Input } from "../Input";
-import { Checkbox } from "../Checkbox";
+import { Input } from "@/components/ui/Input";
+import { Checkbox } from "@/components/ui/Checkbox";
 import { useUserStore } from "@/stores/UserStore";
-import { Modal } from "./Modal";
-import { Button } from "../Button";
+import { Modal } from "@/components/modals/Modal";
+import { Button } from "@/components/ui/Button";
 import loginRegisterBanner from "@/images/login_register_banner.webp";
 import { AuthService } from "@/services/auth";
 

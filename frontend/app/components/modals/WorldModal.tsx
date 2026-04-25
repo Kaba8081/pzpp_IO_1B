@@ -1,5 +1,8 @@
 import React from "react";
-import { WorldChannelModal, type WorldChannelModalProps } from "./WorldChannelModal";
+import {
+  WorldChannelModal,
+  type WorldChannelModalProps,
+} from "@/components/modals/WorldChannelModal";
 
 export type WorldModalProps = WorldChannelModalProps;
 

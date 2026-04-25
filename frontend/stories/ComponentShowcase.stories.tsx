@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 import { Button } from "../app/components/Button";
 import { Input } from "../app/components/Input";
-import { Toggle } from "../app/components/Toggle";
+import { Toggle } from "../app/components/ui/Toggle";
 import { Slider } from "../app/components/Slider";
 import { Checkbox } from "../app/components/Checkbox";
 

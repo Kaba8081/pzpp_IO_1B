@@ -2,8 +2,8 @@ import React from "react";
 import { LogOut, X } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useUserStore } from "@/stores/UserStore";
-import { Button } from "../Button";
-import { Modal } from "./Modal";
+import { Button } from "@/components/ui/Button";
+import { Modal } from "@/components/modals/Modal";
 
 export const LogoutModal = () => {
   const { logout, modal } = useUserStore();

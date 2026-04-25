@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
-import { UserAttributesPopup } from "./modals/UserAttributesPopup";
+import { UserAttributesPopup } from "@/components/modals/UserAttributesPopup";
 
 const ModalWrapper = ({
   initialIsOpen = true,

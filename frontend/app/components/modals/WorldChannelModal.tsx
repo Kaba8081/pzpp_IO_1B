@@ -12,7 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { useUserStore } from "@/stores/UserStore";
-import { bannerPool } from "../worldChannelBanners";
+import { bannerPool } from "@/components/ui/worldChannelBanners";
 import {
   createWorld,
   updateWorld,

@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { MemoryRouter } from "react-router";
 import { UserProvider, useUserStore } from "@/stores/UserStore";
-import { LogoutModal } from "./modals/LogoutModal";
+import { LogoutModal } from "@/components/modals/LogoutModal";
 
 const meta: Meta<typeof LogoutModal> = {
   title: "Components/Modals/LogoutModal",

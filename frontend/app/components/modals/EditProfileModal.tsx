@@ -2,9 +2,9 @@ import React, { useEffect, useState } from "react";
 import { UserPen, X } from "lucide-react";
 import { useUserStore } from "@/stores/UserStore";
 import { updateCurrentUser } from "@/services/userService";
-import { Button } from "../Button";
-import { Input } from "../Input";
-import { Modal } from "./Modal";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Modal } from "@/components/modals/Modal";
 
 export const EditProfileModal = () => {
   const { user, setUser, modal } = useUserStore();

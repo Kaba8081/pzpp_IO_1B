@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Home, PlusCircle, UserPen, LogOut, MoreVertical } from "lucide-react";
 import { useNavigate, useLocation, useParams } from "react-router";
-import { Button } from "./Button";
-import { Tabs, type TabItem } from "./Tabs";
-import { Dropdown } from "./Dropdown";
+import { Button } from "@/components/ui/Button";
+import { Tabs, type TabItem } from "@/components/ui/Tabs";
+import { Dropdown } from "@/components/ui//Dropdown";
 import { useUserStore } from "@/stores/UserStore";
 import { getUserWorlds } from "@/services/world";
 import { getChannels } from "@/services/worldRoom";

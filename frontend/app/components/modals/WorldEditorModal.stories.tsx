@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
-import { WorldEditorModal } from "./modals/WorldEditorModal";
+import { WorldEditorModal } from "@/components/modals/WorldEditorModal";
 
 const ModalWrapper = ({
   initialIsOpen = true,

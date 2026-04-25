@@ -1,8 +1,8 @@
 import React from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { Modal } from "./modals/Modal";
+import { Modal } from "@/components/modals/Modal";
 import { UserProvider, useUserStore } from "@/stores/UserStore";
-import { Button } from "./Button";
+import { Button } from "@/components/ui/Button";
 
 const ModalDemo = ({ children }: { children: React.ReactNode }) => {
   const { modal } = useUserStore();

@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useUserStore } from "@/stores/UserStore";
-import { Button } from "../Button";
+import { Button } from "@/components/ui/Button";
 import { Upload, X } from "lucide-react";
 import type { WorldUserProfile } from "@/types/models";
-import { Input } from "../Input";
+import { Input } from "@/components/ui/Input";
 import {
   createWorldProfile,
   getWorldProfile,

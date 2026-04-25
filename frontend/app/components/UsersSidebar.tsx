@@ -42,6 +42,9 @@ export const UsersSidebar = ({ masterOfGame, characters }: UsersSidebarProps) =>
 
         <div className="flex flex-col gap-5">{characters.map((char) => renderUser(char))}</div>
       </div>
+
+      {/* World profile section */}
+      {/* TODO: */}
     </aside>
   );
 };

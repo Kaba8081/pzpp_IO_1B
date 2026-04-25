@@ -1,5 +1,5 @@
 import type { WorldProfile, WorldRoomMessage, WorldRoomMessageAction } from "@/types/models";
-import { Button } from "./Button";
+import { Button } from "@/components/ui/Button";
 import { useState } from "react";
 
 interface ChannelRoomMessageProps {
