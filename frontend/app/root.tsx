@@ -42,7 +42,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Meta />
         <Links />
       </head>
-      <body className="font-cinzel">
+      <body className="font-cinzel text-white bg-background-site">
         <UserProvider>
           {children}
           <ScrollRestoration />
