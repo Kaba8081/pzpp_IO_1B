@@ -65,6 +65,7 @@ LOCAL_APPS = [
 ]
 
 THIRD_PARTY_APPS = [
+    'channels',
     "corsheaders",
     "rest_framework",
     'rest_framework_simplejwt',
@@ -93,6 +94,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'pzpp.urls'
+ASGI_APPLICATION = 'pzpp.asgi.application'
 
 TEMPLATES = [
     {
@@ -169,6 +171,15 @@ MEDIA_ROOT = os.getenv('MEDIA_ROOT', os.path.join(BASE_DIR, 'assets', 'media'))
 REDIS_HOST = os.getenv('REDIS_HOST', 'redis')
 REDIS_PORT = os.getenv('REDIS_PORT', '6379')
 REDIS_URL = os.getenv('REDIS_URL', f'redis://{REDIS_HOST}:{REDIS_PORT}/0')
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [REDIS_URL],
+        },
+    },
+}
 
 ADMINS = [
     {

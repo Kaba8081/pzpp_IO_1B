@@ -1,137 +1,73 @@
-import React, { useState } from "react";
+"use client";
+
+import React, { useState, useEffect } from "react";
 import { useParams } from "react-router";
 import { Button } from "@/components/Button";
 import { UsersSidebar } from "@/components/UsersSidebar";
 import { ChannelRoomMessage } from "@/components/ChannelRoomMessage";
 import { SendHorizontal, Dices, User } from "lucide-react";
-import type { WorldRoomMessage, UserProfile, WorldRoom } from "@/types/models";
+import type { WorldRoomMessage, WorldRoom } from "@/types/models";
+import { WorldRoomManager } from "@/services/worldRoomManager";
 
 export default function WorldRoomPage() {
-  const { worldId } = useParams<{ worldId: string }>();
+  const { worldId, roomId } = useParams<{ worldId: string; roomId: string }>();
   const [messageText, setMessageText] = useState("");
+  const [messages, setMessages] = useState<WorldRoomMessage[]>([]);
+  const [activeRoom, setActiveRoom] = useState<WorldRoom>();
+
+  // Fetch activeRoom + it's messages
+  useEffect(() => {
+    if (!roomId) return;
+
+    let isMounted = true;
+    const parsedRoomId = parseInt(roomId);
+
+    const fetchRoomData = async () => {
+      try {
+        const [room, roomMessages] = await Promise.all([
+          WorldRoomManager.getChannel(parsedRoomId),
+          WorldRoomManager.getChannelMessages(parsedRoomId),
+        ]);
+
+        if (!isMounted) return;
+
+        setActiveRoom(room);
+        setMessages(roomMessages.results);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchRoomData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [roomId]);
 
   if (!worldId) {
     return <div>Invalid world ID</div>;
   }
-
-  const mockMasterProfile: UserProfile = {
-    id: 1,
-    user_id: 1,
-    username: "Archmage Eldris",
-    description: "Master of the mystical arts",
-    profile_picture: null,
-  };
-
-  const mockCharacters: UserProfile[] = [
-    {
-      id: 2,
-      user_id: 2,
-      username: "Kael the Brave",
-      description: "Noble Knight",
-      profile_picture: null,
-    },
-    {
-      id: 3,
-      user_id: 3,
-      username: "Lyra Shadowstep",
-      description: "Cunning Rogue",
-      profile_picture: null,
-    },
-    {
-      id: 4,
-      user_id: 4,
-      username: "Thorgrim Ironforge",
-      description: "Stalwart Dwarf",
-      profile_picture: null,
-    },
-  ];
-
-  const mockRooms: WorldRoom[] = [
-    {
-      id: 1,
-      world_id: parseInt(worldId),
-      name: "The Forgotten Dungeon",
-      thumbnail: null,
-      description: null,
-      created_at: null,
-      updated_at: null,
-      deleted_at: null,
-    },
-    {
-      id: 2,
-      world_id: parseInt(worldId),
-      name: "Tavern of Whispers",
-      thumbnail: null,
-      description: null,
-      created_at: null,
-      updated_at: null,
-      deleted_at: null,
-    },
-    {
-      id: 3,
-      world_id: parseInt(worldId),
-      name: "Sacred Temple",
-      thumbnail: null,
-      description: null,
-      created_at: null,
-      updated_at: null,
-      deleted_at: null,
-    },
-  ];
-
-  const activeRoom = mockRooms[0];
-
-  const mockMessages: (WorldRoomMessage & { author: UserProfile })[] = [
-    {
-      id: 1,
-      user_profile_id: 2,
-      room_id: activeRoom.id,
-      content:
-        "I draw my sword and prepare to face the shadows ahead. What lies beyond this ancient gate?",
-      created_at: new Date(Date.now() - 3600000).toISOString(),
-      updated_at: null,
-      deleted_at: null,
-      author: mockCharacters[0],
-    },
-    {
-      id: 2,
-      user_profile_id: 3,
-      room_id: activeRoom.id,
-      content: "The torches flicker. I think I see movement in the darkness... *readies daggers*",
-      created_at: new Date(Date.now() - 1800000).toISOString(),
-      updated_at: null,
-      deleted_at: null,
-      author: mockCharacters[1],
-    },
-    {
-      id: 3,
-      user_profile_id: 4,
-      room_id: activeRoom.id,
-      content:
-        "Aye, I feel it too. Whatever dwells here, it be ancient and powerful. Stick together, ye fools!",
-      created_at: new Date(Date.now() - 900000).toISOString(),
-      updated_at: null,
-      deleted_at: null,
-      author: mockCharacters[2],
-    },
-  ];
+  if (!roomId) {
+    return <div>Invalid room ID</div>;
+  }
 
   return (
     <>
       <div className="flex-1 flex flex-col min-w-0 border border-primary rounded-2xl bg-background relative m-4 ml-0 mr-2">
         <div className="relative m-5 h-1/4 shrink-0 overflow-hidden rounded-2xl bg-background-site flex items-center justify-center">
           <h1 className="text-2xl tracking-widest text-white drop-shadow-[0_0_10px_rgba(6,140,124,0.8)]">
-            {activeRoom.name ?? "Channel"}
+            {activeRoom?.name ?? "Channel"}
           </h1>
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           <div className="space-y-2">
-            {mockMessages.map((msg) => (
+            {messages.map((msg) => (
               <ChannelRoomMessage
                 key={msg.id}
                 message={msg}
-                author={msg.author}
+                author={undefined}
                 GameMaster={false}
               />
             ))}
@@ -173,7 +109,7 @@ export default function WorldRoomPage() {
       </div>
 
       <div className="shrink-0 transition-all duration-300 m-4 mr-4 ml-2">
-        <UsersSidebar masterOfGame={mockMasterProfile} characters={mockCharacters} />
+        <UsersSidebar masterOfGame={undefined} characters={undefined} />
       </div>
     </>
   );

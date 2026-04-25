@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING, Any
 
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
+from rest_framework import permissions
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -27,7 +28,11 @@ class MessagePagination(PageNumberPagination):
 
 
 class ChannelMessagesView(APIView):
-    permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        if self.request.method == "POST":
+            return [IsAuthenticated()]
+        return [permissions.AllowAny()]
 
     @extend_schema(
         tags=["Messages"],

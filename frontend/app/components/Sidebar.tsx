@@ -165,7 +165,7 @@ export const Sidebar: React.FC = () => {
                     items={(channelsByWorldId[world.id] ?? []).map((ch) => ({
                       label: ch.name ?? "Untitled Channel",
                       isActive: false,
-                      onClick: () => navigate(`/world/${world.id}`),
+                      onClick: () => navigate(`/world/${world.id}/${ch.id}`),
                     }))}
                     defaultOpen={worldId === String(world.id)}
                     isActive={worldId === String(world.id)}

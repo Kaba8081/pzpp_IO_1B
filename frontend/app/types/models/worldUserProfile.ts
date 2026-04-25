@@ -2,8 +2,6 @@ import type { ISODateTime } from "./common";
 
 export interface WorldUserProfile {
   id: number;
-  world_id: number;
-  user_id: number;
   name: string | null;
   description: string | null;
   avatar: string | null;

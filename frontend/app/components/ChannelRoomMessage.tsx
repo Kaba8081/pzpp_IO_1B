@@ -1,10 +1,10 @@
-import type { UserProfile, WorldRoomMessage, WorldRoomMessageAction } from "@/types/models";
+import type { WorldProfile, WorldRoomMessage, WorldRoomMessageAction } from "@/types/models";
 import { Button } from "./Button";
 import { useState } from "react";
 
 interface ChannelRoomMessageProps {
   message: WorldRoomMessage;
-  author: UserProfile;
+  author?: WorldProfile;
   actions?: WorldRoomMessageAction[];
   GameMaster: boolean;
 }
@@ -17,8 +17,8 @@ export const ChannelRoomMessage = ({
 }: ChannelRoomMessageProps) => {
   const [isPending, setIsPending] = useState(true);
 
-  const avatar = author.profile_picture || "https://via.placeholder.com/100";
-  const username = author.username || "Unknown Wanderer";
+  const avatar = author?.avatar || "https://via.placeholder.com/100";
+  const username = author?.name || "Unknown Wanderer";
 
   return (
     <div className="flex gap-5 w-full group mx-5 my-5">
