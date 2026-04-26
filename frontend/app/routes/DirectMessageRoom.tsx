@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/Button";
 import { SendHorizontal, ArrowLeft } from "lucide-react";
 import { useUserStore } from "@/stores/UserStore";
 import { getDMThreadMessages, createDMMessage, connectDMChannel } from "@/services/dm";
-import type { DirectMessage, DirectMessageThread } from "@/types/models";
+import type { DirectMessage, DirectMessageThread, ProfilePopupData } from "@/types/models";
 import { apiRequest } from "@/api/apiRequest";
+import { UserProfileModal } from "@/components/modals/UserProfileModal";
 
 function getDMThread(threadId: number): Promise<DirectMessageThread> {
   return apiRequest<DirectMessageThread>(`/api/dm/thread/${threadId}/`, {
@@ -25,6 +26,7 @@ export default function DirectMessageRoom() {
   const [thread, setThread] = useState<DirectMessageThread | null>(null);
   const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [viewingProfile, setViewingProfile] = useState<ProfilePopupData | null>(null);
 
   useEffect(() => {
     if (!threadId) return;
@@ -97,29 +99,50 @@ export default function DirectMessageRoom() {
           <ArrowLeft className="w-5 h-5" />
         </button>
 
-        {otherUser?.avatar ? (
-          <img
-            src={otherUser.avatar}
-            alt={otherUser.username}
-            className="w-10 h-10 rounded-full object-cover border border-primary/50 shrink-0"
-          />
-        ) : (
-          <div className="w-10 h-10 rounded-full bg-primary/15 border border-primary/30 flex items-center justify-center text-primary shrink-0 select-none">
-            {(otherUser?.username ?? "?").slice(0, 1).toUpperCase()}
-          </div>
-        )}
+        <button
+          type="button"
+          className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+          onClick={() => {
+            if (otherUser) {
+              setViewingProfile({
+                id: otherUser.id,
+                name: otherUser.username,
+                description: null,
+                avatar: otherUser.avatar,
+                user_id: otherUser.id,
+              });
+            }
+          }}
+          disabled={!otherUser}
+        >
+          {otherUser?.avatar ? (
+            <img
+              src={otherUser.avatar}
+              alt={otherUser.username}
+              className="w-10 h-10 rounded-full object-cover border border-primary/50 shrink-0"
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-primary/15 border border-primary/30 flex items-center justify-center text-primary shrink-0 select-none">
+              {(otherUser?.username ?? "?").slice(0, 1).toUpperCase()}
+            </div>
+          )}
 
-        <div>
-          <div className="text-white font-medium">{otherUser?.username ?? "Direct Message"}</div>
-          <div className="text-input-placeholder text-xs">Direct Message</div>
-        </div>
+          <div className="text-left">
+            <div className="text-white font-medium">{otherUser?.username ?? "Direct Message"}</div>
+            <div className="text-input-placeholder text-xs">Direct Message</div>
+          </div>
+        </button>
       </div>
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         <div className="space-y-4">
           {messages.map((msg) => (
-            <DMMessage key={msg.id} message={msg} />
+            <DMMessage
+              key={msg.id}
+              message={msg}
+              onAuthorClick={(profile) => setViewingProfile(profile)}
+            />
           ))}
           <div ref={messagesEndRef} />
         </div>
@@ -147,28 +170,60 @@ export default function DirectMessageRoom() {
           </Button>
         </div>
       </div>
+
+      {viewingProfile && (
+        <UserProfileModal profile={viewingProfile} onClose={() => setViewingProfile(null)} />
+      )}
     </div>
   );
 }
 
-function DMMessage({ message }: { message: DirectMessage }) {
+function DMMessage({
+  message,
+  onAuthorClick,
+}: {
+  message: DirectMessage;
+  onAuthorClick: (profile: ProfilePopupData) => void;
+}) {
   const { user } = useUserStore();
   const isOwn = message.sender === user?.id;
   const sender = message.sender_info;
   const avatar = sender?.avatar;
   const username = sender?.username ?? "Unknown";
 
+  const handleAuthorClick = () => {
+    onAuthorClick({
+      id: message.sender,
+      name: username,
+      description: null,
+      avatar: avatar ?? null,
+      user_id: message.sender,
+    });
+  };
+
   return (
     <div className={`flex gap-4 ${isOwn ? "flex-row-reverse" : "flex-row"}`}>
-      {avatar ? (
-        <img src={avatar} alt={username} className="w-10 h-10 rounded-full object-cover shrink-0" />
-      ) : (
-        <div className="w-10 h-10 rounded-full bg-primary/15 border border-primary/30 flex items-center justify-center text-primary shrink-0 select-none">
-          {username.slice(0, 1).toUpperCase()}
-        </div>
-      )}
+      <button type="button" onClick={handleAuthorClick} className="shrink-0">
+        {avatar ? (
+          <img
+            src={avatar}
+            alt={username}
+            className="w-10 h-10 rounded-full object-cover hover:opacity-80 transition-opacity"
+          />
+        ) : (
+          <div className="w-10 h-10 rounded-full bg-primary/15 border border-primary/30 flex items-center justify-center text-primary select-none hover:opacity-80 transition-opacity">
+            {username.slice(0, 1).toUpperCase()}
+          </div>
+        )}
+      </button>
       <div className={`max-w-[70%] ${isOwn ? "items-end" : "items-start"} flex flex-col`}>
-        <span className="text-primary text-sm mb-1">{username}</span>
+        <button
+          type="button"
+          onClick={handleAuthorClick}
+          className="text-primary text-sm mb-1 hover:underline text-left"
+        >
+          {username}
+        </button>
         <div
           className={`px-4 py-2 rounded-2xl text-white text-sm ${
             isOwn ? "bg-primary/20 rounded-tr-sm" : "bg-white/5 rounded-tl-sm"

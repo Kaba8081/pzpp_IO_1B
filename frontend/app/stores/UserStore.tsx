@@ -10,6 +10,7 @@ import React, {
 import type { SessionUser, World, WorldUserProfile } from "@/types/models";
 import { setCookie, getCookie, deleteCookie } from "@/utils/cookieUtils";
 import { registerToastHandler, type ToastType } from "@/lib/toastBridge";
+import { registerLogoutHandler } from "@/lib/authBridge";
 
 const USER_COOKIE_NAME = "user";
 const PROFILES_BY_WORLD_KEY = "activeProfilesByWorld";
@@ -193,6 +194,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     registerToastHandler((message, type, duration) => {
       toast.open(message, type, duration);
     });
+    registerLogoutHandler(logout);
   }, []);
 
   return (
