@@ -22,7 +22,7 @@ class WorldRolesSerializer(serializers.ModelSerializer):
 
     def get_permission_ids(self, obj):
         return list(
-            WorldRoleHasPermissions.objects.filter(role=obj, deleted_at__isnull=True)
+            WorldRoleHasPermissions.objects.filter(role=obj)
             .values_list("permission_id", flat=True)
         )
 

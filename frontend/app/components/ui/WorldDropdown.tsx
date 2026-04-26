@@ -74,7 +74,7 @@ export const WorldDropdown: React.FC<DropdownProps> = ({
             </button>
 
             {isMenuOpen && (
-              <div className="absolute right-0 top-full mt-1 z-20 bg-background border border-primary/50 rounded-xl overflow-hidden shadow-xl flex flex-col min-w-36 animate-fade-in">
+              <div className="absolute right-0 top-full mt-1 z-20 bg-background border border-primary/50 rounded-xl overflow-hidden shadow-xl flex flex-col min-w-48 animate-fade-in">
                 {onManageRoles && (
                   <button
                     onClick={() => {
