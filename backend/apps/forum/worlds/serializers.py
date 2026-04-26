@@ -97,4 +97,3 @@ class WorldSerializer(serializers.ModelSerializer):
 
         WorldUserHasRoles.objects.create(world=world, user=owner, role=default_role)
         WorldUserHasRoles.objects.create(world=world, user=owner, role=owner_role)
-

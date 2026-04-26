@@ -227,7 +227,6 @@ class RefreshTokenView(TokenRefreshView):
     def post(self, request: "Request", *args, **kwargs) -> Response:
         return super().post(request, *args, **kwargs)
 
-
 class UserUnreadView(APIView):
     """Return IDs of DM threads and rooms with unread messages for the current user."""
     permission_classes = [IsAuthenticated]
@@ -306,3 +305,54 @@ class UserUnreadView(APIView):
             "dm_thread_ids": unread_dm_ids,
             "room_ids": unread_room_ids,
         })
+
+class UserAvatarView(APIView):
+    def get_permissions(self):
+        if self.request.method in ["POST"]:
+            return [IsAuthenticated()]
+        return [permissions.AllowAny()]
+
+    @extend_schema(
+        tags=["Worlds"],
+        description="Upload or update a user's avatar image.",
+        request={
+            'application/json': None,
+            'multipart/form-data': {
+                'type': 'object',
+                'properties': {
+                    'image': {
+                        'type': 'string',
+                        'format': 'binary',
+                        'description': 'Image file to upload as the avatar.'
+                    }
+                },
+                'required': ['image']
+            }
+        },
+        responses={
+            200: UserProfileSerializer,
+            400: VALIDATION_ERROR_RESPONSE,
+            403: OpenApiResponse(description="Forbidden."),
+            404: OpenApiResponse(description="Profile not found."),
+        },
+    )
+    def post(self, request: "Request", username: str) -> Response:
+        profile = UserProfile.objects.filter(username=username).first()
+
+        if profile is None:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        if request.user != profile.user:
+            return Response({
+                "error": "You do not have permission to update this user's avatar."
+                }, status=status.HTTP_403_FORBIDDEN)
+
+        file = request.FILES.get('image') # type: ignore
+        if not file:
+            return Response({"image": "No file provided."}, status=status.HTTP_400_BAD_REQUEST)
+
+        profile.profile_picture = file # type: ignore
+        profile.save(update_fields=["profile_picture"])
+
+        serializer = UserProfileSerializer(profile, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)

@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router";
-import { MessageSquare, X, Plus, Pencil } from "lucide-react";
+import { MessageSquare, X, Plus, Pencil, Camera } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { getOrCreateDMThread } from "@/services/dm/getOrCreateThread.service";
@@ -13,6 +13,8 @@ import { assignUserRole } from "@/services/worldRole/assignUserRole.service";
 import { removeUserRole } from "@/services/worldRole/removeUserRole.service";
 import { useWorldPermissions } from "@/hooks/useWorldPermissions";
 import { getUserById, updateCurrentUser } from "@/services/userService";
+import { uploadWorldProfileAvatar } from "@/services/worldUserProfile/uploadProfileAvatar.service";
+import { uploadProfileAvatar } from "@/services/userService";
 
 interface UserProfileModalProps {
   profile: ProfilePopupData;
@@ -30,6 +32,9 @@ export const UserProfileModal = ({ profile, onClose, worldId }: UserProfileModal
 
   const [realProfile, setRealProfile] = useState<AuthUserProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
+
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editUsername, setEditUsername] = useState("");
@@ -54,8 +59,9 @@ export const UserProfileModal = ({ profile, onClose, worldId }: UserProfileModal
   useEffect(() => {
     let cancelled = false;
     setProfileLoading(true);
-    getUserById(profile.user_id)
-      .then((p) => {
+    const fetches: [Promise<AuthUserProfile>] = [getUserById(profile.user_id)];
+    Promise.all(fetches)
+      .then(([p]) => {
         if (cancelled) return;
         setRealProfile(p);
         setEditUsername(p.username ?? "");
@@ -68,7 +74,7 @@ export const UserProfileModal = ({ profile, onClose, worldId }: UserProfileModal
     return () => {
       cancelled = true;
     };
-  }, [profile.user_id]);
+  }, [profile.user_id, profile.id, worldId]);
 
   useEffect(() => {
     if (!worldId) return;
@@ -132,6 +138,18 @@ export const UserProfileModal = ({ profile, onClose, worldId }: UserProfileModal
     }
   };
 
+  const toAuthUserProfile = (updated: {
+    user?: number;
+    username?: string | null;
+    description?: string | null;
+    profile_picture?: string | null;
+  }): AuthUserProfile => ({
+    user: updated.user ?? realProfile?.user ?? profile.user_id,
+    username: updated.username ?? null,
+    description: updated.description ?? null,
+    profile_picture: updated.profile_picture ?? null,
+  });
+
   const handleSaveEdit = async () => {
     setEditLoading(true);
     setEditError(null);
@@ -140,7 +158,7 @@ export const UserProfileModal = ({ profile, onClose, worldId }: UserProfileModal
         username: editUsername,
         description: editDescription,
       });
-      setRealProfile(updated);
+      setRealProfile(toAuthUserProfile(updated));
       if (user) setUser({ ...user, profile: updated });
       setIsEditing(false);
     } catch {
@@ -150,13 +168,36 @@ export const UserProfileModal = ({ profile, onClose, worldId }: UserProfileModal
     }
   };
 
+  const handleAvatarUpload = async (file: File) => {
+    setAvatarUploading(true);
+    // Upload the user profile avatart
+    if (!worldId && realProfile?.username) {
+      try {
+        const updated = await uploadProfileAvatar(realProfile?.username, file);
+        setRealProfile(toAuthUserProfile(updated));
+      } catch (err) {
+        console.error("Failed to upload avatar:", err);
+      }
+    }
+    // upload the world profile avatar
+    else {
+      try {
+        await uploadWorldProfileAvatar(profile.id, file);
+      } catch (err) {
+        console.error("Failed to upload avatar:", err);
+      }
+    }
+    setAvatarUploading(false);
+    return;
+  };
+
   const assignableRoles = allRoles.filter(
     (r) => !r.is_system && !userRoles.some((ur) => ur.role_id === r.id)
   );
 
   const displayName = realProfile?.username ?? profile.name;
   const displayDescription = realProfile?.description ?? profile.description;
-  const displayAvatar = realProfile?.profile_picture ?? profile.avatar;
+  const displayAvatar = realProfile?.profile_picture;
 
   return createPortal(
     <div
@@ -176,6 +217,7 @@ export const UserProfileModal = ({ profile, onClose, worldId }: UserProfileModal
           <X className="w-5 h-5" />
         </button>
 
+        {/* Edit button */}
         {isOwner && !isEditing && (
           <button
             type="button"
@@ -187,9 +229,44 @@ export const UserProfileModal = ({ profile, onClose, worldId }: UserProfileModal
           </button>
         )}
 
+        {/* User profile information + edit mode */}
         <div className="flex flex-col items-center gap-4 text-center">
+          {isOwner && isEditing && (
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleAvatarUpload(file);
+                e.target.value = "";
+              }}
+            />
+          )}
           {profileLoading ? (
             <div className="w-20 h-20 rounded-full bg-primary/20 animate-pulse" />
+          ) : isOwner && isEditing ? (
+            <button
+              type="button"
+              onClick={() => avatarInputRef.current?.click()}
+              disabled={avatarUploading}
+              className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-primary/50 group focus:outline-none"
+              aria-label="Upload avatar"
+            >
+              {avatarUploading ? (
+                <div className="w-full h-full bg-primary/20 animate-pulse" />
+              ) : displayAvatar ? (
+                <img src={displayAvatar} alt={displayName} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-primary/15 flex items-center justify-center text-primary text-2xl select-none">
+                  {displayName.slice(0, 1).toUpperCase()}
+                </div>
+              )}
+              <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <Camera className="w-6 h-6 text-white" />
+              </div>
+            </button>
           ) : displayAvatar ? (
             <img
               src={displayAvatar}
@@ -262,6 +339,7 @@ export const UserProfileModal = ({ profile, onClose, worldId }: UserProfileModal
           )}
         </div>
 
+        {/* Role selector, present if a worldId was given */}
         {worldId && !isEditing && (
           <div className="mt-5">
             {rolesLoading ? (
@@ -329,6 +407,7 @@ export const UserProfileModal = ({ profile, onClose, worldId }: UserProfileModal
           </div>
         )}
 
+        {/* Send DM */}
         {!isOwner && !isEditing && (
           <div className="mt-6 flex justify-center">
             <Button
