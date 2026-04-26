@@ -9,6 +9,7 @@ from apps.forum.world_user_profiles.models import WorldUserProfiles
 
 class WorldUserProfileAuthorSerializer(serializers.ModelSerializer):
     avatar = serializers.SerializerMethodField()
+    user_id = serializers.IntegerField(read_only=True)
 
     def get_avatar(self, obj) -> str | None:
         if not obj.avatar:
@@ -26,7 +27,7 @@ class WorldUserProfileAuthorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = WorldUserProfiles
-        fields = ['id', 'name', 'avatar']
+        fields = ['id', 'name', 'avatar', 'user_id']
 
 
 class WorldRoomMessagesSerializer(serializers.ModelSerializer):

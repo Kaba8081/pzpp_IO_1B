@@ -6,13 +6,21 @@ import { Button } from "@/components/ui/Button";
 import { UsersSidebar } from "@/components/UsersSidebar";
 import { ChannelRoomMessage } from "@/components/ChannelRoomMessage";
 import { CharacterModal } from "@/components/modals/CharaterModal";
+import { UserProfileModal } from "@/components/modals/UserProfileModal";
 import { SendHorizontal, Dices, PanelRightOpen, X } from "lucide-react";
-import type { WorldRoom, WorldRoomMessageWithAuthor } from "@/types/models";
+import type {
+  WorldRoom,
+  WorldRoomMessageWithAuthor,
+  WorldMember,
+  ProfilePopupData,
+} from "@/types/models";
 import { WorldRoomManager } from "@/services/worldRoomManager";
 import { useUserStore } from "@/stores/UserStore";
 import { createChannelMessage } from "@/services/worldRoom/createChannelMessage.service";
 import type { AppLayoutOutletContext } from "./AppLayout";
 import { connectWorldRoomChannel } from "@/services/worldRoom/worldRoomChannel";
+import { getWorldMembers } from "@/services/worldUserProfile/getWorldMembers.service";
+import { connectWorldEventsChannel } from "@/services/worldUserProfile/worldEventsChannel";
 
 export default function WorldRoomPage() {
   const { activeProfile, currentModal, isLoggedIn, modal } = useUserStore();
@@ -21,6 +29,8 @@ export default function WorldRoomPage() {
   const [messages, setMessages] = useState<WorldRoomMessageWithAuthor[]>([]);
   const [activeRoom, setActiveRoom] = useState<WorldRoom>();
   const [isSendingMessage, setSendingMessage] = useState<boolean>(false);
+  const [members, setMembers] = useState<WorldMember[]>([]);
+  const [selectedProfile, setSelectedProfile] = useState<ProfilePopupData | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { mobileSidebar, setMobileSidebar, closeMobileSidebar } =
     useOutletContext<AppLayoutOutletContext>();
@@ -58,6 +68,25 @@ export default function WorldRoomPage() {
     };
   }, [roomId]);
 
+  // Fetch world members
+  useEffect(() => {
+    if (!worldId || !isLoggedIn) {
+      setMembers([]);
+      return;
+    }
+    let isMounted = true;
+    getWorldMembers(parseInt(worldId))
+      .then((m) => {
+        if (isMounted) setMembers(m);
+      })
+      .catch(() => {
+        if (isMounted) setMembers([]);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, [worldId, isLoggedIn]);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -75,6 +104,18 @@ export default function WorldRoomPage() {
 
     return unsub;
   }, [roomId]);
+
+  // Subscribe to world events (new characters) via WebSocket
+  useEffect(() => {
+    if (!worldId || !isLoggedIn) return;
+
+    const channel = connectWorldEventsChannel(parseInt(worldId));
+    const unsub = channel.subscribe("world.profile.created", (e) => {
+      setMembers((prev) => (prev.some((m) => m.id === e.profile.id) ? prev : [...prev, e.profile]));
+    });
+
+    return unsub;
+  }, [worldId, isLoggedIn]);
 
   const handleSendMessage = async () => {
     if (!messageText || messageText.length === 0) return;
@@ -98,6 +139,25 @@ export default function WorldRoomPage() {
       .finally(() => {
         setSendingMessage(false);
       });
+  };
+
+  const handleMemberClick = (member: WorldMember) => {
+    setSelectedProfile({
+      name: member.name,
+      description: member.description,
+      avatar: member.avatar,
+      user_id: member.user_id,
+    });
+  };
+
+  const handleAuthorClick = (
+    author: Pick<WorldRoomMessageWithAuthor["author"], "id" | "name" | "avatar" | "user_id">
+  ) => {
+    setSelectedProfile({
+      name: author.name,
+      avatar: author.avatar,
+      user_id: author.user_id,
+    });
   };
 
   if (!worldId) {
@@ -147,6 +207,7 @@ export default function WorldRoomPage() {
                 message={msg}
                 author={msg.author}
                 GameMaster={false}
+                onAuthorClick={handleAuthorClick}
               />
             ))}
             <div ref={messagesEndRef} />
@@ -193,7 +254,7 @@ export default function WorldRoomPage() {
           isUsersSidebarOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <UsersSidebar masterOfGame={undefined} characters={undefined} />
+        <UsersSidebar members={members} onMemberClick={handleMemberClick} />
       </div>
 
       {currentModal === "create-character" && (
@@ -205,6 +266,10 @@ export default function WorldRoomPage() {
           worldId={worldId ? parseInt(worldId) : undefined}
           profileId={activeProfile.id}
         />
+      )}
+
+      {selectedProfile && (
+        <UserProfileModal profile={selectedProfile} onClose={() => setSelectedProfile(null)} />
       )}
     </>
   );

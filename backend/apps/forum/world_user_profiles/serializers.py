@@ -1,3 +1,4 @@
+from django.conf import settings
 from drf_spectacular.utils import extend_schema_serializer
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
@@ -76,3 +77,27 @@ class WorldUserProfilesSerializer(serializers.ModelSerializer):
 class WorldUserProfilesUpdateSerializer(WorldUserProfilesSerializer):
     class Meta(WorldUserProfilesSerializer.Meta):
         pass
+
+
+class WorldUserProfilePublicSerializer(serializers.ModelSerializer):
+    """Read-only serializer exposing user_id for world member listings."""
+    user_id = serializers.IntegerField(read_only=True)
+    avatar = serializers.SerializerMethodField()
+
+    def get_avatar(self, obj) -> str | None:
+        if not obj.avatar:
+            return None
+        url = obj.avatar.url
+        request = self.context.get('request')
+        if request is not None:
+            return request.build_absolute_uri(url)
+        site_url = getattr(settings, 'SITE_URL', '').rstrip('/')
+        if not site_url:
+            return url
+        if not url.startswith('/'):
+            url = f'/{url}'
+        return f'{site_url}{url}'
+
+    class Meta:
+        model = WorldUserProfiles
+        fields = ['id', 'name', 'description', 'avatar', 'user_id']

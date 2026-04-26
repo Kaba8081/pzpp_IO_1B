@@ -5,5 +5,6 @@ export default [
     index("routes/MainPage.tsx"),
     route("world/roles/:worldId", "routes/World/RolePage.tsx"),
     route("world/:worldId/:roomId", "routes/ChannelRoom.tsx"),
+    route("dm/:threadId", "routes/DirectMessageRoom.tsx"),
   ]),
 ] satisfies RouteConfig;

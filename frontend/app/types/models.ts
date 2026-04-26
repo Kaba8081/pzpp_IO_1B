@@ -24,3 +24,11 @@ export type { WorldRole } from "./models/worldRole";
 export type { WorldUserHasRole } from "./models/worldUserHasRole";
 export type { WorldRolePermission } from "./models/worldRolePermission";
 export type { WorldRoleHasPermission } from "./models/worldRoleHasPermission";
+export type {
+  DirectMessage,
+  DirectMessageThread,
+  DMSenderInfo,
+  DMLastMessage,
+  WorldMember,
+  ProfilePopupData,
+} from "./models/directMessage";

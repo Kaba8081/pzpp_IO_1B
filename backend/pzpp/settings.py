@@ -62,6 +62,7 @@ LOCAL_APPS = [
     'core.apps.CoreConfig',
     'apps.users.apps.UsersConfig',
     'apps.forum.apps.ForumConfig',
+    'apps.dm.apps.DmConfig',
 ]
 
 THIRD_PARTY_APPS = [

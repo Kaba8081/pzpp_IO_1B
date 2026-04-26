@@ -12,5 +12,5 @@ export interface WorldRoomMessage {
 }
 
 export interface WorldRoomMessageWithAuthor extends WorldRoomMessage {
-  author: Pick<WorldUserProfile, "id" | "name" | "avatar">;
+  author: Pick<WorldUserProfile, "id" | "name" | "avatar" | "user_id">;
 }

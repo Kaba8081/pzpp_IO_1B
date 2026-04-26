@@ -4,9 +4,10 @@ import { useState } from "react";
 
 interface ChannelRoomMessageProps {
   message: WorldRoomMessage;
-  author?: Pick<WorldProfile, "id" | "name" | "avatar">;
+  author?: Pick<WorldProfile, "id" | "name" | "avatar" | "user_id">;
   actions?: WorldRoomMessageAction[];
   GameMaster: boolean;
+  onAuthorClick?: (author: Pick<WorldProfile, "id" | "name" | "avatar" | "user_id">) => void;
 }
 
 export const ChannelRoomMessage = ({
@@ -14,21 +15,53 @@ export const ChannelRoomMessage = ({
   author,
   actions = [],
   GameMaster,
+  onAuthorClick,
 }: ChannelRoomMessageProps) => {
   const [isPending, setIsPending] = useState(true);
 
-  const avatar = author?.avatar || "https://via.placeholder.com/100";
+  const avatar = author?.avatar || null;
   const username = author?.name || "Unknown Wanderer";
+
+  const handleAuthorClick = () => {
+    if (author && onAuthorClick) {
+      onAuthorClick(author);
+    }
+  };
 
   return (
     <div className="flex gap-5 w-full group mx-5 my-5">
       <div className="shrink-0">
-        <img src={avatar} alt={username} className="w-12 h-12 rounded-full object-cover" />
+        <button
+          type="button"
+          onClick={handleAuthorClick}
+          disabled={!onAuthorClick}
+          className={onAuthorClick ? "cursor-pointer" : "cursor-default"}
+          aria-label={onAuthorClick ? `View ${username}'s profile` : undefined}
+        >
+          {avatar ? (
+            <img
+              src={avatar}
+              alt={username}
+              className="w-12 h-12 rounded-full object-cover hover:ring-2 hover:ring-primary/50 transition-all"
+            />
+          ) : (
+            <div className="w-12 h-12 rounded-full bg-primary/15 border border-primary/30 flex items-center justify-center text-primary select-none hover:ring-2 hover:ring-primary/50 transition-all">
+              {username.slice(0, 1).toUpperCase()}
+            </div>
+          )}
+        </button>
       </div>
 
       <div className="flex flex-col flex-1">
         <div className="flex justify-between items-center mb-1">
-          <span className="text-primary whitespace-nowrap mr-4">{username}</span>
+          <button
+            type="button"
+            onClick={handleAuthorClick}
+            disabled={!onAuthorClick}
+            className={`text-primary whitespace-nowrap mr-4 ${onAuthorClick ? "hover:underline cursor-pointer" : "cursor-default"}`}
+          >
+            {username}
+          </button>
 
           {GameMaster && isPending && (
             <div className="flex gap-3">

@@ -8,7 +8,11 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
 from apps.forum.world_user_profiles.models import WorldUserProfiles
-from apps.forum.world_user_profiles.serializers import WorldUserProfilesSerializer, WorldUserProfilesUpdateSerializer
+from apps.forum.world_user_profiles.serializers import (
+    WorldUserProfilesSerializer,
+    WorldUserProfilesUpdateSerializer,
+    WorldUserProfilePublicSerializer,
+)
 from apps.forum.world_room_messages.models import WorldRoomMessages
 from apps.forum.world_user_profiles.managers import WorldUserProfilesManager
 
@@ -122,6 +126,23 @@ class ProfileView(APIView):
         WorldRoomMessages.objects.filter(user_profile=profile).update(deleted_at=now)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class WorldMembersView(APIView):
+    """List all WorldUserProfiles in a world (any user), for the channel room sidebar."""
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        tags=["World Profiles"],
+        responses={200: WorldUserProfilePublicSerializer(many=True)},
+    )
+    def get(self, request: "Request", world_id: int) -> Response:
+        profiles = WorldUserProfiles.objects.filter(
+            world_id=world_id,
+            deleted_at__isnull=True,
+        ).select_related('user')
+        serializer = WorldUserProfilePublicSerializer(profiles, many=True, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class ProfileAvatarView(APIView):
 

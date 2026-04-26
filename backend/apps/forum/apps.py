@@ -7,3 +7,4 @@ class ForumConfig(AppConfig):
 
     def ready(self):
         import apps.forum.world_room_messages.signals  # noqa: F401
+        import apps.forum.world_user_profiles.signals  # noqa: F401

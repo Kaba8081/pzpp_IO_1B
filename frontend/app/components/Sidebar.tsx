@@ -7,7 +7,8 @@ import { WorldDropdown } from "@/components/ui/WorldDropdown";
 import { useUserStore } from "@/stores/UserStore";
 import { getUserWorlds, getWorldById } from "@/services/world";
 import { getChannels } from "@/services/worldRoom";
-import type { World, Channel } from "@/types/models";
+import { getDMThreads } from "@/services/dm/getThreads.service";
+import type { World, Channel, DirectMessageThread } from "@/types/models";
 
 export const Sidebar: React.FC = () => {
   const {
@@ -29,6 +30,7 @@ export const Sidebar: React.FC = () => {
   const [channelsByWorldId, setChannelsByWorldId] = useState<Record<number, Channel[]>>({});
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const accountMenuRef = useRef<HTMLDivElement>(null);
+  const [dmThreads, setDmThreads] = useState<DirectMessageThread[]>([]);
 
   const isHomeActive = location.pathname === "/";
   const sidebarWorlds = useMemo(() => {
@@ -56,6 +58,16 @@ export const Sidebar: React.FC = () => {
       .then(setWorlds)
       .catch(() => setWorlds([]));
   }, [isLoggedIn, worldsVersion]);
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setDmThreads([]);
+      return;
+    }
+    getDMThreads()
+      .then(setDmThreads)
+      .catch(() => setDmThreads([]));
+  }, [isLoggedIn]);
 
   useEffect(() => {
     if (!removedWorldMembership) return;
@@ -284,8 +296,51 @@ export const Sidebar: React.FC = () => {
         )}
 
         {activeTab === "messages" && (
-          <div className="text-input-placeholder mt-10 text-center">
-            {isLoggedIn ? "No new messages." : "Login to view messages."}
+          <div className="flex flex-col mt-4 gap-1">
+            {!isLoggedIn ? (
+              <p className="text-input-placeholder text-center mt-6">
+                <button
+                  className="text-primary hover:underline"
+                  onClick={() => modal.open("login")}
+                >
+                  Login
+                </button>{" "}
+                to view messages.
+              </p>
+            ) : dmThreads.length === 0 ? (
+              <p className="text-input-placeholder text-center mt-6">No messages yet.</p>
+            ) : (
+              dmThreads.map((thread) => (
+                <button
+                  key={thread.id}
+                  type="button"
+                  onClick={() => navigate(`/dm/${thread.id}`)}
+                  className="flex items-center gap-3 w-full text-left rounded-xl px-3 py-2.5 hover:bg-primary/10 transition-colors"
+                >
+                  {thread.other_user?.avatar ? (
+                    <img
+                      src={thread.other_user.avatar}
+                      alt={thread.other_user.username}
+                      className="w-9 h-9 rounded-full object-cover border border-primary/30 shrink-0"
+                    />
+                  ) : (
+                    <div className="w-9 h-9 rounded-full bg-primary/15 border border-primary/30 flex items-center justify-center text-primary shrink-0 select-none text-sm">
+                      {(thread.other_user?.username ?? "?").slice(0, 1).toUpperCase()}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="text-white text-sm truncate">
+                      {thread.other_user?.username ?? "Unknown"}
+                    </div>
+                    {thread.last_message && (
+                      <div className="text-input-placeholder text-xs truncate">
+                        {thread.last_message.content}
+                      </div>
+                    )}
+                  </div>
+                </button>
+              ))
+            )}
           </div>
         )}
       </div>
