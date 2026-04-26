@@ -1,9 +1,9 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from drf_spectacular.utils import OpenApiResponse, extend_schema
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -29,11 +29,11 @@ FORBIDDEN = {"error": "You do not have permission to manage roles in this world.
 
 
 def _get_world(world_id: int) -> Worlds:
-    return get_object_or_404(Worlds.objects.filter(deleted_at__isnull=True), id=world_id)
+    return get_object_or_404(Worlds.objects, id=world_id)
 
 
 def _get_role(world: Worlds, role_id: int) -> WorldRoles:
-    return get_object_or_404(WorldRoles.objects.filter(deleted_at__isnull=True, world=world), id=role_id)
+    return get_object_or_404(WorldRoles.objects.filter(world=world), id=role_id)
 
 
 def _apply_permissions(role: WorldRoles, permission_ids: list[int]) -> None:
@@ -53,7 +53,7 @@ class WorldRolesListView(APIView):
     )
     def get(self, request: "Request", world_id: int) -> Response:
         world = _get_world(world_id)
-        roles = WorldRoles.objects.filter(world=world, deleted_at__isnull=True)
+        roles = WorldRoles.objects.filter(world=world)
         return Response(WorldRolesSerializer(roles, many=True).data)
 
     @extend_schema(
@@ -70,9 +70,15 @@ class WorldRolesListView(APIView):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+        validated_data = cast(dict[str, object], serializer.validated_data)
+        name = validated_data.get("name")
+        if name is None:
+            return Response({"name": "This field is required."}, status=status.HTTP_400_BAD_REQUEST)
+
         with transaction.atomic():
-            role = WorldRoles.objects.create(world=world, name=serializer.validated_data["name"])
-            _apply_permissions(role, serializer.validated_data.get("permission_ids", []))
+            role = WorldRoles.objects.create(world=world, name=str(name))
+            permission_ids = cast(list[int], validated_data.get("permission_ids", []))
+            _apply_permissions(role, permission_ids)
 
         return Response(WorldRolesSerializer(role).data, status=status.HTTP_201_CREATED)
 
@@ -101,12 +107,15 @@ class WorldRolesDetailView(APIView):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+        validated_data = cast(dict[str, object], serializer.validated_data)
+
         with transaction.atomic():
-            if "name" in serializer.validated_data:
-                role.name = serializer.validated_data["name"]
+            if "name" in validated_data:
+                role.name = str(validated_data["name"])
                 role.save(update_fields=["name", "updated_at"])
-            if "permission_ids" in serializer.validated_data:
-                _apply_permissions(role, serializer.validated_data["permission_ids"])
+            if "permission_ids" in validated_data:
+                permission_ids = cast(list[int], validated_data["permission_ids"])
+                _apply_permissions(role, permission_ids)
 
         return Response(WorldRolesSerializer(role).data)
 
@@ -134,7 +143,7 @@ class WorldRolePermissionsCatalogView(APIView):
 
     @extend_schema(tags=["Roles"], responses={200: WorldRolePermissionSerializer(many=True)})
     def get(self, request: "Request") -> Response:
-        perms = WorldRolePermissions.objects.filter(deleted_at__isnull=True)
+        perms = WorldRolePermissions.objects.all()
         return Response(WorldRolePermissionSerializer(perms, many=True).data)
 
 
@@ -145,12 +154,11 @@ class WorldUserRolesView(APIView):
     def get(self, request: "Request", world_id: int, user_id: int) -> Response:
         world = _get_world(world_id)
         assignments = WorldUserHasRoles.objects.filter(
-            world=world, user_id=user_id, deleted_at__isnull=True
+            world=world, user_id=user_id
         ).select_related("role")
         data = [
-            {"role_id": a.role_id, "role_name": a.role.name}
+            {"role_id": a.role.id, "role_name": a.role.name}
             for a in assignments
-            if a.role.deleted_at is None
         ]
         return Response(data)
 
@@ -160,15 +168,28 @@ class WorldUserRolesView(APIView):
         if not user_has_permission(request.user, world, "manage_members"):
             return Response({"error": "You do not have permission to manage members."}, status=status.HTTP_403_FORBIDDEN)
 
-        role_id = request.data.get("role_id")
-        if not role_id:
+        request_data = cast(dict[str, object], request.data)
+        role_id_raw = request_data.get("role_id")
+        if role_id_raw is None:
             return Response({"role_id": "This field is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if isinstance(role_id_raw, bool):
+            return Response({"role_id": "A valid integer is required."}, status=status.HTTP_400_BAD_REQUEST)
+        if isinstance(role_id_raw, int):
+            role_id = role_id_raw
+        elif isinstance(role_id_raw, str):
+            try:
+                role_id = int(role_id_raw)
+            except ValueError:
+                return Response({"role_id": "A valid integer is required."}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"role_id": "A valid integer is required."}, status=status.HTTP_400_BAD_REQUEST)
 
         role = _get_role(world, role_id)
         target_user = get_object_or_404(User, id=user_id)
 
         active = WorldUserHasRoles.objects.filter(
-            world=world, user=target_user, role=role, deleted_at__isnull=True
+            world=world, user=target_user, role=role
         ).first()
         if not active:
             WorldUserHasRoles.objects.create(world=world, user=target_user, role=role)
@@ -186,7 +207,7 @@ class WorldUserRoleDetailView(APIView):
             return Response({"error": "You do not have permission to manage members."}, status=status.HTTP_403_FORBIDDEN)
 
         assignment = get_object_or_404(
-            WorldUserHasRoles, world=world, user_id=user_id, role_id=role_id, deleted_at__isnull=True
+            WorldUserHasRoles, world=world, user_id=user_id, role_id=role_id
         )
         assignment.deleted_at = timezone.now()
         assignment.save(update_fields=["deleted_at"])
