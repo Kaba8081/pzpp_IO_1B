@@ -164,6 +164,13 @@ export default function WorldRoomPage() {
     modal.open("view-character");
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
   if (!worldId) {
     return <div>Invalid world ID</div>;
   }
@@ -222,7 +229,12 @@ export default function WorldRoomPage() {
           <textarea
             value={messageText}
             onChange={(e) => setMessageText(e.target.value)}
-            placeholder="YOUR MESSAGE"
+            onKeyDown={handleKeyDown}
+            placeholder={
+              activeProfile
+                ? "YOUR MESSAGE"
+                : "SELECT OR CREATE A CHARACTER IN ORDER TO SEND MESSAGES"
+            }
             className="w-full h-20 border-primary rounded-2xl border-2 p-4 text-white/90 focus:outline-none focus:border-primary resize-none mb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
             disabled={isInputDisabled}
           />

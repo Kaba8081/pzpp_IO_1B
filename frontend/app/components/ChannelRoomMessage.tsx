@@ -29,8 +29,8 @@ export const ChannelRoomMessage = ({
   };
 
   return (
-    <div className="flex gap-5 w-full group mx-5 my-5">
-      <div className="shrink-0">
+    <div className="flex flex-row gap-4 w-full group mt-5 max-w-full">
+      <div className="shrink-0 w-12">
         <button
           type="button"
           onClick={handleAuthorClick}
@@ -52,7 +52,7 @@ export const ChannelRoomMessage = ({
         </button>
       </div>
 
-      <div className="flex flex-col flex-1">
+      <div className="flex flex-col flex-1 min-w-0">
         <div className="flex justify-between items-center mb-1">
           <button
             type="button"
@@ -83,7 +83,9 @@ export const ChannelRoomMessage = ({
           )}
         </div>
 
-        <p className="text-justify mb-3">{message.content || "No content provided."}</p>
+        <p className="text-justify mb-3 wrap-break-word w-full">
+          {message.content || "No content provided."}
+        </p>
 
         <div className="flex flex-col items-start gap-2">
           {GameMaster && (

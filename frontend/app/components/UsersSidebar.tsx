@@ -31,7 +31,7 @@ export const UsersSidebar = ({ members, onMemberClick }: UsersSidebarProps) => {
 
   return (
     <aside className="text-primary w-[calc(100vw-1.5rem)] md:w-[18rem] lg:w-3xs xl:w-2xs h-full bg-background border border-primary rounded-2xl flex flex-col gap-6 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-      <div className="p-6 md:p-8 flex-1">
+      <div className="p-6 md:p-8 flex-1 overflow-y-auto">
         {members.length > 0 ? (
           <div className="flex flex-col gap-2">
             <h3 className="mb-2">
