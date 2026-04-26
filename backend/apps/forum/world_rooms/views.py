@@ -13,7 +13,7 @@ from apps.forum.permissions import user_has_permission
 from apps.forum.worlds.models import Worlds
 from apps.forum.world_rooms.models import WorldRooms
 from apps.forum.world_rooms.serializers import WorldRoomsSerializer, WorldRoomsUpdateSerializer
-from apps.forum.world_room_messages.models import WorldRoomMessages
+from apps.forum.world_room_messages.models import WorldRoomMessages, WorldRoomReadStatus
 from apps.forum.world_room_message_actions.models import WorldRoomMessageActions
 from apps.forum.world_rooms.managers import WorldRoomManager
 
@@ -205,3 +205,44 @@ class WorldRoomThumbnailView(APIView):
 
         serializer = WorldRoomsSerializer(room, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class RoomMarkReadView(APIView):
+    """Mark a room as read for the current user."""
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(tags=["Rooms"], responses={204: None})
+    def post(self, request: "Request", room_id: int) -> Response:
+        manager = cast(WorldRoomManager, WorldRooms.objects)
+        room = cast(WorldRooms, get_object_or_404(manager.get(), id=room_id))
+
+        latest_id = (
+            WorldRoomMessages.objects
+            .filter(room=room, deleted_at__isnull=True)
+            .order_by('-id')
+            .values_list('id', flat=True)
+            .first()
+        )
+
+        WorldRoomReadStatus.objects.update_or_create(
+            user=request.user,
+            room=room,
+            defaults={'last_read_message_id': latest_id},
+        )
+
+        from asgiref.sync import async_to_sync
+        from channels.layers import get_channel_layer
+        channel_layer = get_channel_layer()
+        if channel_layer:
+            async_to_sync(channel_layer.group_send)(
+                f'user_{request.user.id}',
+                {
+                    'type': 'unread.updated',
+                    'event': 'unread.updated',
+                    'kind': 'room',
+                    'id': room_id,
+                    'unread': False,
+                },
+            )
+
+        return Response(status=status.HTTP_204_NO_CONTENT)

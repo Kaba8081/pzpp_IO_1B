@@ -81,6 +81,12 @@ interface UserContextType {
 
   deletingCharacter: { worldId: number; profile: WorldUserProfile } | null;
   setDeletingCharacter: (target: { worldId: number; profile: WorldUserProfile } | null) => void;
+
+  unreadDMThreadIds: Set<number>;
+  unreadRoomIds: Set<number>;
+  setUnreadDM: (threadId: number, unread: boolean) => void;
+  setUnreadRoom: (roomId: number, unread: boolean) => void;
+  initializeUnread: (dmIds: number[], roomIds: number[]) => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -136,6 +142,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     profile: WorldUserProfile;
   } | null>(null);
   const [permissionsByWorld, setPermissionsByWorld] = useState<Record<number, string[]>>({});
+  const [unreadDMThreadIds, setUnreadDMThreadIds] = useState<Set<number>>(new Set());
+  const [unreadRoomIds, setUnreadRoomIds] = useState<Set<number>>(new Set());
 
   const setUser = (nextUser: SessionUser | null) => {
     setUserState(nextUser);
@@ -149,7 +157,32 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     persistProfilesByWorld({});
     setDeletingCharacter(null);
     setPermissionsByWorld({});
+    setUnreadDMThreadIds(new Set());
+    setUnreadRoomIds(new Set());
   };
+
+  const setUnreadDM = useCallback((threadId: number, unread: boolean) => {
+    setUnreadDMThreadIds((prev) => {
+      const next = new Set(prev);
+      if (unread) next.add(threadId);
+      else next.delete(threadId);
+      return next;
+    });
+  }, []);
+
+  const setUnreadRoom = useCallback((roomId: number, unread: boolean) => {
+    setUnreadRoomIds((prev) => {
+      const next = new Set(prev);
+      if (unread) next.add(roomId);
+      else next.delete(roomId);
+      return next;
+    });
+  }, []);
+
+  const initializeUnread = useCallback((dmIds: number[], roomIds: number[]) => {
+    setUnreadDMThreadIds(new Set(dmIds));
+    setUnreadRoomIds(new Set(roomIds));
+  }, []);
 
   const setWorldPermissions = useCallback((worldId: number, permissions: string[]) => {
     setPermissionsByWorld((prev) => ({ ...prev, [worldId]: permissions }));
@@ -234,6 +267,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         setDeletingCharacter,
         permissionsByWorld,
         setWorldPermissions,
+        unreadDMThreadIds,
+        unreadRoomIds,
+        setUnreadDM,
+        setUnreadRoom,
+        initializeUnread,
       }}
     >
       {children}

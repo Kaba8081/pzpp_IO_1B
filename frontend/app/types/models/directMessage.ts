@@ -29,6 +29,7 @@ export interface DirectMessageThread {
   user_b: number;
   other_user: DMSenderInfo;
   last_message: DMLastMessage | null;
+  has_unread: boolean;
   created_at: ISODateTime | null;
 }
 

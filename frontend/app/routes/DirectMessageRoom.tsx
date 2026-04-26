@@ -5,7 +5,7 @@ import { useParams, useNavigate } from "react-router";
 import { Button } from "@/components/ui/Button";
 import { SendHorizontal, ArrowLeft } from "lucide-react";
 import { useUserStore } from "@/stores/UserStore";
-import { getDMThreadMessages, createDMMessage, connectDMChannel } from "@/services/dm";
+import { getDMThreadMessages, createDMMessage, connectDMChannel, markDMRead } from "@/services/dm";
 import type { DirectMessage, DirectMessageThread, ProfilePopupData } from "@/types/models";
 import { apiRequest } from "@/api/apiRequest";
 import { UserProfileModal } from "@/components/modals/UserProfileModal";
@@ -20,7 +20,7 @@ function getDMThread(threadId: number): Promise<DirectMessageThread> {
 export default function DirectMessageRoom() {
   const { threadId } = useParams<{ threadId: string }>();
   const navigate = useNavigate();
-  const { isLoggedIn, modal } = useUserStore();
+  const { isLoggedIn, modal, setUnreadDM } = useUserStore();
   const [messageText, setMessageText] = useState("");
   const [messages, setMessages] = useState<DirectMessage[]>([]);
   const [thread, setThread] = useState<DirectMessageThread | null>(null);
@@ -41,10 +41,14 @@ export default function DirectMessageRoom() {
       })
       .catch(console.error);
 
+    markDMRead(id)
+      .then(() => setUnreadDM(id, false))
+      .catch(() => {});
+
     return () => {
       isMounted = false;
     };
-  }, [threadId]);
+  }, [threadId, setUnreadDM]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -58,9 +62,13 @@ export default function DirectMessageRoom() {
       setMessages((prev) =>
         prev.some((m) => m.id === e.message.id) ? prev : [...prev, e.message]
       );
+      // User is actively viewing this thread — mark it read immediately.
+      markDMRead(id)
+        .then(() => setUnreadDM(id, false))
+        .catch(() => {});
     });
     return unsub;
-  }, [threadId]);
+  }, [threadId, setUnreadDM]);
 
   const handleSend = async () => {
     if (!messageText.trim()) return;

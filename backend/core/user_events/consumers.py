@@ -29,3 +29,11 @@ class UserEventsConsumer(AsyncWebsocketConsumer):
             'event': event['event'],
             'world_id': event['world_id'],
         }))
+
+    async def unread_updated(self, event: dict[str, Any]) -> None:
+        await self.send(text_data=json.dumps({
+            'event': event['event'],
+            'kind': event['kind'],
+            'id': event['id'],
+            'unread': event['unread'],
+        }))

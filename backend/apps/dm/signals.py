@@ -12,6 +12,7 @@ def broadcast_dm_created(sender, instance, created, **kwargs):
     if not created:
         return
 
+    from apps.dm.models import DirectMessageReadStatus
     from apps.dm.serializers import DirectMessageSerializer
 
     channel_layer = get_channel_layer()
@@ -19,10 +20,22 @@ def broadcast_dm_created(sender, instance, created, **kwargs):
         return
 
     payload = DirectMessageSerializer(instance).data
+    thread = instance.thread
     thread_group_name = f'dm_thread_{instance.thread_id}'
 
-    transaction.on_commit(
-        lambda: async_to_sync(channel_layer.group_send)(
+    # Advance sender's read status so their UI doesn't show a dot.
+    DirectMessageReadStatus.objects.update_or_create(
+        user_id=instance.sender_id,
+        thread=thread,
+        defaults={'last_read_message_id': instance.id},
+    )
+
+    # Determine recipient (the other participant).
+    recipient_id = thread.user_b_id if thread.user_a_id == instance.sender_id else thread.user_a_id
+
+    def _send():
+        # Broadcast to the DM room channel (for live message display).
+        async_to_sync(channel_layer.group_send)(
             thread_group_name,
             {
                 'type': 'dm.message.created',
@@ -31,4 +44,16 @@ def broadcast_dm_created(sender, instance, created, **kwargs):
                 'message': payload,
             },
         )
-    )
+        # Notify the recipient's user events channel about the new unread message.
+        async_to_sync(channel_layer.group_send)(
+            f'user_{recipient_id}',
+            {
+                'type': 'unread.updated',
+                'event': 'unread.updated',
+                'kind': 'dm',
+                'id': instance.thread_id,
+                'unread': True,
+            },
+        )
+
+    transaction.on_commit(_send)

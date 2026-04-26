@@ -43,6 +43,7 @@ class DirectMessageSerializer(serializers.ModelSerializer):
 class DirectMessageThreadSerializer(serializers.ModelSerializer):
     other_user = serializers.SerializerMethodField()
     last_message = serializers.SerializerMethodField()
+    has_unread = serializers.SerializerMethodField()
 
     def get_other_user(self, obj) -> dict | None:
         request = self.context.get('request')
@@ -62,7 +63,21 @@ class DirectMessageThreadSerializer(serializers.ModelSerializer):
             'created_at': msg.created_at,
         }
 
+    def get_has_unread(self, obj) -> bool:
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return False
+        from apps.dm.models import DirectMessageReadStatus
+        latest = obj.messages.order_by('-id').values_list('id', flat=True).first()
+        if not latest:
+            return False
+        try:
+            status = DirectMessageReadStatus.objects.get(user=request.user, thread=obj)
+            return (status.last_read_message_id or 0) < latest
+        except DirectMessageReadStatus.DoesNotExist:
+            return True
+
     class Meta:
         model = DirectMessageThread
-        fields = ['id', 'user_a', 'user_b', 'other_user', 'last_message', 'created_at']
-        read_only_fields = ['id', 'created_at', 'other_user', 'last_message']
+        fields = ['id', 'user_a', 'user_b', 'other_user', 'last_message', 'has_unread', 'created_at']
+        read_only_fields = ['id', 'created_at', 'other_user', 'last_message', 'has_unread']

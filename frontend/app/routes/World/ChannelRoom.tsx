@@ -19,11 +19,12 @@ import { useUserStore } from "@/stores/UserStore";
 import { createChannelMessage } from "@/services/worldRoom/createChannelMessage.service";
 import type { AppLayoutOutletContext } from "../AppLayout";
 import { connectWorldRoomChannel } from "@/services/worldRoom/worldRoomChannel";
+import { markRoomRead } from "@/services/worldRoom/markRoomRead.service";
 import { getWorldMembers } from "@/services/worldUserProfile/getWorldMembers.service";
 import { connectWorldEventsChannel } from "@/services/worldUserProfile/worldEventsChannel";
 
 export default function WorldRoomPage() {
-  const { activeProfile, currentModal, isLoggedIn, modal } = useUserStore();
+  const { activeProfile, currentModal, isLoggedIn, modal, setUnreadRoom } = useUserStore();
   const { worldId, roomId } = useParams<{ worldId: string; roomId: string }>();
   const [messageText, setMessageText] = useState("");
   const [messages, setMessages] = useState<WorldRoomMessageWithAuthor[]>([]);
@@ -63,10 +64,14 @@ export default function WorldRoomPage() {
 
     fetchRoomData();
 
+    markRoomRead(parsedRoomId)
+      .then(() => setUnreadRoom(parsedRoomId, false))
+      .catch(() => {});
+
     return () => {
       isMounted = false;
     };
-  }, [roomId]);
+  }, [roomId, setUnreadRoom]);
 
   // Fetch world members
   useEffect(() => {
@@ -95,15 +100,20 @@ export default function WorldRoomPage() {
   useEffect(() => {
     if (!roomId) return;
 
-    const channel = connectWorldRoomChannel(parseInt(roomId));
+    const parsedRoomId = parseInt(roomId);
+    const channel = connectWorldRoomChannel(parsedRoomId);
     const unsub = channel.subscribe("room.message.created", (e) => {
       setMessages((prev) =>
         prev.some((m) => m.id === e.message.id) ? prev : [...prev, e.message]
       );
+      // User is actively viewing this room — mark it read immediately.
+      markRoomRead(parsedRoomId)
+        .then(() => setUnreadRoom(parsedRoomId, false))
+        .catch(() => {});
     });
 
     return unsub;
-  }, [roomId]);
+  }, [roomId, setUnreadRoom]);
 
   // Subscribe to world events (new characters) via WebSocket
   useEffect(() => {

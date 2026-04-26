@@ -4,6 +4,7 @@ import { updateChannel } from "./updateChannel.service";
 import { deleteChannel } from "./deleteChannel.service";
 import { uploadChannelImage } from "./uploadChannelImage.service";
 import { connectWorldRoomChannel } from "./worldRoomChannel";
+import { markRoomRead } from "./markRoomRead.service";
 
 export {
   getChannels,
@@ -12,4 +13,5 @@ export {
   deleteChannel,
   uploadChannelImage,
   connectWorldRoomChannel,
+  markRoomRead,
 };

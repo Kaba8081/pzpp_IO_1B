@@ -4,6 +4,7 @@ import { ChevronRight, MoreHorizontal, Pencil, Plus, ShieldCheck, Trash2 } from 
 export interface DropdownItem {
   label: string;
   isActive?: boolean;
+  hasUnread?: boolean;
   onClick?: () => void;
   onDelete?: () => void;
 }
@@ -13,6 +14,7 @@ interface DropdownProps {
   items: DropdownItem[];
   defaultOpen?: boolean;
   isActive?: boolean;
+  hasUnread?: boolean;
   onEdit?: () => void;
   onDelete?: () => void;
   onCreateItem?: () => void;
@@ -24,6 +26,7 @@ export const WorldDropdown: React.FC<DropdownProps> = ({
   items,
   defaultOpen = false,
   isActive = false,
+  hasUnread = false,
   onEdit,
   onDelete,
   onCreateItem,
@@ -59,6 +62,12 @@ export const WorldDropdown: React.FC<DropdownProps> = ({
             className={`w-4 h-4 shrink-0 transition-transform duration-200 ${isOpen ? "rotate-90" : ""}`}
           />
           <span className="truncate">{title}</span>
+          {hasUnread && (
+            <span
+              className="ml-1 w-2 h-2 rounded-full bg-primary shrink-0"
+              aria-label="Unread messages"
+            />
+          )}
         </button>
 
         {hasActions && (
@@ -124,11 +133,17 @@ export const WorldDropdown: React.FC<DropdownProps> = ({
               <div key={idx} className="flex items-center group/channel">
                 <button
                   onClick={item.onClick}
-                  className={`flex-1 text-left py-1.5 transition-colors rounded ${
+                  className={`flex-1 text-left py-1.5 transition-colors rounded flex items-center gap-2 ${
                     item.isActive ? "text-primary" : "text-white/70 hover:text-white"
                   }`}
                 >
-                  {item.label}
+                  <span className="truncate">{item.label}</span>
+                  {item.hasUnread && !item.isActive && (
+                    <span
+                      className="w-2 h-2 rounded-full bg-primary shrink-0"
+                      aria-label="Unread messages"
+                    />
+                  )}
                 </button>
                 {item.onDelete && (
                   <button

@@ -5,9 +5,17 @@ export interface PermissionsUpdatedEvent {
   world_id: number;
 }
 
+export interface UnreadUpdatedEvent {
+  event: "unread.updated";
+  kind: "dm" | "room";
+  id: number;
+  unread: boolean;
+}
+
 export interface UserEventsChannelEventMap {
   [key: string]: unknown;
   "permissions.updated": PermissionsUpdatedEvent;
+  "unread.updated": UnreadUpdatedEvent;
 }
 
 export function connectUserEventsChannel(): WsChannel<UserEventsChannelEventMap> {

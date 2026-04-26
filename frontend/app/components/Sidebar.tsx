@@ -17,6 +17,7 @@ interface WorldSidebarItemProps {
   channels: Channel[];
   activeWorldId?: string;
   activeRoomId?: string;
+  unreadRoomIds: Set<number>;
 }
 
 const WorldSidebarItem: React.FC<WorldSidebarItemProps> = ({
@@ -24,17 +25,22 @@ const WorldSidebarItem: React.FC<WorldSidebarItemProps> = ({
   channels,
   activeWorldId,
   activeRoomId,
+  unreadRoomIds,
 }) => {
   const { modal, setEditingWorld } = useUserStore();
   const navigate = useNavigate();
   const perms = useWorldPermissions(world.id);
 
+  const worldHasUnread = channels.some((ch) => unreadRoomIds.has(ch.id));
+
   return (
     <WorldDropdown
       title={world.name ?? "Untitled World"}
+      hasUnread={worldHasUnread}
       items={channels.map((ch) => ({
         label: ch.name ?? "Untitled Channel",
         isActive: activeRoomId === String(ch.id),
+        hasUnread: unreadRoomIds.has(ch.id),
         onClick: () => navigate(`/world/${world.id}/${ch.id}`),
       }))}
       defaultOpen={activeWorldId === String(world.id)}
@@ -79,6 +85,8 @@ export const Sidebar: React.FC = () => {
     removedWorldMembership,
     channelsVersion,
     setEditingWorld,
+    unreadDMThreadIds,
+    unreadRoomIds,
   } = useUserStore();
 
   const navigate = useNavigate();
@@ -111,6 +119,7 @@ export const Sidebar: React.FC = () => {
     return () => document.removeEventListener("mousedown", handler);
   }, [isAccountMenuOpen]);
 
+  // Get Worlds
   useEffect(() => {
     if (!isLoggedIn) {
       setWorlds([]);
@@ -121,6 +130,7 @@ export const Sidebar: React.FC = () => {
       .catch(() => setWorlds([]));
   }, [isLoggedIn, worldsVersion]);
 
+  // Get Dm Threads
   useEffect(() => {
     if (!isLoggedIn) {
       setDmThreads([]);
@@ -131,6 +141,7 @@ export const Sidebar: React.FC = () => {
       .catch(() => setDmThreads([]));
   }, [isLoggedIn]);
 
+  // Filter out the world's that the user doesn't belong to
   useEffect(() => {
     if (!removedWorldMembership) return;
     setWorlds((prev) => prev.filter((world) => world.id !== removedWorldMembership.worldId));
@@ -141,6 +152,7 @@ export const Sidebar: React.FC = () => {
     });
   }, [removedWorldMembership]);
 
+  // Fetch current world
   useEffect(() => {
     if (!worldId) {
       setCurrentWorld(null);
@@ -174,6 +186,7 @@ export const Sidebar: React.FC = () => {
     };
   }, [worldId, worlds]);
 
+  // Get world channels
   useEffect(() => {
     if (sidebarWorlds.length === 0) {
       setChannelsByWorldId({});
@@ -187,9 +200,11 @@ export const Sidebar: React.FC = () => {
     });
   }, [sidebarWorlds, channelsVersion]);
 
+  const hasUnreadThreads = useMemo(() => unreadDMThreadIds.size > 0, [unreadDMThreadIds]);
+
   const tabItems: TabItem[] = [
     { id: "worlds", label: "Worlds" },
-    { id: "messages", label: "Messages", hasBadge: isLoggedIn },
+    { id: "messages", label: "Messages", hasBadge: hasUnreadThreads },
   ];
 
   return (
@@ -297,6 +312,7 @@ export const Sidebar: React.FC = () => {
                     channels={channelsByWorldId[world.id] ?? []}
                     activeWorldId={worldId}
                     activeRoomId={roomId}
+                    unreadRoomIds={unreadRoomIds}
                   />
                 ))}
               </div>
@@ -342,36 +358,51 @@ export const Sidebar: React.FC = () => {
             ) : dmThreads.length === 0 ? (
               <p className="text-input-placeholder text-center mt-6">No messages yet.</p>
             ) : (
-              dmThreads.map((thread) => (
-                <button
-                  key={thread.id}
-                  type="button"
-                  onClick={() => navigate(`/dm/${thread.id}`)}
-                  className="flex items-center gap-3 w-full text-left rounded-xl px-3 py-2.5 hover:bg-primary/10 transition-colors"
-                >
-                  {thread.other_user?.avatar ? (
-                    <img
-                      src={thread.other_user.avatar}
-                      alt={thread.other_user.username}
-                      className="w-9 h-9 rounded-full object-cover border border-primary/30 shrink-0"
-                    />
-                  ) : (
-                    <div className="w-9 h-9 rounded-full bg-primary/15 border border-primary/30 flex items-center justify-center text-primary shrink-0 select-none text-sm">
-                      {(thread.other_user?.username ?? "?").slice(0, 1).toUpperCase()}
+              dmThreads.map((thread) => {
+                const hasUnread = unreadDMThreadIds.has(thread.id);
+                return (
+                  <button
+                    key={thread.id}
+                    type="button"
+                    onClick={() => navigate(`/dm/${thread.id}`)}
+                    className="flex items-center gap-3 w-full text-left rounded-xl px-3 py-2.5 hover:bg-primary/10 transition-colors"
+                  >
+                    <div className="relative shrink-0">
+                      {thread.other_user?.avatar ? (
+                        <img
+                          src={thread.other_user.avatar}
+                          alt={thread.other_user.username}
+                          className="w-9 h-9 rounded-full object-cover border border-primary/30"
+                        />
+                      ) : (
+                        <div className="w-9 h-9 rounded-full bg-primary/15 border border-primary/30 flex items-center justify-center text-primary select-none text-sm">
+                          {(thread.other_user?.username ?? "?").slice(0, 1).toUpperCase()}
+                        </div>
+                      )}
+                      {hasUnread && (
+                        <span
+                          className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-primary border-2 border-background"
+                          aria-label="Unread messages"
+                        />
+                      )}
                     </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <div className="text-white text-sm truncate">
-                      {thread.other_user?.username ?? "Unknown"}
-                    </div>
-                    {thread.last_message && (
-                      <div className="text-input-placeholder text-xs truncate">
-                        {thread.last_message.content}
+                    <div className="flex-1 min-w-0">
+                      <div
+                        className={`text-sm truncate ${hasUnread ? "text-white font-medium" : "text-white"}`}
+                      >
+                        {thread.other_user?.username ?? "Unknown"}
                       </div>
-                    )}
-                  </div>
-                </button>
-              ))
+                      {thread.last_message && (
+                        <div
+                          className={`text-xs truncate ${hasUnread ? "text-primary/80" : "text-input-placeholder"}`}
+                        >
+                          {thread.last_message.content}
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                );
+              })
             )}
           </div>
         )}

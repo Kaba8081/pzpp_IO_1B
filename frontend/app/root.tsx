@@ -14,6 +14,7 @@ import { LogoutModal } from "./components/modals/LogoutModal";
 import { LoginRegisterModal } from "./components/modals/LoginRegisterModal";
 import { WorldChannelModal } from "./components/modals/WorldChannelModal";
 import { CharacterDeleteModal } from "./components/modals/CharacterDeleteModal";
+import { UnreadNotificationManager } from "./components/UnreadNotificationManager";
 import "./app.css";
 import { UserProvider } from "./stores/UserStore";
 
@@ -41,6 +42,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body className="font-cinzel text-white bg-background-site">
         <UserProvider>
+          <UnreadNotificationManager />
           {children}
           <ScrollRestoration />
           <Scripts />
