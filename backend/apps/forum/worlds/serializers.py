@@ -60,7 +60,10 @@ class WorldSerializer(serializers.ModelSerializer):
             owner = request.user
 
         if owner:
-            if Worlds.objects.filter(owner=owner, name__iexact=name).exists():
+            qs = Worlds.objects.filter(owner=owner, name__iexact=name)
+            if self.instance is not None:
+                qs = qs.exclude(pk=self.instance.pk)
+            if qs.exists():
                 raise serializers.ValidationError({'name': 'You already have a world with this name.'})
 
         return attrs

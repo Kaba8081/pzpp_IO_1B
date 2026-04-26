@@ -123,7 +123,20 @@ export default function WorldRoomPage() {
         </button>
 
         <div className="relative m-3 h-36 shrink-0 overflow-hidden rounded-2xl bg-background-site flex items-center justify-center sm:m-5 sm:h-1/4">
-          <h1 className="text-2xl">{activeRoom?.name ?? "Channel"}</h1>
+          {activeRoom?.thumbnail && (
+            <img
+              src={activeRoom.thumbnail}
+              alt={activeRoom.name ?? "Channel"}
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          )}
+          <div
+            className={`relative z-10 rounded-lg px-4 py-1 ${activeRoom?.thumbnail ? "bg-black/40 backdrop-blur-sm" : ""}`}
+          >
+            <h1 className={`text-2xl ${activeRoom?.thumbnail ? "text-white" : ""}`}>
+              {activeRoom?.name ?? "Channel"}
+            </h1>
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">

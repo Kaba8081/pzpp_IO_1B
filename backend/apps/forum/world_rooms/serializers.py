@@ -20,9 +20,10 @@ class WorldRoomsSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({'name': 'Name must be at most 64 characters.'})
         attrs['name'] = name
 
-        world_object = attrs.get('world')
-        if world_object is None:
-            raise serializers.ValidationError({'world': 'World is required.'})
+        if not self.partial:
+            world_object = attrs.get('world')
+            if world_object is None:
+                raise serializers.ValidationError({'world': 'World is required.'})
         return attrs
 
     def create(self, validated_data):

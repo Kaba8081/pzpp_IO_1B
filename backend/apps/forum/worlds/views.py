@@ -79,7 +79,11 @@ class WorldView(APIView):
             .annotate(
                 distinct_user_count=Count('worlduserprofiles__user', distinct=True),
                 total_user_profiles_count=Count('worlduserprofiles'),
+                active_room_count=Count(
+                    'worldrooms', filter=Q(worldrooms__deleted_at__isnull=True), distinct=True
+                ),
             )
+            .filter(active_room_count__gt=0)
             .select_related('owner')
             .prefetch_related('owner__userprofile_set')
         )

@@ -44,7 +44,7 @@ class WorldRoomsListView(APIView):
             return Response({"error": "World not found."}, status=status.HTTP_404_NOT_FOUND)
 
         rooms = WorldRooms.objects.filter(world=world)
-        serializer = WorldRoomsSerializer(rooms, many=True)
+        serializer = WorldRoomsSerializer(rooms, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @extend_schema(
@@ -67,7 +67,7 @@ class WorldRoomsListView(APIView):
 
         data['world'] = world_id
 
-        serializer = WorldRoomsSerializer(data=data)
+        serializer = WorldRoomsSerializer(data=data, context={'request': request})
 
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -91,7 +91,7 @@ class WorldRoomsDetailView(APIView):
         except WorldRooms.DoesNotExist:
             return Response({"error": "Channel not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = WorldRoomsSerializer(channel)
+        serializer = WorldRoomsSerializer(channel, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @extend_schema(
@@ -119,7 +119,7 @@ class WorldRoomsDetailView(APIView):
         if world.owner != request.user:
             return Response({"error": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
 
-        serializer = WorldRoomsSerializer(channel, data=data, partial=True)
+        serializer = WorldRoomsSerializer(channel, data=data, partial=True, context={'request': request})
 
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
