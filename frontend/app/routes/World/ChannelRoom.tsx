@@ -280,7 +280,11 @@ export default function WorldRoomPage() {
       )}
 
       {selectedProfile && currentModal === "view-profile" && (
-        <UserProfileModal profile={selectedProfile} onClose={() => setSelectedProfile(null)} />
+        <UserProfileModal
+          profile={selectedProfile}
+          onClose={() => setSelectedProfile(null)}
+          worldId={worldId ? parseInt(worldId) : undefined}
+        />
       )}
     </>
   );

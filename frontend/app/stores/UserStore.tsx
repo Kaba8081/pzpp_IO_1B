@@ -1,6 +1,15 @@
-import React, { createContext, useCallback, useContext, useState, type ReactNode } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import type { SessionUser, World, WorldUserProfile } from "@/types/models";
 import { setCookie, getCookie, deleteCookie } from "@/utils/cookieUtils";
+import { registerToastHandler, type ToastType } from "@/lib/toastBridge";
 
 const USER_COOKIE_NAME = "user";
 const PROFILES_BY_WORLD_KEY = "activeProfilesByWorld";
@@ -32,9 +41,18 @@ interface UserContextType {
   setUser: (user: SessionUser | null) => void;
   logout: () => void;
 
+  permissionsByWorld: Record<number, string[]>;
+  setWorldPermissions: (worldId: number, permissions: string[]) => void;
+
   currentModal: string | undefined;
   modal: {
     open: (name: string) => void;
+    close: () => void;
+  };
+
+  currentToast: { message: string; type: ToastType } | null;
+  toast: {
+    open: (message: string, type: ToastType, duration?: number) => void;
     close: () => void;
   };
 
@@ -95,6 +113,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUserState] = useState<SessionUser | null>(() => readUserFromCookie());
 
   const [currentModal, setCurrentModal] = useState<string | undefined>(undefined);
+  const [currentToast, setCurrentToast] = useState<{ message: string; type: ToastType } | null>(
+    null
+  );
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [worldsVersion, setWorldsVersion] = useState(0);
   const [removedWorldMembership, setRemovedWorldMembership] = useState<{
     worldId: number;
@@ -112,6 +134,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     worldId: number;
     profile: WorldUserProfile;
   } | null>(null);
+  const [permissionsByWorld, setPermissionsByWorld] = useState<Record<number, string[]>>({});
 
   const setUser = (nextUser: SessionUser | null) => {
     setUserState(nextUser);
@@ -124,7 +147,12 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     setActiveProfilesByWorld({});
     persistProfilesByWorld({});
     setDeletingCharacter(null);
+    setPermissionsByWorld({});
   };
+
+  const setWorldPermissions = useCallback((worldId: number, permissions: string[]) => {
+    setPermissionsByWorld((prev) => ({ ...prev, [worldId]: permissions }));
+  }, []);
 
   const setActiveProfileForWorld = useCallback(
     (worldId: number, profile: WorldUserProfile | null) => {
@@ -149,6 +177,24 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     close: () => setCurrentModal(undefined),
   };
 
+  const toast = {
+    open: (message: string, type: ToastType, duration = 4000) => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+      setCurrentToast({ message, type });
+      toastTimerRef.current = setTimeout(() => setCurrentToast(null), duration);
+    },
+    close: () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+      setCurrentToast(null);
+    },
+  };
+
+  useEffect(() => {
+    registerToastHandler((message, type, duration) => {
+      toast.open(message, type, duration);
+    });
+  }, []);
+
   return (
     <UserContext.Provider
       value={{
@@ -160,6 +206,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         logout,
         currentModal,
         modal,
+        currentToast,
+        toast,
         worldsVersion,
         bumpWorldsVersion: () => setWorldsVersion((v) => v + 1),
         removedWorldMembership,
@@ -182,6 +230,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         setActiveProfileForWorld,
         deletingCharacter,
         setDeletingCharacter,
+        permissionsByWorld,
+        setWorldPermissions,
       }}
     >
       {children}

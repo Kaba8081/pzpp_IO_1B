@@ -10,6 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.forum.permissions import user_has_permission
 from apps.forum.worlds.managers import WorldManager
 from apps.forum.worlds.models import Worlds
 from apps.forum.worlds.serializers import WorldSerializer
@@ -155,7 +156,7 @@ class WorldDetailView(APIView):
         world_manager = cast(WorldManager, Worlds.objects)
         world = get_object_or_404(world_manager.get(), id=world_id)
 
-        if world.owner_id != request.user.id:
+        if not user_has_permission(request.user, world, "manage_world"):
             return Response({"error": "You do not have permission to edit this world."}, status=status.HTTP_403_FORBIDDEN)
 
         serializer = WorldSerializer(world, data=request.data, partial=True, context={'request': request})
@@ -178,7 +179,7 @@ class WorldDetailView(APIView):
         world_manager = cast(WorldManager, Worlds.objects)
         world = get_object_or_404(world_manager.get(), id=world_id)
 
-        if world.owner_id != request.user.id:
+        if not user_has_permission(request.user, world, "manage_world"):
             return Response({"error": "You do not have permission to delete this world."}, status=status.HTTP_403_FORBIDDEN)
 
         world.deleted_at = timezone.now()
@@ -221,7 +222,7 @@ class WorldThumbnailView(APIView):
         world_manager = cast(WorldManager, Worlds.objects)
         world = cast(Worlds, get_object_or_404(world_manager.get(), id=world_id))
 
-        if world.owner != request.user:
+        if not user_has_permission(request.user, world, "manage_world"):
             return Response({
                 "error": "You do not have permission to update this world's thumbnail."
                 }, status=status.HTTP_403_FORBIDDEN)

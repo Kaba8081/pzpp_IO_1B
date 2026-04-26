@@ -11,6 +11,7 @@ from django.db import transaction
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 
+from apps.forum.permissions import user_has_permission
 from apps.forum.world_room_messages.models import WorldRoomMessages
 from apps.forum.world_room_messages.serializers import WorldRoomMessagesSerializer
 from apps.forum.world_rooms.models import WorldRooms
@@ -68,7 +69,10 @@ class ChannelMessagesView(APIView):
         },
     )
     def post(self, request: "Request", room_id: int) -> Response:
-        channel = get_object_or_404(WorldRooms, id=room_id)
+        channel = get_object_or_404(WorldRooms.objects.select_related("world__owner"), id=room_id)
+
+        if not user_has_permission(request.user, channel.world, "send_messages"):
+            return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
 
         data: dict[str, Any] = dict(request.data)  # type: ignore
         user_profile_id = data.get('user_profile')
@@ -121,9 +125,14 @@ class MessageDetailView(APIView):
         },
     )
     def delete(self, request: "Request", message_id: int) -> Response:
-        message = get_object_or_404(WorldRoomMessages, id=message_id)
+        message = get_object_or_404(
+            WorldRoomMessages.objects.select_related("user_profile__user", "room__world__owner"),
+            id=message_id,
+        )
 
-        if message.user_profile.user != request.user:
+        if message.user_profile.user != request.user and not user_has_permission(
+            request.user, message.room.world, "manage_messages"
+        ):
             return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
 
         with transaction.atomic():

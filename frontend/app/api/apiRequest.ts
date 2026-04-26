@@ -1,4 +1,5 @@
 import { getStoredUser } from "@/stores/UserStore";
+import { emitToast } from "@/lib/toastBridge";
 
 export type HttpMethod = "GET" | "POST" | "PATCH" | "DELETE";
 
@@ -89,6 +90,7 @@ export async function apiRequest<
   if (requiresAuth) {
     const accessToken = getStoredUser()?.accessToken;
     if (!accessToken) {
+      emitToast("Brak autoryzacji. Zaloguj się, aby kontynuować.", "error");
       throw new Error("Brak access token w UserStore.");
     }
     requestHeaders.set("Authorization", `Bearer ${accessToken}`);
@@ -116,6 +118,12 @@ export async function apiRequest<
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      emitToast("Login to continue", "error");
+    } else if (response.status === 403) {
+      emitToast("Insuficient permission", "error");
+    }
+
     let errorMessage = response.statusText;
     const rawBody = await response.text();
 

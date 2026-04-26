@@ -8,7 +8,66 @@ import { useUserStore } from "@/stores/UserStore";
 import { getUserWorlds, getWorldById } from "@/services/world";
 import { getChannels } from "@/services/worldRoom";
 import { getDMThreads } from "@/services/dm/getThreads.service";
+import { useWorldPermissions } from "@/hooks/useWorldPermissions";
 import type { World, Channel, DirectMessageThread } from "@/types/models";
+
+interface WorldSidebarItemProps {
+  world: World;
+  channels: Channel[];
+  activeWorldId?: string;
+  activeRoomId?: string;
+}
+
+const WorldSidebarItem: React.FC<WorldSidebarItemProps> = ({
+  world,
+  channels,
+  activeWorldId,
+  activeRoomId,
+}) => {
+  const { modal, setEditingWorld } = useUserStore();
+  const navigate = useNavigate();
+  const perms = useWorldPermissions(world.id);
+
+  return (
+    <WorldDropdown
+      title={world.name ?? "Untitled World"}
+      items={channels.map((ch) => ({
+        label: ch.name ?? "Untitled Channel",
+        isActive: activeRoomId === String(ch.id),
+        onClick: () => navigate(`/world/${world.id}/${ch.id}`),
+      }))}
+      defaultOpen={activeWorldId === String(world.id)}
+      isActive={activeWorldId === String(world.id)}
+      onEdit={
+        perms.has("manage_world")
+          ? () => {
+              setEditingWorld(world);
+              modal.open("world-modal");
+            }
+          : undefined
+      }
+      onDelete={
+        perms.has("manage_world")
+          ? () => {
+              setEditingWorld(world);
+              modal.open("world-modal");
+            }
+          : undefined
+      }
+      onCreateItem={
+        perms.has("manage_channels")
+          ? () => {
+              setEditingWorld(world);
+              modal.open("channel-modal");
+            }
+          : undefined
+      }
+      onManageRoles={
+        perms.has("manage_roles") ? () => navigate(`/world/roles/${world.id}`) : undefined
+      }
+    />
+  );
+};
 
 export const Sidebar: React.FC = () => {
   const {
@@ -20,6 +79,7 @@ export const Sidebar: React.FC = () => {
     channelsVersion,
     setEditingWorld,
   } = useUserStore();
+
   const navigate = useNavigate();
   const location = useLocation();
   const { worldId, roomId } = useParams<{ worldId?: string; roomId?: string }>();
@@ -220,53 +280,15 @@ export const Sidebar: React.FC = () => {
           <>
             {sidebarWorlds.length > 0 && (
               <div className="flex flex-col mb-8">
-                {sidebarWorlds.map((world) => {
-                  const canManageWorld =
-                    isLoggedIn && worlds.some((userWorld) => userWorld.id === world.id);
-
-                  return (
-                    <WorldDropdown
-                      key={world.id}
-                      title={world.name ?? "Untitled World"}
-                      items={(channelsByWorldId[world.id] ?? []).map((ch) => ({
-                        label: ch.name ?? "Untitled Channel",
-                        isActive: roomId === String(ch.id),
-                        onClick: () => navigate(`/world/${world.id}/${ch.id}`),
-                      }))}
-                      defaultOpen={worldId === String(world.id)}
-                      isActive={worldId === String(world.id)}
-                      onEdit={
-                        canManageWorld
-                          ? () => {
-                              setEditingWorld(world);
-                              modal.open("world-modal");
-                            }
-                          : undefined
-                      }
-                      onDelete={
-                        canManageWorld
-                          ? () => {
-                              setEditingWorld(world);
-                              modal.open("world-modal");
-                            }
-                          : undefined
-                      }
-                      onCreateItem={
-                        canManageWorld
-                          ? () => {
-                              setEditingWorld(world);
-                              modal.open("channel-modal");
-                            }
-                          : undefined
-                      }
-                      onManageRoles={
-                        world.owner_id === user?.id
-                          ? () => navigate(`/world/roles/${world.id}`)
-                          : undefined
-                      }
-                    />
-                  );
-                })}
+                {sidebarWorlds.map((world) => (
+                  <WorldSidebarItem
+                    key={world.id}
+                    world={world}
+                    channels={channelsByWorldId[world.id] ?? []}
+                    activeWorldId={worldId}
+                    activeRoomId={roomId}
+                  />
+                ))}
               </div>
             )}
 

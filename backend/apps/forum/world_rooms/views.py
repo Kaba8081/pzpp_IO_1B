@@ -9,6 +9,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.forum.permissions import user_has_permission
 from apps.forum.worlds.models import Worlds
 from apps.forum.world_rooms.models import WorldRooms
 from apps.forum.world_rooms.serializers import WorldRoomsSerializer, WorldRoomsUpdateSerializer
@@ -57,8 +58,10 @@ class WorldRoomsListView(APIView):
         },
     )
     def post(self, request: "Request", world_id: int) -> Response:
-        if not Worlds.objects.filter(id=world_id).exists():
-            return Response({"error": "World not found."}, status=status.HTTP_404_NOT_FOUND)
+        world = get_object_or_404(Worlds.objects.select_related("owner"), id=world_id)
+
+        if not user_has_permission(request.user, world, "manage_channels"):
+            return Response({"error": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
 
         data: dict[str, Any] = dict(request.data)  # type: ignore
 
@@ -114,9 +117,8 @@ class WorldRoomsDetailView(APIView):
         if "thumbnail" in data:
             return Response(THUMBNAIL_UPDATE_NOT_ALLOWED_ERROR, status=status.HTTP_400_BAD_REQUEST)
 
-        # Later on this is where the permission check would go
         world = channel.world
-        if world.owner != request.user:
+        if not user_has_permission(request.user, world, "manage_channels"):
             return Response({"error": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
 
         serializer = WorldRoomsSerializer(channel, data=data, partial=True, context={'request': request})
@@ -140,9 +142,8 @@ class WorldRoomsDetailView(APIView):
         except WorldRooms.DoesNotExist:
             return Response({"error": "Channel not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        # Later on this is where the permission check would go
         world = channel.world
-        if world.owner != request.user:
+        if not user_has_permission(request.user, world, "manage_channels"):
             return Response({"error": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
 
         with transaction.atomic():
@@ -190,7 +191,7 @@ class WorldRoomThumbnailView(APIView):
         manager = cast(WorldRoomManager, WorldRooms.objects)
         room = cast(WorldRooms, get_object_or_404(manager.get(), id=room_id))
 
-        if room.world.owner != request.user:
+        if not user_has_permission(request.user, room.world, "manage_channels"):
             return Response({
                 "error": "You do not have permission to update this world's thumbnail."
                 }, status=status.HTTP_403_FORBIDDEN)

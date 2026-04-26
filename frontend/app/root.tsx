@@ -9,6 +9,7 @@ import {
 
 import type { Route } from "./+types/root";
 import { Modal } from "./components/modals/Modal";
+import { Toast } from "./components/Toast";
 import { LogoutModal } from "./components/modals/LogoutModal";
 import { LoginRegisterModal } from "./components/modals/LoginRegisterModal";
 import { WorldChannelModal } from "./components/modals/WorldChannelModal";
@@ -52,6 +53,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <WorldChannelModal />
           <EditProfileModal />
           <CharacterDeleteModal />
+          <Toast />
         </UserProvider>
       </body>
     </html>

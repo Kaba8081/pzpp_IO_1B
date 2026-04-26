@@ -1,5 +1,7 @@
 from typing import TYPE_CHECKING, cast
 
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -42,6 +44,31 @@ def _apply_permissions(role: WorldRoles, permission_ids: list[int]) -> None:
         WorldRoleHasPermissions(role=role, permission_id=pid)
         for pid in permission_ids
     ])
+
+
+def _push_permissions_event(world_id: int, user_id: int) -> None:
+    layer = get_channel_layer()
+    if layer is None:
+        return
+    async_to_sync(layer.group_send)(
+        f'user_{user_id}',
+        {
+            'type': 'permissions.updated',
+            'event': 'permissions.updated',
+            'world_id': world_id,
+        },
+    )
+
+
+def _push_permissions_event_for_role(role: WorldRoles) -> None:
+    user_ids = (
+        WorldUserHasRoles.objects
+        .filter(role=role)
+        .values_list('user_id', flat=True)
+        .distinct()
+    )
+    for uid in user_ids:
+        _push_permissions_event(role.world_id, uid)
 
 
 class WorldRolesListView(APIView):
@@ -116,6 +143,7 @@ class WorldRolesDetailView(APIView):
             if "permission_ids" in validated_data:
                 permission_ids = cast(list[int], validated_data["permission_ids"])
                 _apply_permissions(role, permission_ids)
+                transaction.on_commit(lambda: _push_permissions_event_for_role(role))
 
         return Response(WorldRolesSerializer(role).data)
 
@@ -134,6 +162,7 @@ class WorldRolesDetailView(APIView):
             WorldUserHasRoles.objects.filter(role=role).update(deleted_at=now)
             role.deleted_at = now
             role.save(update_fields=["deleted_at"])
+            transaction.on_commit(lambda: _push_permissions_event_for_role(role))
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -193,6 +222,7 @@ class WorldUserRolesView(APIView):
         ).first()
         if not active:
             WorldUserHasRoles.objects.create(world=world, user=target_user, role=role)
+            transaction.on_commit(lambda: _push_permissions_event(world_id, user_id))
 
         return Response({"role_id": role.id, "role_name": role.name}, status=status.HTTP_201_CREATED)
 
@@ -211,4 +241,26 @@ class WorldUserRoleDetailView(APIView):
         )
         assignment.deleted_at = timezone.now()
         assignment.save(update_fields=["deleted_at"])
+        transaction.on_commit(lambda: _push_permissions_event(world_id, user_id))
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class MyPermissionsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(tags=["Roles"], responses={200: None})
+    def get(self, request: "Request", world_id: int) -> Response:
+        world = _get_world(world_id)
+        if world.owner_id == request.user.id:
+            perms = list(WorldRolePermissions.objects.values_list("name", flat=True))
+        else:
+            perms = list(
+                WorldRoleHasPermissions.objects
+                .filter(
+                    role__worlduserhasroles__user=request.user,
+                    role__worlduserhasroles__world=world,
+                )
+                .values_list("permission__name", flat=True)
+                .distinct()
+            )
+        return Response({"permissions": perms})

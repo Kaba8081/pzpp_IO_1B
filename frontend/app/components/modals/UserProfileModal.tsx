@@ -1,29 +1,67 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { MessageSquare, X } from "lucide-react";
+import { MessageSquare, X, Plus } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { getOrCreateDMThread } from "@/services/dm/getOrCreateThread.service";
-import type { ProfilePopupData } from "@/types/models";
+import type { ProfilePopupData, WorldRole } from "@/types/models";
 import { useUserStore } from "@/stores/UserStore";
+import { getRoles } from "@/services/worldRole/getRoles.service";
+import { getUserRoles, type UserRoleAssignment } from "@/services/worldRole/getUserRoles.service";
+import { assignUserRole } from "@/services/worldRole/assignUserRole.service";
+import { removeUserRole } from "@/services/worldRole/removeUserRole.service";
+import { useWorldPermissions } from "@/hooks/useWorldPermissions";
 
 interface UserProfileModalProps {
   profile: ProfilePopupData;
   onClose: () => void;
+  worldId?: number;
 }
 
-export const UserProfileModal = ({ profile, onClose }: UserProfileModalProps) => {
+export const UserProfileModal = ({ profile, onClose, worldId }: UserProfileModalProps) => {
   const { modal } = useUserStore();
   const navigate = useNavigate();
   const [visible, setVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // TODO: Fetch real user profile from worldProfileId
-  // TODO: Display the user roles
+  const worldPerms = useWorldPermissions(worldId);
+  const canManageMembers = worldPerms.has("manage_members");
+
+  const [allRoles, setAllRoles] = useState<WorldRole[]>([]);
+  const [userRoles, setUserRoles] = useState<UserRoleAssignment[]>([]);
+  const [selectedRoleId, setSelectedRoleId] = useState<number | "">("");
+  const [rolesLoading, setRolesLoading] = useState(false);
+  const [rolesError, setRolesError] = useState<string | null>(null);
 
   useEffect(() => {
     const t = setTimeout(() => setVisible(true), 10);
     return () => clearTimeout(t);
   }, []);
+
+  // Fetch user roles if the worldId was provided
+  useEffect(() => {
+    if (!worldId) return;
+
+    let cancelled = false;
+    setRolesLoading(true);
+    setRolesError(null);
+
+    Promise.all([getRoles(worldId), getUserRoles(worldId, profile.user_id)])
+      .then(([roles, assignments]) => {
+        if (cancelled) return;
+        setAllRoles(roles);
+        setUserRoles(assignments);
+      })
+      .catch(() => {
+        if (!cancelled) setRolesError("Failed to load roles.");
+      })
+      .finally(() => {
+        if (!cancelled) setRolesLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [worldId, profile.user_id]);
 
   const handleClose = () => {
     setVisible(false);
@@ -43,6 +81,31 @@ export const UserProfileModal = ({ profile, onClose }: UserProfileModalProps) =>
       setIsLoading(false);
     }
   };
+
+  const handleAssignRole = async () => {
+    if (!worldId || !selectedRoleId) return;
+    try {
+      const assignment = await assignUserRole(worldId, profile.user_id, Number(selectedRoleId));
+      setUserRoles((prev) => [...prev, assignment]);
+      setSelectedRoleId("");
+    } catch (err) {
+      console.error("Failed to assign role:", err);
+    }
+  };
+
+  const handleRemoveRole = async (roleId: number) => {
+    if (!worldId) return;
+    try {
+      await removeUserRole(worldId, profile.user_id, roleId);
+      setUserRoles((prev) => prev.filter((r) => r.role_id !== roleId));
+    } catch (err) {
+      console.error("Failed to remove role:", err);
+    }
+  };
+
+  const assignableRoles = allRoles.filter(
+    (r) => !r.is_system && !userRoles.some((ur) => ur.role_id === r.id)
+  );
 
   return (
     <div
@@ -82,6 +145,73 @@ export const UserProfileModal = ({ profile, onClose }: UserProfileModalProps) =>
             )}
           </div>
         </div>
+
+        {worldId && (
+          <div className="mt-5">
+            {rolesLoading ? (
+              <div className="h-6 w-32 animate-pulse rounded bg-primary/20 mx-auto" />
+            ) : rolesError ? (
+              <p className="text-xs text-error text-center">{rolesError}</p>
+            ) : (
+              <>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {userRoles.length === 0 && (
+                    <span className="text-xs text-input-placeholder">No roles assigned</span>
+                  )}
+                  {userRoles.map((r) => {
+                    const isSystem = allRoles.find((ar) => ar.id === r.role_id)?.is_system ?? false;
+                    return (
+                      <span
+                        key={r.role_id}
+                        className="flex items-center gap-1 rounded-full bg-primary/20 border border-primary/40 px-2.5 py-0.5 text-xs text-white"
+                      >
+                        {r.role_name}
+                        {canManageMembers && !isSystem && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveRole(r.role_id)}
+                            className="text-input-placeholder hover:text-error transition-colors"
+                            aria-label={`Remove ${r.role_name}`}
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        )}
+                      </span>
+                    );
+                  })}
+                </div>
+
+                {canManageMembers && assignableRoles.length > 0 && (
+                  <div className="flex gap-2 mt-3">
+                    <select
+                      value={selectedRoleId}
+                      onChange={(e) =>
+                        setSelectedRoleId(e.target.value === "" ? "" : Number(e.target.value))
+                      }
+                      className="flex-1 rounded-xl border border-primary/50 bg-background text-white text-sm px-3 py-1.5 focus:outline-none focus:border-primary"
+                    >
+                      <option value="">Select role…</option>
+                      {assignableRoles.map((r) => (
+                        <option key={r.id} value={r.id}>
+                          {r.name}
+                        </option>
+                      ))}
+                    </select>
+                    <Button
+                      variant="outline"
+                      className="flex items-center gap-1 px-3 py-1.5 text-sm"
+                      onClick={handleAssignRole}
+                      disabled={!selectedRoleId}
+                    >
+                      <Plus size={14} />
+                      Add
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
 
         <div className="mt-6 flex justify-center">
           <Button
