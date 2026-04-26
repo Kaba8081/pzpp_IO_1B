@@ -4,6 +4,7 @@ from .views import (
     LoginView,
     MeView,
     UserProfileDetailView,
+    UserProfileByIdView,
     RefreshTokenView,
 )
 
@@ -16,5 +17,6 @@ urlpatterns = [
         path('me/', MeView.as_view(), name='me'),
         path('refresh/', RefreshTokenView.as_view(), name='refresh')
     ], app_name))),
+    path('user/id/<int:user_id>/', UserProfileByIdView.as_view(), name='user_profile_by_id'),
     path('user/<str:username>', UserProfileDetailView.as_view(), name='user_profile_detail'),
 ]

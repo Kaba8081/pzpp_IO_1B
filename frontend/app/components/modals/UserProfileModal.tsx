@@ -1,15 +1,18 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router";
-import { MessageSquare, X, Plus } from "lucide-react";
+import { MessageSquare, X, Plus, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 import { getOrCreateDMThread } from "@/services/dm/getOrCreateThread.service";
-import type { ProfilePopupData, WorldRole } from "@/types/models";
+import type { ProfilePopupData, WorldRole, AuthUserProfile } from "@/types/models";
 import { useUserStore } from "@/stores/UserStore";
 import { getRoles } from "@/services/worldRole/getRoles.service";
 import { getUserRoles, type UserRoleAssignment } from "@/services/worldRole/getUserRoles.service";
 import { assignUserRole } from "@/services/worldRole/assignUserRole.service";
 import { removeUserRole } from "@/services/worldRole/removeUserRole.service";
 import { useWorldPermissions } from "@/hooks/useWorldPermissions";
+import { getUserById, updateCurrentUser } from "@/services/userService";
 
 interface UserProfileModalProps {
   profile: ProfilePopupData;
@@ -18,10 +21,21 @@ interface UserProfileModalProps {
 }
 
 export const UserProfileModal = ({ profile, onClose, worldId }: UserProfileModalProps) => {
-  const { modal } = useUserStore();
+  const { user, setUser, modal } = useUserStore();
   const navigate = useNavigate();
   const [visible, setVisible] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [dmLoading, setDmLoading] = useState(false);
+
+  const isOwner = user?.id === profile.user_id;
+
+  const [realProfile, setRealProfile] = useState<AuthUserProfile | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [editUsername, setEditUsername] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editLoading, setEditLoading] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
 
   const worldPerms = useWorldPermissions(worldId);
   const canManageMembers = worldPerms.has("manage_members");
@@ -37,14 +51,30 @@ export const UserProfileModal = ({ profile, onClose, worldId }: UserProfileModal
     return () => clearTimeout(t);
   }, []);
 
-  // Fetch user roles if the worldId was provided
+  useEffect(() => {
+    let cancelled = false;
+    setProfileLoading(true);
+    getUserById(profile.user_id)
+      .then((p) => {
+        if (cancelled) return;
+        setRealProfile(p);
+        setEditUsername(p.username ?? "");
+        setEditDescription(p.description ?? "");
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setProfileLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [profile.user_id]);
+
   useEffect(() => {
     if (!worldId) return;
-
     let cancelled = false;
     setRolesLoading(true);
     setRolesError(null);
-
     Promise.all([getRoles(worldId), getUserRoles(worldId, profile.user_id)])
       .then(([roles, assignments]) => {
         if (cancelled) return;
@@ -57,7 +87,6 @@ export const UserProfileModal = ({ profile, onClose, worldId }: UserProfileModal
       .finally(() => {
         if (!cancelled) setRolesLoading(false);
       });
-
     return () => {
       cancelled = true;
     };
@@ -70,7 +99,7 @@ export const UserProfileModal = ({ profile, onClose, worldId }: UserProfileModal
   };
 
   const handleSendDM = async () => {
-    setIsLoading(true);
+    setDmLoading(true);
     try {
       const thread = await getOrCreateDMThread(profile.user_id);
       handleClose();
@@ -78,7 +107,7 @@ export const UserProfileModal = ({ profile, onClose, worldId }: UserProfileModal
     } catch (err) {
       console.error("Failed to open DM thread:", err);
     } finally {
-      setIsLoading(false);
+      setDmLoading(false);
     }
   };
 
@@ -103,11 +132,33 @@ export const UserProfileModal = ({ profile, onClose, worldId }: UserProfileModal
     }
   };
 
+  const handleSaveEdit = async () => {
+    setEditLoading(true);
+    setEditError(null);
+    try {
+      const updated = await updateCurrentUser({
+        username: editUsername,
+        description: editDescription,
+      });
+      setRealProfile(updated);
+      if (user) setUser({ ...user, profile: updated });
+      setIsEditing(false);
+    } catch {
+      setEditError("Failed to save changes.");
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
   const assignableRoles = allRoles.filter(
     (r) => !r.is_system && !userRoles.some((ur) => ur.role_id === r.id)
   );
 
-  return (
+  const displayName = realProfile?.username ?? profile.name;
+  const displayDescription = realProfile?.description ?? profile.description;
+  const displayAvatar = realProfile?.profile_picture ?? profile.avatar;
+
+  return createPortal(
     <div
       className={`fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm transition-opacity duration-200 ${visible ? "opacity-100" : "opacity-0"}`}
       onClick={handleClose}
@@ -125,28 +176,93 @@ export const UserProfileModal = ({ profile, onClose, worldId }: UserProfileModal
           <X className="w-5 h-5" />
         </button>
 
+        {isOwner && !isEditing && (
+          <button
+            type="button"
+            onClick={() => setIsEditing(true)}
+            className="absolute top-4 right-11 text-input-placeholder hover:text-white transition-colors"
+            aria-label="Edit profile"
+          >
+            <Pencil className="w-4 h-4" />
+          </button>
+        )}
+
         <div className="flex flex-col items-center gap-4 text-center">
-          {profile.avatar ? (
+          {profileLoading ? (
+            <div className="w-20 h-20 rounded-full bg-primary/20 animate-pulse" />
+          ) : displayAvatar ? (
             <img
-              src={profile.avatar}
-              alt={profile.name}
+              src={displayAvatar}
+              alt={displayName}
               className="w-20 h-20 rounded-full object-cover border-2 border-primary/50"
             />
           ) : (
             <div className="w-20 h-20 rounded-full bg-primary/15 border-2 border-primary/50 flex items-center justify-center text-primary text-2xl select-none">
-              {profile.name.slice(0, 1).toUpperCase()}
+              {displayName.slice(0, 1).toUpperCase()}
             </div>
           )}
 
-          <div>
-            <h2 className="text-white text-xl font-medium">{profile.name}</h2>
-            {profile.description && (
-              <p className="text-input-placeholder text-sm mt-1 max-w-xs">{profile.description}</p>
-            )}
-          </div>
+          {isEditing ? (
+            <div className="w-full flex flex-col gap-2 text-left">
+              <Input
+                label="Username"
+                type="text"
+                value={editUsername}
+                onChange={(e) => setEditUsername(e.target.value)}
+                disabled={editLoading}
+              />
+              <Input
+                label="Description"
+                type="text"
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                disabled={editLoading}
+              />
+              {editError && <p className="text-xs text-error text-center">{editError}</p>}
+              <div className="flex gap-2 mt-1">
+                <Button
+                  variant="outline"
+                  className="flex-1 text-sm"
+                  onClick={() => {
+                    setIsEditing(false);
+                    setEditError(null);
+                  }}
+                  disabled={editLoading}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="primary"
+                  className="flex-1 text-sm"
+                  onClick={handleSaveEdit}
+                  disabled={editLoading || !editUsername.trim()}
+                >
+                  {editLoading ? "Saving…" : "Save"}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div>
+              {profileLoading ? (
+                <div className="space-y-2">
+                  <div className="h-5 w-28 rounded bg-primary/20 animate-pulse mx-auto" />
+                  <div className="h-4 w-36 rounded bg-primary/10 animate-pulse mx-auto" />
+                </div>
+              ) : (
+                <>
+                  <h2 className="text-white text-xl font-medium">{displayName}</h2>
+                  {displayDescription && (
+                    <p className="text-input-placeholder text-sm mt-1 max-w-xs">
+                      {displayDescription}
+                    </p>
+                  )}
+                </>
+              )}
+            </div>
+          )}
         </div>
 
-        {worldId && (
+        {worldId && !isEditing && (
           <div className="mt-5">
             {rolesLoading ? (
               <div className="h-6 w-32 animate-pulse rounded bg-primary/20 mx-auto" />
@@ -213,18 +329,21 @@ export const UserProfileModal = ({ profile, onClose, worldId }: UserProfileModal
           </div>
         )}
 
-        <div className="mt-6 flex justify-center">
-          <Button
-            variant="outline"
-            className="flex items-center gap-2"
-            onClick={handleSendDM}
-            disabled={isLoading}
-          >
-            <MessageSquare size={16} />
-            {isLoading ? "Opening..." : "Send Message"}
-          </Button>
-        </div>
+        {!isOwner && !isEditing && (
+          <div className="mt-6 flex justify-center">
+            <Button
+              variant="outline"
+              className="flex items-center gap-2"
+              onClick={handleSendDM}
+              disabled={dmLoading}
+            >
+              <MessageSquare size={16} />
+              {dmLoading ? "Opening..." : "Send Message"}
+            </Button>
+          </div>
+        )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

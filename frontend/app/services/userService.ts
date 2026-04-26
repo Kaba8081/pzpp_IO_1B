@@ -15,6 +15,12 @@ export async function getCurrentUser(): Promise<AuthUser> {
   }
 }
 
+export async function getUserById(userId: number): Promise<AuthUserProfile> {
+  return apiRequest<AuthUserProfile>(`/api/user/id/${userId}/`, {
+    method: "GET",
+  });
+}
+
 export async function getUserByUsername(username: string): Promise<AuthUserProfile> {
   try {
     return await apiRequest<AuthUserProfile>(`/api/user/${username}`, {

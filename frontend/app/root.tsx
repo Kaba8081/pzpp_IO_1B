@@ -13,7 +13,6 @@ import { Toast } from "./components/Toast";
 import { LogoutModal } from "./components/modals/LogoutModal";
 import { LoginRegisterModal } from "./components/modals/LoginRegisterModal";
 import { WorldChannelModal } from "./components/modals/WorldChannelModal";
-import { EditProfileModal } from "./components/modals/EditProfileModal";
 import { CharacterDeleteModal } from "./components/modals/CharacterDeleteModal";
 import "./app.css";
 import { UserProvider } from "./stores/UserStore";
@@ -51,7 +50,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <LogoutModal />
           <LoginRegisterModal />
           <WorldChannelModal />
-          <EditProfileModal />
           <CharacterDeleteModal />
           <Toast />
         </UserProvider>

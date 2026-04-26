@@ -9,7 +9,8 @@ import { getUserWorlds, getWorldById } from "@/services/world";
 import { getChannels } from "@/services/worldRoom";
 import { getDMThreads } from "@/services/dm/getThreads.service";
 import { useWorldPermissions } from "@/hooks/useWorldPermissions";
-import type { World, Channel, DirectMessageThread } from "@/types/models";
+import { UserProfileModal } from "@/components/modals/UserProfileModal";
+import type { World, Channel, DirectMessageThread, ProfilePopupData } from "@/types/models";
 
 interface WorldSidebarItemProps {
   world: World;
@@ -91,6 +92,7 @@ export const Sidebar: React.FC = () => {
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const accountMenuRef = useRef<HTMLDivElement>(null);
   const [dmThreads, setDmThreads] = useState<DirectMessageThread[]>([]);
+  const [viewingProfile, setViewingProfile] = useState<ProfilePopupData | null>(null);
 
   const isHomeActive = location.pathname === "/";
   const sidebarWorlds = useMemo(() => {
@@ -221,7 +223,15 @@ export const Sidebar: React.FC = () => {
               <div className="absolute right-0 top-full mt-1 z-20 bg-background border border-primary/50 rounded-xl overflow-hidden shadow-xl flex flex-col min-w-40 animate-fade-in">
                 <button
                   onClick={() => {
-                    modal.open("edit-profile");
+                    if (user) {
+                      setViewingProfile({
+                        id: user.id,
+                        name: user.profile?.username ?? user.email,
+                        description: user.profile?.description ?? null,
+                        avatar: user.profile?.profile_picture ?? null,
+                        user_id: user.id,
+                      });
+                    }
                     setIsAccountMenuOpen(false);
                   }}
                   className="px-4 py-2.5 text-left text-white hover:bg-primary/20 transition-colors flex items-center gap-2"
@@ -385,6 +395,10 @@ export const Sidebar: React.FC = () => {
 
         <div className="text-input-placeholder text-center">© 2026 Forum Chronicles</div>
       </div>
+
+      {viewingProfile && (
+        <UserProfileModal profile={viewingProfile} onClose={() => setViewingProfile(null)} />
+      )}
     </aside>
   );
 };

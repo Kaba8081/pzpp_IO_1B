@@ -14,6 +14,23 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .serializers import RegisterSerializer, UserSerializer, UserProfileSerializer
 from .models import UserProfile
 
+class UserProfileByIdView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    @extend_schema(
+        description="Return the user profile for the given user ID.",
+        tags=['User'],
+        responses={
+            200: UserProfileSerializer,
+            404: OpenApiResponse(description="Profile not found."),
+        }
+    )
+    def get(self, request: "Request", user_id: int) -> Response:
+        profile = UserProfile.objects.filter(user_id=user_id).first()
+        if profile is None:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response(UserProfileSerializer(profile).data, status=status.HTTP_200_OK)
+
 if TYPE_CHECKING:
     from rest_framework.request import Request
 
