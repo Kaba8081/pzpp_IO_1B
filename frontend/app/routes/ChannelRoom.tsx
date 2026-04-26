@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useOutletContext, useParams } from "react-router";
 import { Button } from "@/components/ui/Button";
 import { UsersSidebar } from "@/components/UsersSidebar";
@@ -21,6 +21,7 @@ export default function WorldRoomPage() {
   const [messages, setMessages] = useState<WorldRoomMessageWithAuthor[]>([]);
   const [activeRoom, setActiveRoom] = useState<WorldRoom>();
   const [isSendingMessage, setSendingMessage] = useState<boolean>(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const { mobileSidebar, setMobileSidebar, closeMobileSidebar } =
     useOutletContext<AppLayoutOutletContext>();
   const isUsersSidebarOpen = mobileSidebar === "right";
@@ -56,6 +57,10 @@ export default function WorldRoomPage() {
       isMounted = false;
     };
   }, [roomId]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   // Subscribe to live messages via WebSocket
   useEffect(() => {
@@ -131,6 +136,7 @@ export default function WorldRoomPage() {
                 GameMaster={false}
               />
             ))}
+            <div ref={messagesEndRef} />
           </div>
         </div>
 
@@ -170,8 +176,9 @@ export default function WorldRoomPage() {
       )}
 
       <div
-        className={`fixed inset-y-0 right-0 z-40 h-dvh p-3 transition-transform duration-300 lg:static lg:z-auto lg:h-auto lg:p-0 lg:transition-all lg:translate-x-0 lg:shrink-0 lg:m-4 lg:mr-4 lg:ml-2 ${isUsersSidebarOpen ? "translate-x-0" : "translate-x-full"
-          }`}
+        className={`fixed inset-y-0 right-0 z-40 h-dvh p-3 transition-transform duration-300 lg:static lg:z-auto lg:h-auto lg:p-0 lg:transition-all lg:translate-x-0 lg:shrink-0 lg:m-4 lg:mr-4 lg:ml-2 ${
+          isUsersSidebarOpen ? "translate-x-0" : "translate-x-full"
+        }`}
       >
         <UsersSidebar masterOfGame={undefined} characters={undefined} />
       </div>

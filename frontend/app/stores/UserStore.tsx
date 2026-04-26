@@ -3,6 +3,26 @@ import type { SessionUser, World, WorldUserProfile } from "@/types/models";
 import { setCookie, getCookie, deleteCookie } from "@/utils/cookieUtils";
 
 const USER_COOKIE_NAME = "user";
+const PROFILES_BY_WORLD_KEY = "activeProfilesByWorld";
+
+function readProfilesByWorldFromStorage(): Record<number, WorldUserProfile> {
+  if (typeof window === "undefined") return {};
+  try {
+    const stored = localStorage.getItem(PROFILES_BY_WORLD_KEY);
+    return stored ? JSON.parse(stored) : {};
+  } catch {
+    return {};
+  }
+}
+
+function persistProfilesByWorld(profiles: Record<number, WorldUserProfile>): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(PROFILES_BY_WORLD_KEY, JSON.stringify(profiles));
+  } catch {
+    // ignore
+  }
+}
 
 interface UserContextType {
   user: SessionUser | null;
@@ -87,7 +107,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [activeProfile, setActiveProfile] = useState<WorldUserProfile | null>(null);
   const [activeProfilesByWorld, setActiveProfilesByWorld] = useState<
     Record<number, WorldUserProfile>
-  >({});
+  >(readProfilesByWorldFromStorage);
   const [deletingCharacter, setDeletingCharacter] = useState<{
     worldId: number;
     profile: WorldUserProfile;
@@ -102,6 +122,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
     setActiveProfile(null);
     setActiveProfilesByWorld({});
+    persistProfilesByWorld({});
     setDeletingCharacter(null);
   };
 
@@ -109,13 +130,15 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     (worldId: number, profile: WorldUserProfile | null) => {
       setActiveProfile(profile);
       setActiveProfilesByWorld((prev) => {
+        let next: Record<number, WorldUserProfile>;
         if (!profile) {
-          const rest = { ...prev };
-          delete rest[worldId];
-          return rest;
+          next = { ...prev };
+          delete next[worldId];
+        } else {
+          next = { ...prev, [worldId]: profile };
         }
-
-        return { ...prev, [worldId]: profile };
+        persistProfilesByWorld(next);
+        return next;
       });
     },
     []

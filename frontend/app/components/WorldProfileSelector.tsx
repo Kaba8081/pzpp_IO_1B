@@ -85,6 +85,11 @@ const WorldProfileSelector: React.FC = () => {
       return;
     }
 
+    if (!activeProfile && profiles.length > 0) {
+      setActiveProfileForWorld(parsedWorldId, profiles[0]);
+      return;
+    }
+
     if (activeProfile && !profiles.some((profile) => profile.id === activeProfile.id)) {
       setActiveProfile(null);
     }
@@ -95,6 +100,7 @@ const WorldProfileSelector: React.FC = () => {
     profilesLoadedForWorld,
     parsedWorldId,
     setActiveProfile,
+    setActiveProfileForWorld,
   ]);
 
   useEffect(() => {
