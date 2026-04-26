@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { Dropdown } from "./Dropdown";
+import { Dropdown } from "./WorldDropdown";
 
 const meta: Meta<typeof Dropdown> = {
   title: "Components/Dropdown",

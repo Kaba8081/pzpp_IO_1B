@@ -3,7 +3,7 @@ import { Home, PlusCircle, UserPen, LogOut, MoreVertical } from "lucide-react";
 import { useNavigate, useLocation, useParams } from "react-router";
 import { Button } from "@/components/ui/Button";
 import { Tabs, type TabItem } from "@/components/ui/Tabs";
-import { Dropdown } from "@/components/ui//Dropdown";
+import { WorldDropdown } from "@/components/ui/WorldDropdown";
 import { useUserStore } from "@/stores/UserStore";
 import { getUserWorlds, getWorldById } from "@/services/world";
 import { getChannels } from "@/services/worldRoom";
@@ -213,7 +213,7 @@ export const Sidebar: React.FC = () => {
                     isLoggedIn && worlds.some((userWorld) => userWorld.id === world.id);
 
                   return (
-                    <Dropdown
+                    <WorldDropdown
                       key={world.id}
                       title={world.name ?? "Untitled World"}
                       items={(channelsByWorldId[world.id] ?? []).map((ch) => ({
@@ -245,6 +245,11 @@ export const Sidebar: React.FC = () => {
                               setEditingWorld(world);
                               modal.open("channel-modal");
                             }
+                          : undefined
+                      }
+                      onManageRoles={
+                        world.owner_id === user?.id
+                          ? () => navigate(`/world/roles/${world.id}`)
                           : undefined
                       }
                     />

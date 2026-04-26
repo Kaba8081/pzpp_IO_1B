@@ -4,6 +4,8 @@ from rest_framework import serializers
 
 from apps.forum.world_user_profiles.models import WorldUserProfiles
 from apps.forum.worlds.models import Worlds
+from apps.forum.world_roles.models import WorldRoles
+from apps.forum.world_user_has_roles.models import WorldUserHasRoles
 
 User = get_user_model()
 
@@ -54,7 +56,19 @@ class WorldUserProfilesSerializer(serializers.ModelSerializer):
         if user is None:
             raise serializers.ValidationError({'user': 'User is required to create a profile.'})
 
-        return WorldUserProfiles.objects.create(world=world, user=user, **validated_data)
+        profile = WorldUserProfiles.objects.create(world=world, user=user, **validated_data)
+
+        default_role = WorldRoles.objects.filter(
+            world=world, name="default", is_system=True, deleted_at__isnull=True
+        ).first()
+        if default_role:
+            already_assigned = WorldUserHasRoles.objects.filter(
+                world=world, user=user, role=default_role, deleted_at__isnull=True
+            ).exists()
+            if not already_assigned:
+                WorldUserHasRoles.objects.create(world=world, user=user, role=default_role)
+
+        return profile
 
 
 # Ony for drf documentation purposes
