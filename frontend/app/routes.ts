@@ -4,7 +4,7 @@ export default [
   layout("routes/AppLayout.tsx", [
     index("routes/MainPage.tsx"),
     route("world/roles/:worldId", "routes/World/RolePage.tsx"),
-    route("world/:worldId/:roomId", "routes/ChannelRoom.tsx"),
+    route("world/:worldId/:roomId", "routes/World/ChannelRoom.tsx"),
     route("dm/:threadId", "routes/DirectMessageRoom.tsx"),
   ]),
 ] satisfies RouteConfig;

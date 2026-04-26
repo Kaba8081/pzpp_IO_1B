@@ -26,6 +26,12 @@ class MessagePagination(PageNumberPagination):
     page_size_query_param = 'page_size'
     max_page_size = 100
 
+    def get_page_number(self, request, paginator):
+        page_number = request.query_params.get(self.page_query_param)
+        if not page_number:
+            return paginator.num_pages
+        return super().get_page_number(request, paginator)
+
 
 class ChannelMessagesView(APIView):
 

@@ -4,6 +4,7 @@ import { MessageSquare, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { getOrCreateDMThread } from "@/services/dm/getOrCreateThread.service";
 import type { ProfilePopupData } from "@/types/models";
+import { useUserStore } from "@/stores/UserStore";
 
 interface UserProfileModalProps {
   profile: ProfilePopupData;
@@ -11,9 +12,13 @@ interface UserProfileModalProps {
 }
 
 export const UserProfileModal = ({ profile, onClose }: UserProfileModalProps) => {
+  const { modal } = useUserStore();
   const navigate = useNavigate();
   const [visible, setVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // TODO: Fetch real user profile from worldProfileId
+  // TODO: Display the user roles
 
   useEffect(() => {
     const t = setTimeout(() => setVisible(true), 10);
@@ -23,6 +28,7 @@ export const UserProfileModal = ({ profile, onClose }: UserProfileModalProps) =>
   const handleClose = () => {
     setVisible(false);
     setTimeout(onClose, 200);
+    modal.close();
   };
 
   const handleSendDM = async () => {

@@ -57,6 +57,7 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
   const [avatarDragActive, setAvatarDragActive] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [visible, setVisible] = useState(false);
 
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const editMode = useMemo(() => mode !== "display", [mode]);
@@ -77,6 +78,11 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
 
     fetchExistingProfile(profileId);
   }, [profileId]);
+
+  const handleClose = () => {
+    setVisible(false);
+    modal.close();
+  };
 
   const validate = (): boolean => {
     if (!characterData.name?.trim()) {
@@ -130,6 +136,11 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
     }
   };
 
+  const handleViewProfile = async () => {
+    modal.close();
+    modal.open("view-profile");
+  };
+
   const handleAvatarFile = (file?: File) => {
     if (!file) return;
     setAvatarFile(file);
@@ -153,13 +164,18 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
     setCharacterData((prev) => ({ ...prev, description: value }));
   };
 
+  useEffect(() => {
+    const t = setTimeout(() => setVisible(true), 10);
+    return () => clearTimeout(t);
+  }, []);
+
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
-      onClick={modal.close}
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm transition-opacity duration-200 ${visible ? "opacity-100" : "opacity-0"}`}
+      onClick={handleClose}
     >
       <div
-        className="relative flex max-h-[92vh] w-full max-w-250 flex-col overflow-hidden rounded-2xl border border-primary bg-background shadow-2xl"
+        className={`relative flex max-h-[92vh] w-full max-w-250 flex-col overflow-hidden rounded-2xl border border-primary bg-background shadow-2xl transition-all duration-200 ${visible ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
         onClick={(event) => event.stopPropagation()}
       >
         {/* Main Content */}
@@ -197,13 +213,19 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
 
             {/* Avatar */}
             {mode === "display" ? (
-              <div className="relative flex flex-1 overflow-hidden rounded-2xl border border-primary/30">
+              <div className="relative flex flex-1 justify-center w-full">
                 {isLoading ? (
-                  <div className="flex-1 animate-pulse bg-primary/20" />
+                  <div className="flex-1 animate-pulse bg-primary/20 border border-primary/30" />
                 ) : avatar ? (
-                  <img src={avatar} alt="Character avatar" className="h-full w-full object-cover" />
+                  <div className="max-h-48 max-w-36 aspect-1/1.5 overflow-hidden rounded-2xl">
+                    <img
+                      src={avatar}
+                      alt="Character avatar"
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
                 ) : (
-                  <div className="flex flex-1 items-center justify-center text-input-placeholder">
+                  <div className="flex flex-1 items-center justify-center text-input-placeholder border border-primary/30">
                     No avatar
                   </div>
                 )}
@@ -304,30 +326,37 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
           </div>
 
           {/* Right side */}
-          {editMode && (
-            <div className="flex flex-wrap gap-4 md:justify-end">
-              {mode === "create" && (
-                <Button
-                  className="flex items-center gap-3 rounded-xl bg-primary px-8 py-2.5 transition-colors hover:bg-primary/80 disabled:opacity-50"
-                  variant="ghost"
-                  onClick={handleCreate}
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? "Creating..." : "Create"}
-                </Button>
-              )}
-              {mode === "edit" && (
-                <Button
-                  className="flex items-center gap-3 rounded-xl bg-primary px-8 py-2.5 transition-colors hover:bg-primary/80 disabled:opacity-50"
-                  variant="ghost"
-                  onClick={handleUpdate}
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? "Saving..." : "Save"}
-                </Button>
-              )}
-            </div>
-          )}
+          <div className="flex flex-wrap gap-4 md:justify-end">
+            {mode === "create" && (
+              <Button
+                className="flex items-center gap-3 rounded-xl bg-primary px-8 py-2.5 transition-colors hover:bg-primary/80 disabled:opacity-50"
+                variant="ghost"
+                onClick={handleCreate}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Creating..." : "Create"}
+              </Button>
+            )}
+            {mode === "edit" && (
+              <Button
+                className="flex items-center gap-3 rounded-xl bg-primary px-8 py-2.5 transition-colors hover:bg-primary/80 disabled:opacity-50"
+                variant="ghost"
+                onClick={handleUpdate}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Saving..." : "Save"}
+              </Button>
+            )}
+            {mode === "display" && (
+              <Button
+                className="flex items-center gap-3 rounded-xl bg-primary px-8 py-2.5 transition-colors hover:bg-primary/80 disabled:opacity-50"
+                variant="ghost"
+                onClick={handleViewProfile}
+              >
+                View user
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </div>

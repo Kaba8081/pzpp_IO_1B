@@ -41,6 +41,7 @@ export interface WorldMember {
 }
 
 export interface ProfilePopupData {
+  id: number;
   name: string;
   description?: string | null;
   avatar: string | null;

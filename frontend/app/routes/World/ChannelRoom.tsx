@@ -17,7 +17,7 @@ import type {
 import { WorldRoomManager } from "@/services/worldRoomManager";
 import { useUserStore } from "@/stores/UserStore";
 import { createChannelMessage } from "@/services/worldRoom/createChannelMessage.service";
-import type { AppLayoutOutletContext } from "./AppLayout";
+import type { AppLayoutOutletContext } from "../AppLayout";
 import { connectWorldRoomChannel } from "@/services/worldRoom/worldRoomChannel";
 import { getWorldMembers } from "@/services/worldUserProfile/getWorldMembers.service";
 import { connectWorldEventsChannel } from "@/services/worldUserProfile/worldEventsChannel";
@@ -143,21 +143,25 @@ export default function WorldRoomPage() {
 
   const handleMemberClick = (member: WorldMember) => {
     setSelectedProfile({
+      id: member.id,
       name: member.name,
       description: member.description,
       avatar: member.avatar,
       user_id: member.user_id,
     });
+    modal.open("view-character");
   };
 
   const handleAuthorClick = (
     author: Pick<WorldRoomMessageWithAuthor["author"], "id" | "name" | "avatar" | "user_id">
   ) => {
     setSelectedProfile({
+      id: author.id,
       name: author.name,
       avatar: author.avatar,
       user_id: author.user_id,
     });
+    modal.open("view-character");
   };
 
   if (!worldId) {
@@ -267,8 +271,15 @@ export default function WorldRoomPage() {
           profileId={activeProfile.id}
         />
       )}
+      {selectedProfile && currentModal === "view-character" && (
+        <CharacterModal
+          mode="display"
+          worldId={worldId ? parseInt(worldId) : undefined}
+          profileId={selectedProfile.id}
+        />
+      )}
 
-      {selectedProfile && (
+      {selectedProfile && currentModal === "view-profile" && (
         <UserProfileModal profile={selectedProfile} onClose={() => setSelectedProfile(null)} />
       )}
     </>
