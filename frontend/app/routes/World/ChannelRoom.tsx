@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useOutletContext, useParams } from "react-router";
 import { Button } from "@/components/ui/Button";
 import { UsersSidebar } from "@/components/UsersSidebar";
@@ -23,40 +23,67 @@ import { markRoomRead } from "@/services/worldRoom/markRoomRead.service";
 import { getWorldMembers } from "@/services/worldUserProfile/getWorldMembers.service";
 import { connectWorldEventsChannel } from "@/services/worldUserProfile/worldEventsChannel";
 
+const PAGE_SIZE = 50;
+
 export default function WorldRoomPage() {
   const { activeProfile, currentModal, isLoggedIn, modal, setUnreadRoom } = useUserStore();
   const { worldId, roomId } = useParams<{ worldId: string; roomId: string }>();
+  const parsedRoomId = roomId ? parseInt(roomId) : undefined;
   const [messageText, setMessageText] = useState("");
   const [messages, setMessages] = useState<WorldRoomMessageWithAuthor[]>([]);
   const [activeRoom, setActiveRoom] = useState<WorldRoom>();
   const [isSendingMessage, setSendingMessage] = useState<boolean>(false);
   const [members, setMembers] = useState<WorldMember[]>([]);
   const [selectedProfile, setSelectedProfile] = useState<ProfilePopupData | null>(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const topSentinelRef = useRef<HTMLDivElement>(null);
+  const isPrependingRef = useRef(false);
   const { mobileSidebar, setMobileSidebar, closeMobileSidebar } =
     useOutletContext<AppLayoutOutletContext>();
   const isUsersSidebarOpen = mobileSidebar === "right";
 
   const isInputDisabled = isSendingMessage;
 
-  // Fetch activeRoom + its messages
+  // Fetch activeRoom + its messages, starting from the most recent page
   useEffect(() => {
-    if (!roomId) return;
+    if (!parsedRoomId) return;
 
     let isMounted = true;
-    const parsedRoomId = parseInt(roomId);
+
+    setMessages([]);
+    setPage(1);
+    setHasMore(false);
+    setIsLoadingMore(false);
 
     const fetchRoomData = async () => {
       try {
-        const [room, roomMessages] = await Promise.all([
+        const [room, firstPageData] = await Promise.all([
           WorldRoomManager.getChannel(parsedRoomId),
-          WorldRoomManager.getChannelMessages(parsedRoomId),
+          WorldRoomManager.getChannelMessages(parsedRoomId, { page: 1, page_size: PAGE_SIZE }),
         ]);
 
         if (!isMounted) return;
-
         setActiveRoom(room);
-        setMessages(roomMessages.results);
+
+        if (!firstPageData.next) {
+          setMessages(firstPageData.results);
+          setPage(1);
+          setHasMore(false);
+        } else {
+          const totalPages = Math.ceil(firstPageData.count / PAGE_SIZE);
+          const lastPageData = await WorldRoomManager.getChannelMessages(parsedRoomId, {
+            page: totalPages,
+            page_size: PAGE_SIZE,
+          });
+          if (!isMounted) return;
+          setMessages(lastPageData.results);
+          setPage(totalPages);
+          setHasMore(totalPages > 1);
+        }
       } catch (error) {
         console.error(error);
       }
@@ -71,7 +98,7 @@ export default function WorldRoomPage() {
     return () => {
       isMounted = false;
     };
-  }, [roomId, setUnreadRoom]);
+  }, [parsedRoomId, setUnreadRoom]);
 
   // Fetch world members
   useEffect(() => {
@@ -92,15 +119,68 @@ export default function WorldRoomPage() {
     };
   }, [worldId, isLoggedIn]);
 
+  // Scroll to bottom on message updates, but skip when prepending older messages
   useEffect(() => {
+    if (isPrependingRef.current) {
+      isPrependingRef.current = false;
+      return;
+    }
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Load one page of older messages and preserve scroll position
+  const loadOlderMessages = useCallback(async () => {
+    if (isLoadingMore || !hasMore || page <= 1 || !parsedRoomId) return;
+
+    const container = messagesContainerRef.current;
+    const prevScrollHeight = container?.scrollHeight ?? 0;
+
+    setIsLoadingMore(true);
+    try {
+      const data = await WorldRoomManager.getChannelMessages(parsedRoomId, {
+        page: page - 1,
+        page_size: PAGE_SIZE,
+      });
+
+      isPrependingRef.current = true;
+      setMessages((prev) => [...data.results, ...prev]);
+      setPage((p) => p - 1);
+      setHasMore(page - 1 > 1);
+
+      requestAnimationFrame(() => {
+        if (container) {
+          container.scrollTop = container.scrollHeight - prevScrollHeight;
+        }
+      });
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [isLoadingMore, hasMore, page, parsedRoomId]);
+
+  // Observe top sentinel to trigger loading older messages
+  useEffect(() => {
+    const sentinel = topSentinelRef.current;
+    if (!sentinel || !hasMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          loadOlderMessages();
+        }
+      },
+      { threshold: 0 }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMore, loadOlderMessages]);
+
   // Subscribe to live messages via WebSocket
   useEffect(() => {
-    if (!roomId) return;
+    if (!parsedRoomId) return;
 
-    const parsedRoomId = parseInt(roomId);
     const channel = connectWorldRoomChannel(parsedRoomId);
     const unsub = channel.subscribe("room.message.created", (e) => {
       setMessages((prev) =>
@@ -113,7 +193,7 @@ export default function WorldRoomPage() {
     });
 
     return unsub;
-  }, [roomId, setUnreadRoom]);
+  }, [parsedRoomId, setUnreadRoom]);
 
   // Subscribe to world events (new characters) via WebSocket
   useEffect(() => {
@@ -220,8 +300,17 @@ export default function WorldRoomPage() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div
+          ref={messagesContainerRef}
+          className="flex-1 overflow-y-auto p-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+        >
           <div className="space-y-2">
+            <div ref={topSentinelRef} />
+            {isLoadingMore && (
+              <div className="flex justify-center py-2 text-xs text-input-placeholder">
+                Loading...
+              </div>
+            )}
             {messages.map((msg) => (
               <ChannelRoomMessage
                 key={msg.id}
