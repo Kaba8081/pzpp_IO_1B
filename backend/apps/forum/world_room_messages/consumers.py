@@ -8,11 +8,6 @@ class WorldRoomMessageConsumer(AsyncWebsocketConsumer):
     room_group_name: str
 
     async def connect(self) -> None:
-        user = self.scope.get('user')
-        if user is None or not user.is_authenticated:
-            await self.close(code=4401)
-            return
-
         url_route: Any = self.scope.get('url_route')
         if not isinstance(url_route, dict):
             await self.close(code=4400)

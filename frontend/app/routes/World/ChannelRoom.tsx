@@ -91,14 +91,16 @@ export default function WorldRoomPage() {
 
     fetchRoomData();
 
-    markRoomRead(parsedRoomId)
-      .then(() => setUnreadRoom(parsedRoomId, false))
-      .catch(() => {});
+    if (isLoggedIn) {
+      markRoomRead(parsedRoomId)
+        .then(() => setUnreadRoom(parsedRoomId, false))
+        .catch(() => {});
+    }
 
     return () => {
       isMounted = false;
     };
-  }, [parsedRoomId, setUnreadRoom]);
+  }, [parsedRoomId, setUnreadRoom, isLoggedIn]);
 
   // Fetch world members
   useEffect(() => {
@@ -187,9 +189,11 @@ export default function WorldRoomPage() {
         prev.some((m) => m.id === e.message.id) ? prev : [...prev, e.message]
       );
       // User is actively viewing this room — mark it read immediately.
-      markRoomRead(parsedRoomId)
-        .then(() => setUnreadRoom(parsedRoomId, false))
-        .catch(() => {});
+      if (isLoggedIn) {
+        markRoomRead(parsedRoomId)
+          .then(() => setUnreadRoom(parsedRoomId, false))
+          .catch(() => {});
+      }
     });
 
     return unsub;

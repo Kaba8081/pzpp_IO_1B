@@ -17,6 +17,10 @@ export function connectWorldRoomChannel(roomId: number): WsChannel<WorldRoomChan
   const wsBase = backendUrl.replace(/^http/i, "ws").replace(/\/$/, "");
   return WsChannel.connect<WorldRoomChannelEventMap>(
     `world-room-${roomId}`,
-    (ticket) => `${wsBase}/ws/forum/rooms/${roomId}/messages/?ticket=${encodeURIComponent(ticket)}`
+    (ticket) => {
+      const base = `${wsBase}/ws/forum/rooms/${roomId}/messages/`;
+      return ticket ? `${base}?ticket=${encodeURIComponent(ticket)}` : base;
+    },
+    { requiresAuth: false }
   );
 }

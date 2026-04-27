@@ -26,19 +26,35 @@ async function fetchWsTicket(): Promise<string> {
   return ticket;
 }
 
+async function tryFetchWsTicket(): Promise<string | null> {
+  const accessToken = getStoredUser()?.accessToken;
+  if (!accessToken) return null;
+  try {
+    return await fetchWsTicket();
+  } catch {
+    return null;
+  }
+}
+
 export class WsChannel<TEventMap extends Record<string, unknown>> {
   readonly channelKey: string;
 
   private ws: WebSocket | null = null;
   private readonly listeners = new Map<keyof TEventMap, Set<AnyHandler>>();
-  private readonly urlBuilder: (ticket: string) => string;
+  private readonly urlBuilder: (ticket: string | null) => string;
+  private readonly requiresAuth: boolean;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private reconnectDelay = 1_000;
   private closed = false;
 
-  private constructor(channelKey: string, urlBuilder: (ticket: string) => string) {
+  private constructor(
+    channelKey: string,
+    urlBuilder: (ticket: string | null) => string,
+    requiresAuth: boolean
+  ) {
     this.channelKey = channelKey;
     this.urlBuilder = urlBuilder;
+    this.requiresAuth = requiresAuth;
     void this.openWithTicket();
   }
 
@@ -52,10 +68,26 @@ export class WsChannel<TEventMap extends Record<string, unknown>> {
   static connect<TEventMap extends Record<string, unknown>>(
     channelKey: string,
     urlBuilder: (ticket: string) => string
+  ): WsChannel<TEventMap>;
+  /**
+   * Variant for channels that allow unauthenticated connections.
+   * If the user is logged in, their ticket is still included so the backend can
+   * identify them; if not, `ticket` is `null` and the URL builder must handle that.
+   */
+  static connect<TEventMap extends Record<string, unknown>>(
+    channelKey: string,
+    urlBuilder: (ticket: string | null) => string,
+    options: { requiresAuth: false }
+  ): WsChannel<TEventMap>;
+  static connect<TEventMap extends Record<string, unknown>>(
+    channelKey: string,
+    urlBuilder: (ticket: string | null) => string,
+    options?: { requiresAuth?: boolean }
   ): WsChannel<TEventMap> {
     const existing = instances.get(channelKey);
     if (existing) return existing as WsChannel<TEventMap>;
-    const channel = new WsChannel<TEventMap>(channelKey, urlBuilder);
+    const requiresAuth = options?.requiresAuth !== false;
+    const channel = new WsChannel<TEventMap>(channelKey, urlBuilder, requiresAuth);
     instances.set(channelKey, channel as WsChannel<Record<string, unknown>>);
     return channel;
   }
@@ -100,18 +132,22 @@ export class WsChannel<TEventMap extends Record<string, unknown>> {
 
   private async openWithTicket(): Promise<void> {
     if (this.closed) return;
-    let ticket: string;
-    try {
-      ticket = await fetchWsTicket();
-    } catch {
-      this.scheduleReconnect();
-      return;
+    let ticket: string | null;
+    if (this.requiresAuth) {
+      try {
+        ticket = await fetchWsTicket();
+      } catch {
+        this.scheduleReconnect();
+        return;
+      }
+    } else {
+      ticket = await tryFetchWsTicket();
     }
     if (this.closed) return;
     this.openWs(ticket);
   }
 
-  private openWs(ticket: string): void {
+  private openWs(ticket: string | null): void {
     if (this.closed) return;
     const ws = new WebSocket(this.urlBuilder(ticket));
     this.ws = ws;
