@@ -141,6 +141,18 @@ export const Sidebar: React.FC = () => {
       .catch(() => setDmThreads([]));
   }, [isLoggedIn]);
 
+  // Re-fetch threads when a DM arrives for an unknown thread
+  useEffect(() => {
+    if (!isLoggedIn || unreadDMThreadIds.size === 0) return;
+    const knownIds = new Set(dmThreads.map((t) => t.id));
+    const hasNew = [...unreadDMThreadIds].some((id) => !knownIds.has(id));
+    if (hasNew) {
+      getDMThreads()
+        .then(setDmThreads)
+        .catch(() => {});
+    }
+  }, [unreadDMThreadIds]);
+
   // Filter out the world's that the user doesn't belong to
   useEffect(() => {
     if (!removedWorldMembership) return;
