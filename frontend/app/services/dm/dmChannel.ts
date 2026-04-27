@@ -1,4 +1,4 @@
-import { WsChannel } from "@/lib/WsChannel";
+import { WsChannel, getWsBase } from "@/lib/WsChannel";
 import type { DirectMessage } from "@/types/models";
 
 export interface DMMessageCreatedEvent {
@@ -13,8 +13,7 @@ export interface DMChannelEventMap {
 }
 
 export function connectDMChannel(threadId: number): WsChannel<DMChannelEventMap> {
-  const backendUrl = (import.meta.env.VITE_BACKEND_URL as string | undefined) ?? "";
-  const wsBase = backendUrl.replace(/^http/i, "ws").replace(/\/$/, "");
+  const wsBase = getWsBase();
   return WsChannel.connect<DMChannelEventMap>(
     `dm-thread-${threadId}`,
     (ticket) => `${wsBase}/ws/dm/${threadId}/?ticket=${encodeURIComponent(ticket)}`

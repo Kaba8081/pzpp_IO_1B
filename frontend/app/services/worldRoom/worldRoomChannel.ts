@@ -1,4 +1,4 @@
-import { WsChannel } from "@/lib/WsChannel";
+import { WsChannel, getWsBase } from "@/lib/WsChannel";
 import type { WorldRoomMessageWithAuthor } from "@/types/models";
 
 export interface RoomMessageCreatedEvent {
@@ -13,8 +13,7 @@ export interface WorldRoomChannelEventMap {
 }
 
 export function connectWorldRoomChannel(roomId: number): WsChannel<WorldRoomChannelEventMap> {
-  const backendUrl = (import.meta.env.VITE_BACKEND_URL as string | undefined) ?? "";
-  const wsBase = backendUrl.replace(/^http/i, "ws").replace(/\/$/, "");
+  const wsBase = getWsBase();
   return WsChannel.connect<WorldRoomChannelEventMap>(
     `world-room-${roomId}`,
     (ticket) => {

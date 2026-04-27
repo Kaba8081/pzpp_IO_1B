@@ -7,7 +7,7 @@ import React, {
   useState,
   type ReactNode,
 } from "react";
-import type { SessionUser, World, WorldUserProfile } from "@/types/models";
+import type { SessionUser, World, WorldUserProfile, DirectMessageThread } from "@/types/models";
 import { setCookie, getCookie, deleteCookie } from "@/utils/cookieUtils";
 import { registerToastHandler, type ToastType } from "@/lib/toastBridge";
 import { registerLogoutHandler } from "@/lib/authBridge";
@@ -87,6 +87,9 @@ interface UserContextType {
   setUnreadDM: (threadId: number, unread: boolean) => void;
   setUnreadRoom: (roomId: number, unread: boolean) => void;
   initializeUnread: (dmIds: number[], roomIds: number[]) => void;
+
+  dmThreads: DirectMessageThread[];
+  setDMThreads: (threads: DirectMessageThread[]) => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -144,6 +147,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [permissionsByWorld, setPermissionsByWorld] = useState<Record<number, string[]>>({});
   const [unreadDMThreadIds, setUnreadDMThreadIds] = useState<Set<number>>(new Set());
   const [unreadRoomIds, setUnreadRoomIds] = useState<Set<number>>(new Set());
+  const [dmThreads, setDMThreads] = useState<DirectMessageThread[]>([]);
 
   const setUser = (nextUser: SessionUser | null) => {
     setUserState(nextUser);
@@ -159,6 +163,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     setPermissionsByWorld({});
     setUnreadDMThreadIds(new Set());
     setUnreadRoomIds(new Set());
+    setDMThreads([]);
   };
 
   const setUnreadDM = useCallback((threadId: number, unread: boolean) => {
@@ -228,6 +233,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       toast.open(message, type, duration);
     });
     registerLogoutHandler(logout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -272,6 +278,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         setUnreadDM,
         setUnreadRoom,
         initializeUnread,
+        dmThreads,
+        setDMThreads,
       }}
     >
       {children}

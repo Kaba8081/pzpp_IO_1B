@@ -1,10 +1,10 @@
-FROM oven/bun:1.2-alpine AS builder
+FROM node:22-alpine AS builder
 WORKDIR /app
-COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile
+COPY package.json ./
+RUN npm install
 COPY . .
 ARG VITE_BACKEND_URL
-RUN bun run build
+RUN npm run build
 
 FROM nginx:1.27-alpine
 COPY --from=builder /app/build/client /usr/share/nginx/html

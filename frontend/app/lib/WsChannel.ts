@@ -11,6 +11,15 @@ function getBackendBase(): string {
   return url.endsWith("/") ? url.slice(0, -1) : url;
 }
 
+export function getWsBase(): string {
+  const httpBase = (import.meta.env.VITE_BACKEND_URL as string | undefined) ?? "";
+  if (httpBase) {
+    return httpBase.replace(/^http/i, "ws").replace(/\/$/, "");
+  }
+  const proto = window.location.protocol === "https:" ? "wss" : "ws";
+  return `${proto}://${window.location.host}`;
+}
+
 async function fetchWsTicket(): Promise<string> {
   const accessToken = getStoredUser()?.accessToken;
   if (!accessToken) throw new Error("Not authenticated");

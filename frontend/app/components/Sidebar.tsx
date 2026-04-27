@@ -10,7 +10,7 @@ import { getChannels } from "@/services/worldRoom";
 import { getDMThreads } from "@/services/dm/getThreads.service";
 import { useWorldPermissions } from "@/hooks/useWorldPermissions";
 import { UserProfileModal } from "@/components/modals/UserProfileModal";
-import type { World, Channel, DirectMessageThread, ProfilePopupData } from "@/types/models";
+import type { World, Channel, ProfilePopupData } from "@/types/models";
 
 interface WorldSidebarItemProps {
   world: World;
@@ -87,6 +87,8 @@ export const Sidebar: React.FC = () => {
     setEditingWorld,
     unreadDMThreadIds,
     unreadRoomIds,
+    dmThreads,
+    setDMThreads,
   } = useUserStore();
 
   const navigate = useNavigate();
@@ -99,7 +101,6 @@ export const Sidebar: React.FC = () => {
   const [channelsByWorldId, setChannelsByWorldId] = useState<Record<number, Channel[]>>({});
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const accountMenuRef = useRef<HTMLDivElement>(null);
-  const [dmThreads, setDmThreads] = useState<DirectMessageThread[]>([]);
   const [viewingProfile, setViewingProfile] = useState<ProfilePopupData | null>(null);
 
   const isHomeActive = location.pathname === "/";
@@ -130,28 +131,33 @@ export const Sidebar: React.FC = () => {
       .catch(() => setWorlds([]));
   }, [isLoggedIn, worldsVersion]);
 
+  const dmThreadsRef = useRef(dmThreads);
+  useEffect(() => {
+    dmThreadsRef.current = dmThreads;
+  }, [dmThreads]);
+
   // Get Dm Threads
   useEffect(() => {
     if (!isLoggedIn) {
-      setDmThreads([]);
+      setDMThreads([]);
       return;
     }
     getDMThreads()
-      .then(setDmThreads)
-      .catch(() => setDmThreads([]));
-  }, [isLoggedIn]);
+      .then(setDMThreads)
+      .catch(() => setDMThreads([]));
+  }, [isLoggedIn, setDMThreads]);
 
   // Re-fetch threads when a DM arrives for an unknown thread
   useEffect(() => {
     if (!isLoggedIn || unreadDMThreadIds.size === 0) return;
-    const knownIds = new Set(dmThreads.map((t) => t.id));
+    const knownIds = new Set(dmThreadsRef.current.map((t) => t.id));
     const hasNew = [...unreadDMThreadIds].some((id) => !knownIds.has(id));
     if (hasNew) {
       getDMThreads()
-        .then(setDmThreads)
+        .then(setDMThreads)
         .catch(() => {});
     }
-  }, [unreadDMThreadIds]);
+  }, [isLoggedIn, unreadDMThreadIds, setDMThreads]);
 
   // Filter out the world's that the user doesn't belong to
   useEffect(() => {

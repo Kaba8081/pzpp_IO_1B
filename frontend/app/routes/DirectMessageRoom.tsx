@@ -5,7 +5,13 @@ import { useParams, useNavigate } from "react-router";
 import { Button } from "@/components/ui/Button";
 import { SendHorizontal, ArrowLeft } from "lucide-react";
 import { useUserStore } from "@/stores/UserStore";
-import { getDMThreadMessages, createDMMessage, connectDMChannel, markDMRead } from "@/services/dm";
+import {
+  getDMThreadMessages,
+  createDMMessage,
+  connectDMChannel,
+  markDMRead,
+  getDMThreads,
+} from "@/services/dm";
 import type { DirectMessage, DirectMessageThread, ProfilePopupData } from "@/types/models";
 import { apiRequest } from "@/api/apiRequest";
 import { UserProfileModal } from "@/components/modals/UserProfileModal";
@@ -23,7 +29,7 @@ export default function DirectMessageRoom() {
   const { threadId } = useParams<{ threadId: string }>();
   const parsedThreadId = threadId ? parseInt(threadId) : undefined;
   const navigate = useNavigate();
-  const { isLoggedIn, modal, setUnreadDM } = useUserStore();
+  const { isLoggedIn, modal, setUnreadDM, dmThreads, setDMThreads } = useUserStore();
   const [messageText, setMessageText] = useState("");
   const [messages, setMessages] = useState<DirectMessage[]>([]);
   const [thread, setThread] = useState<DirectMessageThread | null>(null);
@@ -169,7 +175,14 @@ export default function DirectMessageRoom() {
 
     setIsSending(true);
     createDMMessage(parseInt(threadId), messageText.trim())
-      .then(() => setMessageText(""))
+      .then(() => {
+        setMessageText("");
+        if (parsedThreadId && !dmThreads.some((t) => t.id === parsedThreadId)) {
+          getDMThreads()
+            .then(setDMThreads)
+            .catch(() => {});
+        }
+      })
       .catch(console.error)
       .finally(() => setIsSending(false));
   };
