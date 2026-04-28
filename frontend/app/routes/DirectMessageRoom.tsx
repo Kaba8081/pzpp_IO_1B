@@ -45,6 +45,7 @@ export default function DirectMessageRoom() {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const topSentinelRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const isPrependingRef = useRef(false);
   const [viewingProfile, setViewingProfile] = useState<ProfilePopupData | null>(null);
 
@@ -219,7 +220,10 @@ export default function DirectMessageRoom() {
         }
       })
       .catch(console.error)
-      .finally(() => setIsSending(false));
+      .finally(() => {
+        setIsSending(false);
+        setTimeout(() => textareaRef.current?.focus(), 0);
+      });
   };
 
   const handleMediaSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -370,6 +374,7 @@ export default function DirectMessageRoom() {
         )}
 
         <textarea
+          ref={textareaRef}
           value={messageText}
           onChange={(e) => setMessageText(e.target.value)}
           onKeyDown={handleKeyDown}

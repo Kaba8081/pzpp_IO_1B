@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Home, PlusCircle, UserPen, LogOut, MoreVertical } from "lucide-react";
-import { useNavigate, useLocation, useParams } from "react-router";
+import { useNavigate, useLocation, useParams, useMatch } from "react-router";
 import { Button } from "@/components/ui/Button";
 import { Tabs, type TabItem } from "@/components/ui/Tabs";
 import { WorldDropdown } from "@/components/ui/WorldDropdown";
@@ -9,6 +9,7 @@ import { getUserWorlds, getWorldById } from "@/services/world";
 import { getChannels } from "@/services/worldRoom";
 import { getDMThreads } from "@/services/dm/getThreads.service";
 import { useWorldPermissions } from "@/hooks/useWorldPermissions";
+import { useAnimatedMount } from "@/hooks/useAnimatedMount";
 import { UserProfileModal } from "@/components/modals/UserProfileModal";
 import type { World, Channel, ProfilePopupData } from "@/types/models";
 
@@ -45,6 +46,7 @@ const WorldSidebarItem: React.FC<WorldSidebarItemProps> = ({
       }))}
       defaultOpen={activeWorldId === String(world.id)}
       isActive={activeWorldId === String(world.id)}
+      storageKey={`sidebar:world-open:${world.id}`}
       onEdit={
         perms.has("manage_world")
           ? () => {
@@ -100,10 +102,14 @@ export const Sidebar: React.FC = () => {
   const [currentWorld, setCurrentWorld] = useState<World | null>(null);
   const [channelsByWorldId, setChannelsByWorldId] = useState<Record<number, Channel[]>>({});
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
+  const { isMounted: isAccountMenuMounted, isExiting: isAccountMenuExiting } =
+    useAnimatedMount(isAccountMenuOpen);
   const accountMenuRef = useRef<HTMLDivElement>(null);
   const [viewingProfile, setViewingProfile] = useState<ProfilePopupData | null>(null);
 
   const isHomeActive = location.pathname === "/";
+  const dmMatch = useMatch("/dm/:threadId");
+  const activeDMThreadId = dmMatch?.params.threadId;
   const sidebarWorlds = useMemo(() => {
     if (!currentWorld || worlds.some((world) => world.id === currentWorld.id)) return worlds;
     return [currentWorld, ...worlds];
@@ -229,17 +235,32 @@ export const Sidebar: React.FC = () => {
     <aside className="w-[min(21.25rem,calc(100vw-1.5rem))] lg:w-85 h-full bg-background border-2 border-primary rounded-2xl flex flex-col px-6 py-8 lg:px-8 lg:py-10 shrink-0">
       {isLoggedIn && user ? (
         <div className="flex items-center gap-5 mb-12">
-          {user.profile?.profile_picture ? (
-            <img
-              src={user.profile.profile_picture}
-              alt="User Avatar"
-              className="w-14 h-14 rounded-full border-2 border-primary/50 object-cover shrink-0 transition-all duration-200 hover:border-primary hover:shadow-[0_0_12px_rgba(6,140,124,0.35)] hover:scale-105"
-            />
-          ) : (
-            <div className="w-14 h-14 rounded-full border-2 border-primary/50 bg-primary/15 flex items-center justify-center text-primary shrink-0 transition-all duration-200 hover:border-primary hover:shadow-[0_0_12px_rgba(6,140,124,0.35)] hover:scale-105 select-none">
-              {(user.profile?.username || user.email).slice(0, 1)}
-            </div>
-          )}
+          <button
+            type="button"
+            onClick={() => {
+              setViewingProfile({
+                id: user.id,
+                name: user.profile?.username ?? user.email,
+                description: user.profile?.description ?? null,
+                avatar: user.profile?.profile_picture ?? null,
+                user_id: user.id,
+              });
+            }}
+            className="shrink-0 active:scale-95 transition-transform"
+            aria-label="Edit profile"
+          >
+            {user.profile?.profile_picture ? (
+              <img
+                src={user.profile.profile_picture}
+                alt="User Avatar"
+                className="w-14 h-14 rounded-full border-2 border-primary/50 object-cover transition-all duration-200 hover:border-primary hover:shadow-[0_0_12px_rgba(6,140,124,0.35)] hover:scale-105"
+              />
+            ) : (
+              <div className="w-14 h-14 rounded-full border-2 border-primary/50 bg-primary/15 flex items-center justify-center text-primary transition-all duration-200 hover:border-primary hover:shadow-[0_0_12px_rgba(6,140,124,0.35)] hover:scale-105 select-none">
+                {(user.profile?.username || user.email).slice(0, 1)}
+              </div>
+            )}
+          </button>
           <div className="flex-1 min-w-0">
             <div className="text-input-placeholder mb-1">Account</div>
             <div className="text-white truncate">{user.profile?.username || user.email}</div>
@@ -247,13 +268,15 @@ export const Sidebar: React.FC = () => {
           <div className="relative shrink-0" ref={accountMenuRef}>
             <button
               onClick={() => setIsAccountMenuOpen((v) => !v)}
-              className="p-1.5 text-input-placeholder hover:text-white hover:bg-primary/20 transition-all rounded-md"
+              className="p-1.5 text-input-placeholder hover:text-white hover:bg-primary/20 transition-all rounded-md active:scale-95"
             >
               <MoreVertical className="w-4 h-4" />
             </button>
 
-            {isAccountMenuOpen && (
-              <div className="absolute right-0 top-full mt-1 z-20 bg-background border border-primary/50 rounded-xl overflow-hidden shadow-xl flex flex-col min-w-40 animate-fade-in">
+            {isAccountMenuMounted && (
+              <div
+                className={`absolute right-0 top-full mt-1 z-20 bg-background border border-primary/50 rounded-xl overflow-hidden shadow-xl flex flex-col min-w-40 ${isAccountMenuExiting ? "animate-fade-out" : "animate-fade-in"}`}
+              >
                 <button
                   onClick={() => {
                     if (user) {
@@ -267,7 +290,7 @@ export const Sidebar: React.FC = () => {
                     }
                     setIsAccountMenuOpen(false);
                   }}
-                  className="px-4 py-2.5 text-left text-white hover:bg-primary/20 transition-colors flex items-center gap-2"
+                  className="px-4 py-2.5 text-left text-white hover:bg-primary/20 transition-all duration-150 flex items-center gap-2 active:scale-95"
                 >
                   <UserPen className="w-3 h-3" />
                   Edit Profile
@@ -277,7 +300,7 @@ export const Sidebar: React.FC = () => {
                     modal.open("logout");
                     setIsAccountMenuOpen(false);
                   }}
-                  className="px-4 py-2.5 text-left text-error hover:bg-error/10 transition-colors flex items-center gap-2"
+                  className="px-4 py-2.5 text-left text-error hover:bg-error/10 transition-all duration-150 flex items-center gap-2 active:scale-95"
                 >
                   <LogOut className="w-3 h-3" />
                   Logout
@@ -338,7 +361,7 @@ export const Sidebar: React.FC = () => {
 
             {isLoggedIn ? (
               <button
-                className="flex items-center gap-5 justify-start w-full border border-dashed border-primary/30 rounded-xl px-4 py-3 text-white hover:border-primary/70 hover:bg-primary/5 hover:text-primary transition-all duration-200"
+                className="flex items-center gap-5 justify-start w-full border border-dashed border-primary/30 rounded-xl px-4 py-3 text-white hover:border-primary/70 hover:bg-primary/5 hover:text-primary transition-all duration-200 active:scale-95"
                 onClick={() => {
                   setEditingWorld(null);
                   modal.open("world-modal");
@@ -378,12 +401,15 @@ export const Sidebar: React.FC = () => {
             ) : (
               dmThreads.map((thread) => {
                 const hasUnread = unreadDMThreadIds.has(thread.id);
+                const isActiveThread = activeDMThreadId === String(thread.id);
                 return (
                   <button
                     key={thread.id}
                     type="button"
                     onClick={() => navigate(`/dm/${thread.id}`)}
-                    className="flex items-center gap-3 w-full text-left rounded-xl px-3 py-2.5 hover:bg-primary/10 transition-colors"
+                    className={`flex items-center gap-3 w-full text-left rounded-xl px-3 py-2.5 transition-all duration-150 active:scale-95 ${
+                      isActiveThread ? "bg-primary/15 text-primary" : "hover:bg-primary/10"
+                    }`}
                   >
                     <div className="relative shrink-0">
                       {thread.other_user?.avatar ? (

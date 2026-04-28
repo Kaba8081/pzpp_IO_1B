@@ -5,6 +5,7 @@ import { ArrowDownUp, Check, PlusCircle, Trash2 } from "lucide-react";
 import { getWorldProfilesByWorld } from "@/services/worldUserProfile";
 import type { WorldUserProfile } from "@/types/models";
 import { useParams } from "react-router";
+import { useAnimatedMount } from "@/hooks/useAnimatedMount";
 
 const WorldProfileSelector: React.FC = () => {
   const {
@@ -21,6 +22,7 @@ const WorldProfileSelector: React.FC = () => {
   const [profiles, setProfiles] = useState<WorldUserProfile[]>([]);
   const [profilesLoadedForWorld, setProfilesLoadedForWorld] = useState<number | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const { isMounted: isDropMounted, isExiting: isDropExiting } = useAnimatedMount(isOpen);
   const [isAvatarLoading, setIsAvatarLoading] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const previousWorldIdRef = useRef<string | undefined>(undefined);
@@ -148,8 +150,10 @@ const WorldProfileSelector: React.FC = () => {
             <ArrowDownUp className="w-4 h-4 shrink-0" />
           </Button>
 
-          {isOpen && (
-            <div className="absolute bottom-full mb-1 left-0 right-0 bg-background border border-primary rounded-xl overflow-hidden z-50 shadow-lg">
+          {isDropMounted && (
+            <div
+              className={`absolute bottom-full mb-1 left-0 right-0 bg-background border border-primary rounded-xl overflow-hidden z-50 shadow-lg ${isDropExiting ? "animate-dropup-out" : "animate-dropup-in"}`}
+            >
               {profiles.length === 0 ? (
                 <div className="px-4 py-2 text-sm text-primary/50">No characters yet</div>
               ) : (

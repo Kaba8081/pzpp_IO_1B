@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useAnimatedMount } from "@/hooks/useAnimatedMount";
 
 import {
   X,
@@ -33,6 +34,7 @@ export const WorldEditorModal = ({
   ]);
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const { isMounted: isDropMounted, isExiting: isDropExiting } = useAnimatedMount(isDropdownOpen);
   const [newAttrType, setNewAttrType] = useState<"TEXT" | "NUMBER">("TEXT");
   const [mounted, setMounted] = useState(isOpen);
   const [visible, setVisible] = useState(isOpen);
@@ -151,8 +153,10 @@ export const WorldEditorModal = ({
                     {isDropdownOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                   </button>
 
-                  {isDropdownOpen && (
-                    <div className="absolute top-full w-full text-primary border border-primary bg-background-secondary rounded-br-lg rounded-bl-lg overflow-hidden z-20 shadow-xl">
+                  {isDropMounted && (
+                    <div
+                      className={`absolute top-full w-full text-primary border border-primary bg-background-secondary rounded-br-lg rounded-bl-lg overflow-hidden z-20 shadow-xl ${isDropExiting ? "animate-fade-out" : "animate-fade-in"}`}
+                    >
                       <div
                         onClick={() => {
                           setNewAttrType("NUMBER");

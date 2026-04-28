@@ -18,7 +18,6 @@ interface ChannelRoomMessageProps {
 export const ChannelRoomMessage = ({
   message,
   author,
-  actions = [],
   GameMaster,
   canDelete = false,
   onAuthorClick,
@@ -63,7 +62,7 @@ export const ChannelRoomMessage = ({
   }
 
   return (
-    <div className="flex flex-row gap-4 w-full group mt-5 max-w-full">
+    <div className="flex flex-row gap-4 w-full group p-3 max-w-full rounded-xl hover:bg-primary/5 transition-colors mb-0 relative">
       <div className="shrink-0 w-12">
         <button
           type="button"
@@ -123,9 +122,9 @@ export const ChannelRoomMessage = ({
                 onClick={handleDelete}
                 disabled={isDeleting}
                 aria-label="Delete message"
-                className="opacity-0 group-hover:opacity-100 transition-opacity text-error/60 hover:text-error disabled:opacity-30"
+                className="opacity-0 group-hover:opacity-100 transition-opacity text-error/90 hover:text-error disabled:opacity-30 absolute top-1/2 -translate-y-1/2 right-3"
               >
-                <Trash2 size={16} strokeWidth={1.5} />
+                <Trash2 size={20} strokeWidth={1.5} />
               </button>
             )}
           </div>
@@ -151,12 +150,12 @@ export const ChannelRoomMessage = ({
             )}
           </div>
         ) : (
-          <p className="text-justify mb-3 wrap-break-word w-full">
+          <p className="text-justify wrap-break-word w-full">
             {message.content || "No content provided."}
           </p>
         )}
 
-        <div className="flex flex-col items-start gap-2">
+        {/*<div className="flex flex-col items-start gap-2">
           {GameMaster && (
             <Button
               variant="outline"
@@ -174,7 +173,7 @@ export const ChannelRoomMessage = ({
               </span>
             ))}
           </div>
-        </div>
+        </div>*/}
       </div>
     </div>
   );

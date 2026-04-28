@@ -55,7 +55,9 @@ export default function WorldRoomPage() {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const topSentinelRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const isPrependingRef = useRef(false);
+  const isDeletingRef = useRef(false);
   const { mobileSidebar, setMobileSidebar, closeMobileSidebar } =
     useOutletContext<AppLayoutOutletContext>();
   const isUsersSidebarOpen = mobileSidebar === "right";
@@ -135,10 +137,14 @@ export default function WorldRoomPage() {
     };
   }, [worldId, isLoggedIn]);
 
-  // Scroll to bottom on message updates, but skip when prepending older messages
+  // Scroll to bottom on message updates, but skip when prepending older messages or deleting
   useEffect(() => {
     if (isPrependingRef.current) {
       isPrependingRef.current = false;
+      return;
+    }
+    if (isDeletingRef.current) {
+      isDeletingRef.current = false;
       return;
     }
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -290,6 +296,7 @@ export default function WorldRoomPage() {
       .catch(console.error)
       .finally(() => {
         setSendingMessage(false);
+        setTimeout(() => textareaRef.current?.focus(), 0);
       });
   };
 
@@ -342,6 +349,7 @@ export default function WorldRoomPage() {
   const handleDeleteMessage = async (messageId: number) => {
     try {
       await deleteChannelMessage(messageId);
+      isDeletingRef.current = true;
       setMessages((prev) => prev.filter((m) => m.id !== messageId));
     } catch (error) {
       console.error(error);
@@ -443,7 +451,7 @@ export default function WorldRoomPage() {
           </div>
         </div>
 
-        <div className="max-w-full flex flex-col p-4 sm:p-6 border-t border-primary">
+        <div className="max-w-full flex flex-col p-4 sm:p-6 border-t-2 border-primary">
           {mediaPreview && (
             <div className="mb-4 relative">
               <div className="rounded-lg overflow-hidden border border-primary/50 bg-background-site max-w-xs">
@@ -468,6 +476,7 @@ export default function WorldRoomPage() {
           )}
 
           <textarea
+            ref={textareaRef}
             value={messageText}
             onChange={(e) => setMessageText(e.target.value)}
             onKeyDown={handleKeyDown}
