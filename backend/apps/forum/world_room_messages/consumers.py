@@ -46,3 +46,14 @@ class WorldRoomMessageConsumer(AsyncWebsocketConsumer):
                 }
             )
         )
+
+    async def room_message_deleted(self, event: dict) -> None:
+        await self.send(
+            text_data=json.dumps(
+                {
+                    'event': event['event'],
+                    'room_id': event['room_id'],
+                    'message_id': event['message_id'],
+                }
+            )
+        )

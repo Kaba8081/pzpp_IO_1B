@@ -1,5 +1,7 @@
 from typing import TYPE_CHECKING
 
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework import permissions
@@ -53,7 +55,7 @@ class ChannelMessagesView(APIView):
     def get(self, request: "Request", room_id: int) -> Response:
         channel = get_object_or_404(WorldRooms, id=room_id)
 
-        messages = WorldRoomMessages.objects.filter(room=channel).select_related(
+        messages = WorldRoomMessages.objects.available().filter(room=channel).select_related(
             'user_profile'
         ).prefetch_related(
             'media_message', 'system_message', 'system_message__user_profile'
@@ -202,11 +204,37 @@ class MessageDetailView(APIView):
         ):
             return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
 
+        room_id = message.room_id
+
         with transaction.atomic():
             now = timezone.now()
             message.deleted_at = now
             message.save()
 
             WorldRoomMessageActions.objects.filter(message=message).update(deleted_at=now)
+
+            try:
+                media = message.media_message
+                if media.file:
+                    media.file.delete(save=False)
+                media.delete()
+            except WorldRoomMessages.media_message.RelatedObjectDoesNotExist:
+                pass
+
+            def _broadcast_deleted():
+                channel_layer = get_channel_layer()
+                if channel_layer is None:
+                    return
+                async_to_sync(channel_layer.group_send)(
+                    f'world_room_{room_id}',
+                    {
+                        'type': 'room.message.deleted',
+                        'event': 'room.message.deleted',
+                        'room_id': room_id,
+                        'message_id': message_id,
+                    },
+                )
+
+            transaction.on_commit(_broadcast_deleted)
 
         return Response(status=status.HTTP_204_NO_CONTENT)

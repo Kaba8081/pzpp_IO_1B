@@ -7,9 +7,16 @@ export interface RoomMessageCreatedEvent {
   message: WorldRoomMessageWithAuthor;
 }
 
+export interface RoomMessageDeletedEvent {
+  event: "room.message.deleted";
+  room_id: number;
+  message_id: number;
+}
+
 export interface WorldRoomChannelEventMap {
   [key: string]: unknown;
   "room.message.created": RoomMessageCreatedEvent;
+  "room.message.deleted": RoomMessageDeletedEvent;
 }
 
 export function connectWorldRoomChannel(roomId: number): WsChannel<WorldRoomChannelEventMap> {

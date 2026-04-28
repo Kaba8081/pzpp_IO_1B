@@ -2,6 +2,7 @@ from django.db import models
 from common.models import BaseModel
 from apps.forum.world_rooms.models import WorldRooms
 from apps.forum.world_user_profiles.models import WorldUserProfiles
+from apps.forum.world_room_messages.querysets import WorldRoomMessagesQuerySet
 from apps.users.models import User
 
 
@@ -24,6 +25,8 @@ class WorldRoomReadStatus(BaseModel):
 
 
 class WorldRoomMessages(BaseModel):
+    objects = WorldRoomMessagesQuerySet.as_manager()
+
     id = models.BigAutoField(primary_key=True)
     user_profile = models.ForeignKey(
         WorldUserProfiles, on_delete=models.DO_NOTHING, null=True, blank=True

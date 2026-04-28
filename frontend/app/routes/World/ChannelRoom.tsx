@@ -204,7 +204,7 @@ export default function WorldRoomPage() {
     if (!parsedRoomId) return;
 
     const channel = connectWorldRoomChannel(parsedRoomId);
-    const unsub = channel.subscribe("room.message.created", (e) => {
+    const unsubCreated = channel.subscribe("room.message.created", (e) => {
       setMessages((prev) =>
         prev.some((m) => m.id === e.message.id) ? prev : [...prev, e.message]
       );
@@ -215,8 +215,15 @@ export default function WorldRoomPage() {
           .catch(() => {});
       }
     });
+    const unsubDeleted = channel.subscribe("room.message.deleted", (e) => {
+      isDeletingRef.current = true;
+      setMessages((prev) => prev.filter((m) => m.id !== e.message_id));
+    });
 
-    return unsub;
+    return () => {
+      unsubCreated();
+      unsubDeleted();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [parsedRoomId, setUnreadRoom]);
 
