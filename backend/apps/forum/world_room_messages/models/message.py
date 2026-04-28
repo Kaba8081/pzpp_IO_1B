@@ -5,6 +5,12 @@ from apps.forum.world_user_profiles.models import WorldUserProfiles
 from apps.users.models import User
 
 
+class MessageType(models.TextChoices):
+    TEXT = 'text', 'Text'
+    MEDIA = 'media', 'Media'
+    SYSTEM = 'system', 'System'
+
+
 class WorldRoomReadStatus(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='room_read_statuses')
     room = models.ForeignKey(WorldRooms, on_delete=models.CASCADE, related_name='read_statuses')
@@ -19,9 +25,16 @@ class WorldRoomReadStatus(BaseModel):
 
 class WorldRoomMessages(BaseModel):
     id = models.BigAutoField(primary_key=True)
-    user_profile = models.ForeignKey(WorldUserProfiles, on_delete=models.DO_NOTHING)
+    user_profile = models.ForeignKey(
+        WorldUserProfiles, on_delete=models.DO_NOTHING, null=True, blank=True
+    )
     room = models.ForeignKey(WorldRooms, on_delete=models.DO_NOTHING)
-    content = models.TextField(max_length=1024)
+    content = models.TextField(max_length=1024, null=True, blank=True)
+    message_type = models.CharField(
+        max_length=16,
+        choices=MessageType.choices,
+        default=MessageType.TEXT,
+    )
 
     def __str__(self) -> str:
         return str(self.id)

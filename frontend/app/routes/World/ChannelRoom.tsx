@@ -17,6 +17,7 @@ import type {
 import { WorldRoomManager } from "@/services/worldRoomManager";
 import { useUserStore } from "@/stores/UserStore";
 import { createChannelMessage } from "@/services/worldRoom/createChannelMessage.service";
+import { deleteChannelMessage } from "@/services/worldRoom/deleteChannelMessage.service";
 import type { AppLayoutOutletContext } from "../AppLayout";
 import { connectWorldRoomChannel } from "@/services/worldRoom/worldRoomChannel";
 import { markRoomRead } from "@/services/worldRoom/markRoomRead.service";
@@ -26,7 +27,15 @@ import { connectWorldEventsChannel } from "@/services/worldUserProfile/worldEven
 const PAGE_SIZE = 50;
 
 export default function WorldRoomPage() {
-  const { activeProfile, currentModal, isLoggedIn, modal, setUnreadRoom } = useUserStore();
+  const {
+    activeProfile,
+    currentModal,
+    isLoggedIn,
+    modal,
+    setUnreadRoom,
+    user,
+    permissionsByWorld,
+  } = useUserStore();
   const { worldId, roomId } = useParams<{ worldId: string; roomId: string }>();
   const parsedRoomId = roomId ? parseInt(roomId) : undefined;
   const [messageText, setMessageText] = useState("");
@@ -199,17 +208,28 @@ export default function WorldRoomPage() {
     return unsub;
   }, [parsedRoomId, setUnreadRoom]);
 
-  // Subscribe to world events (new characters) via WebSocket
+  // Subscribe to world events (new characters + system messages) via WebSocket
   useEffect(() => {
     if (!worldId || !isLoggedIn) return;
 
     const channel = connectWorldEventsChannel(parseInt(worldId));
-    const unsub = channel.subscribe("world.profile.created", (e) => {
+    const unsubProfile = channel.subscribe("world.profile.created", (e) => {
       setMembers((prev) => (prev.some((m) => m.id === e.profile.id) ? prev : [...prev, e.profile]));
     });
+    const unsubSystem = channel.subscribe("world.system.message", (e) => {
+      if (e.message.room !== parsedRoomId) return;
+      setMessages((prev) =>
+        prev.some((m) => m.id === e.message.id)
+          ? prev
+          : [...prev, e.message as WorldRoomMessageWithAuthor]
+      );
+    });
 
-    return unsub;
-  }, [worldId, isLoggedIn]);
+    return () => {
+      unsubProfile();
+      unsubSystem();
+    };
+  }, [worldId, isLoggedIn, parsedRoomId]);
 
   const handleSendMessage = async () => {
     if (!messageText || messageText.length === 0) return;
@@ -233,6 +253,19 @@ export default function WorldRoomPage() {
       .finally(() => {
         setSendingMessage(false);
       });
+  };
+
+  const canManageMessages = worldId
+    ? (permissionsByWorld[parseInt(worldId)] ?? []).includes("manage_messages")
+    : false;
+
+  const handleDeleteMessage = async (messageId: number) => {
+    try {
+      await deleteChannelMessage(messageId);
+      setMessages((prev) => prev.filter((m) => m.id !== messageId));
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const handleMemberClick = (member: WorldMember) => {
@@ -321,7 +354,9 @@ export default function WorldRoomPage() {
                 message={msg}
                 author={msg.author}
                 GameMaster={false}
+                canDelete={isLoggedIn && (msg.author?.user_id === user?.id || canManageMessages)}
                 onAuthorClick={handleAuthorClick}
+                onDelete={handleDeleteMessage}
               />
             ))}
             <div ref={messagesEndRef} />

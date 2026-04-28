@@ -18,17 +18,17 @@ def broadcast_message_created(sender, instance, created, **kwargs):
     if channel_layer is None:
         return
 
-    payload = WorldRoomMessagesSerializer(instance).data
     room_group_name = f'world_room_{instance.room_id}'
     world_id = instance.room.world_id
-    sender_user_id = instance.user_profile.user_id
+    sender_user_id = instance.user_profile.user_id if instance.user_profile_id else None
 
-    # Advance sender's read status so their UI doesn't show a dot.
-    WorldRoomReadStatus.objects.update_or_create(
-        user_id=sender_user_id,
-        room_id=instance.room_id,
-        defaults={'last_read_message_id': instance.id},
-    )
+    if sender_user_id:
+        # Advance sender's read status so their UI doesn't show a dot.
+        WorldRoomReadStatus.objects.update_or_create(
+            user_id=sender_user_id,
+            room_id=instance.room_id,
+            defaults={'last_read_message_id': instance.id},
+        )
 
     # Collect all distinct world members except the sender.
     recipient_ids = list(
@@ -37,9 +37,17 @@ def broadcast_message_created(sender, instance, created, **kwargs):
         .exclude(user_id=sender_user_id)
         .values_list('user_id', flat=True)
         .distinct()
+    ) if sender_user_id else list(
+        WorldUserProfiles.objects
+        .filter(world_id=world_id, deleted_at__isnull=True)
+        .values_list('user_id', flat=True)
+        .distinct()
     )
 
     def _send():
+        # Serialize here so subtypes (media/system) created in same transaction are included.
+        payload = WorldRoomMessagesSerializer(instance).data
+
         # Broadcast to the room channel (for live message display).
         async_to_sync(channel_layer.group_send)(
             room_group_name,

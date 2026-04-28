@@ -47,3 +47,12 @@ class WorldEventsConsumer(AsyncWebsocketConsumer):
                 'profile': event['profile'],
             })
         )
+
+    async def world_system_message(self, event: dict) -> None:
+        await self.send(
+            text_data=json.dumps({
+                'event': event['event'],
+                'world_id': event['world_id'],
+                'message': event['message'],
+            })
+        )

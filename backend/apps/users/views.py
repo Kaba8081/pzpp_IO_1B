@@ -16,8 +16,8 @@ from apps.users.serializers import RegisterSerializer, UserSerializer, UserProfi
 from apps.users.models import UserProfile
 
 from apps.dm.models import DirectMessageThread, DirectMessages, DirectMessageReadStatus
-from apps.forum.world_room_messages.models import WorldUserProfiles, WorldRoomMessages, WorldRoomReadStatus
-from apps.forum.world_rooms.models import WorldRooms
+from apps.forum.models import WorldUserProfiles, WorldRoomMessages, WorldRoomReadStatus
+from apps.forum.models import WorldRooms
 
 class UserProfileByIdView(APIView):
     permission_classes = [permissions.AllowAny]

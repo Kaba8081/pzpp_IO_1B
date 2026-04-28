@@ -16,20 +16,21 @@ type Story = StoryObj<typeof ChannelRoomMessage>;
 const mockAuthor = {
   id: 1,
   user_id: 1,
-  username: "Eldrin the Wise",
-  description: null,
-  profile_picture: "https://api.dicebear.com/7.x/avataaars/svg?seed=Eldrin",
+  name: "Eldrin the Wise",
+  avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Eldrin",
 };
 
 const mockMessage = {
   id: 101,
   content: "The ancient forest stands quiet today. What are your actions?",
-  room_id: 1,
-  user_profile_id: 1,
-  status: "accepted" as const,
+  room: 1,
+  user_profile: 1,
+  message_type: "text" as const,
   created_at: null,
   updated_at: null,
   deleted_at: null,
+  media_message: null,
+  system_message: null,
 };
 
 const mockActions = [

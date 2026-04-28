@@ -15,6 +15,8 @@ from apps.forum.world_user_profiles.serializers import (
 )
 from apps.forum.world_room_messages.models import WorldRoomMessages
 from apps.forum.world_user_profiles.managers import WorldUserProfilesManager
+from apps.forum.world_room_messages.services import send_world_system_message
+from apps.forum.world_room_messages.models.system_message import SystemEventType
 
 if TYPE_CHECKING:
     from rest_framework.request import Request
@@ -124,6 +126,8 @@ class ProfileView(APIView):
 
         # Soft-delete related messages
         WorldRoomMessages.objects.filter(user_profile=profile).update(deleted_at=now)
+
+        send_world_system_message(profile.world.id, SystemEventType.USER_LEFT, profile=profile)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 

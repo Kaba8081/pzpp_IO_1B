@@ -2,7 +2,12 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
-from apps.forum.world_room_messages.models import WorldRoomMessages
+from apps.forum.world_room_messages.models import (
+    WorldRoomMessages,
+    WorldRoomMediaMessage,
+    WorldRoomSystemMessage,
+    MessageType,
+)
 from apps.forum.world_rooms.models import WorldRooms
 from apps.forum.world_user_profiles.models import WorldUserProfiles
 
@@ -30,10 +35,42 @@ class WorldUserProfileAuthorSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'avatar', 'user_id']
 
 
+class WorldRoomMediaMessageSerializer(serializers.ModelSerializer):
+    file = serializers.SerializerMethodField()
+
+    def get_file(self, obj) -> str | None:
+        if not obj.file:
+            return None
+        url = obj.file.url
+        request = self.context.get('request')
+        if request is not None:
+            return request.build_absolute_uri(url)
+        site_url = getattr(settings, 'SITE_URL', '').rstrip('/')
+        if not site_url:
+            return url
+        if not url.startswith('/'):
+            url = f'/{url}'
+        return f'{site_url}{url}'
+
+    class Meta:
+        model = WorldRoomMediaMessage
+        fields = ['id', 'file', 'media_type']
+
+
+class WorldRoomSystemMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WorldRoomSystemMessage
+        fields = ['id', 'event_type', 'user_profile']
+
+
 class WorldRoomMessagesSerializer(serializers.ModelSerializer):
     room = serializers.PrimaryKeyRelatedField(queryset=WorldRooms.objects.all())
-    user_profile = serializers.PrimaryKeyRelatedField(queryset=WorldUserProfiles.objects.all())
+    user_profile = serializers.PrimaryKeyRelatedField(
+        queryset=WorldUserProfiles.objects.all(), allow_null=True, required=False
+    )
     author = WorldUserProfileAuthorSerializer(source='user_profile', read_only=True)
+    media_message = WorldRoomMediaMessageSerializer(read_only=True)
+    system_message = WorldRoomSystemMessageSerializer(read_only=True)
 
     class Meta:
         model = WorldRoomMessages
@@ -42,6 +79,10 @@ class WorldRoomMessagesSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         user_profile = attrs.get('user_profile')
         room = attrs.get('room')
+        message_type = attrs.get('message_type', MessageType.TEXT)
+
+        if message_type != MessageType.SYSTEM and not user_profile:
+            raise ValidationError({'user_profile': 'User profile is required for non-system messages.'})
 
         if user_profile and not WorldUserProfiles.objects.filter(pk=user_profile.pk).exists():
             raise ValidationError({'user_profile': 'Invalid user profile.'})
