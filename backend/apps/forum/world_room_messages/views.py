@@ -108,7 +108,11 @@ class MessageDetailView(APIView):
     def patch(self, request: "Request", message_id: int) -> Response:
         message = get_object_or_404(WorldRoomMessages, id=message_id)
 
-        if message.user_profile.user != request.user:
+        message_user_profile = message.user_profile
+        if message_user_profile is None:
+            return Response({"detail": "Message profile not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        if message_user_profile.user != request.user:
             return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
 
         serializer = WorldRoomMessagesSerializer(message, data=request.data, partial=True)
@@ -130,7 +134,11 @@ class MessageDetailView(APIView):
             id=message_id,
         )
 
-        if message.user_profile.user != request.user and not user_has_permission(
+        message_user_profile = message.user_profile
+        if message_user_profile is None:
+            return Response({"detail": "Message profile not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        if message_user_profile.user != request.user and not user_has_permission(
             request.user, message.room.world, "manage_messages"
         ):
             return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)

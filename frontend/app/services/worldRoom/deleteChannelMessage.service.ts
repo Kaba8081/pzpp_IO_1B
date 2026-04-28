@@ -2,7 +2,7 @@ import { apiRequest } from "@/api/apiRequest";
 
 export async function deleteChannelMessage(messageId: number): Promise<void> {
   try {
-    await apiRequest<void, undefined>(`/api/forum/channel/messages/${messageId}`, {
+    await apiRequest<void, undefined>(`/api/forum/message/${messageId}`, {
       method: "DELETE",
       requiresAuth: true,
     });
