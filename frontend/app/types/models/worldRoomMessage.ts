@@ -12,21 +12,47 @@ export interface WorldRoomMediaMessage {
 export interface WorldRoomSystemMessage {
   id: number;
   event_type: "user_joined" | "user_left";
+  user_profile: Pick<WorldUserProfile, "id" | "name" | "username" | "avatar" | "user_id"> | null;
 }
 
-export interface WorldRoomMessage {
+interface BaseMessage {
   id: number;
   user_profile: number | null;
   room: number;
   content: string | null;
-  message_type: MessageType;
   created_at: ISODateTime | null;
   updated_at: ISODateTime | null;
   deleted_at: ISODateTime | null;
-  media_message: WorldRoomMediaMessage | null;
-  system_message: WorldRoomSystemMessage | null;
 }
 
-export interface WorldRoomMessageWithAuthor extends WorldRoomMessage {
-  author: Pick<WorldUserProfile, "id" | "name" | "avatar" | "user_id">;
+interface TextMessage extends BaseMessage {
+  message_type: "text";
 }
+
+interface MediaMessage extends BaseMessage {
+  message_type: "media";
+  media_message: WorldRoomMediaMessage;
+}
+
+interface SystemMessage extends BaseMessage {
+  message_type: "system";
+  system_message: WorldRoomSystemMessage;
+}
+
+export type MessageWithAuthor<T extends BaseMessage> = T & {
+  author: Pick<WorldUserProfile, "id" | "name" | "username" | "avatar" | "user_id">;
+};
+
+export type WorldRoomMessage<T extends MessageType = MessageType> = T extends "text"
+  ? TextMessage
+  : T extends "media"
+    ? MediaMessage
+    : T extends "system"
+      ? SystemMessage
+      : never;
+
+export type WorldRoomMessageWithAuthorOf<T extends MessageType = MessageType> = MessageWithAuthor<
+  WorldRoomMessage<T>
+>;
+
+export type WorldRoomMessageWithAuthor = WorldRoomMessageWithAuthorOf<MessageType>;

@@ -15,10 +15,17 @@ type Story = StoryObj<typeof UsersSidebar>;
 
 export const Default: Story = {
   args: {
-    worldId: 1,
+    members: [
+      { id: 1, name: "Alice", description: null, avatar: null, user_id: 11 },
+      { id: 2, name: "Bob", description: null, avatar: null, user_id: 12 },
+    ],
+    onMemberClick: () => {},
   },
 };
 
 export const NoWorld: Story = {
-  args: {},
+  args: {
+    members: [],
+    onMemberClick: () => {},
+  },
 };

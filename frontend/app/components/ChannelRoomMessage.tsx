@@ -5,11 +5,13 @@ import { useState } from "react";
 
 interface ChannelRoomMessageProps {
   message: WorldRoomMessage;
-  author?: Pick<WorldProfile, "id" | "name" | "avatar" | "user_id">;
+  author?: Pick<WorldProfile, "id" | "name" | "username" | "avatar" | "user_id">;
   actions?: WorldRoomMessageAction[];
   GameMaster: boolean;
   canDelete?: boolean;
-  onAuthorClick?: (author: Pick<WorldProfile, "id" | "name" | "avatar" | "user_id">) => void;
+  onAuthorClick?: (
+    author: Pick<WorldProfile, "id" | "name" | "username" | "avatar" | "user_id">
+  ) => void;
   onDelete?: (messageId: number) => void;
 }
 
@@ -26,7 +28,7 @@ export const ChannelRoomMessage = ({
   const [isDeleting, setIsDeleting] = useState(false);
 
   const avatar = author?.avatar || null;
-  const username = author?.name || "Unknown Wanderer";
+  const username = author?.name ?? author?.username ?? "Unknown Wanderer";
 
   const handleAuthorClick = () => {
     if (author && onAuthorClick) {
@@ -45,13 +47,15 @@ export const ChannelRoomMessage = ({
   };
 
   if (message.message_type === "system") {
+    const systemProfileName = message.system_message?.user_profile?.name ?? author?.username;
+
     return (
       <div className="flex justify-center my-2">
         <span className="text-xs text-input-placeholder italic px-3 py-1 rounded-full bg-primary/5 border border-primary/10">
           {message.system_message?.event_type === "user_joined"
-            ? "A user joined the room"
+            ? `${systemProfileName ?? "A user"} joined the room`
             : message.system_message?.event_type === "user_left"
-              ? "A user left the room"
+              ? `${systemProfileName ?? "A user"} left the room`
               : (message.content ?? "System event")}
         </span>
       </div>

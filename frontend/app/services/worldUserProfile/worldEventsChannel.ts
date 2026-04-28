@@ -1,5 +1,5 @@
 import { WsChannel, getWsBase } from "@/lib/WsChannel";
-import type { WorldMember, WorldRoomMessage } from "@/types/models";
+import type { WorldMember, WorldRoomMessageWithAuthor } from "@/types/models";
 
 export interface WorldProfileCreatedEvent {
   event: "world.profile.created";
@@ -10,7 +10,7 @@ export interface WorldProfileCreatedEvent {
 export interface WorldSystemMessageEvent {
   event: "world.system.message";
   world_id: number;
-  message: WorldRoomMessage;
+  message: WorldRoomMessageWithAuthor;
 }
 
 export interface WorldEventsChannelEventMap {

@@ -186,13 +186,8 @@ CHANNEL_LAYERS = {
     },
 }
 
-ADMINS = [
-    {
-        'username': os.getenv('DJANGO_SUPERUSER_USERNAME'),
-        'email': os.getenv('DJANGO_SUPERUSER_EMAIL'),
-        'password': os.getenv('DJANGO_SUPERUSER_PASSWORD'),
-    },
-]
+_admin_email = os.getenv('DJANGO_SUPERUSER_EMAIL')
+ADMINS = [_admin_email] if _admin_email else []
 
 AUTH_USER_MODEL = 'users.User'
 

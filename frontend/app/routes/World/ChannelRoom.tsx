@@ -219,9 +219,7 @@ export default function WorldRoomPage() {
     const unsubSystem = channel.subscribe("world.system.message", (e) => {
       if (e.message.room !== parsedRoomId) return;
       setMessages((prev) =>
-        prev.some((m) => m.id === e.message.id)
-          ? prev
-          : [...prev, e.message as WorldRoomMessageWithAuthor]
+        prev.some((m) => m.id === e.message.id) ? prev : [...prev, e.message]
       );
     });
 

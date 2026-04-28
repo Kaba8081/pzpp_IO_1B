@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { Dropdown } from "./WorldDropdown";
+import { WorldDropdown } from "./WorldDropdown";
 
-const meta: Meta<typeof Dropdown> = {
+const meta: Meta<typeof WorldDropdown> = {
   title: "Components/Dropdown",
-  component: Dropdown,
+  component: WorldDropdown,
   tags: ["autodocs"],
   parameters: {
     layout: "centered",
@@ -22,7 +22,7 @@ const meta: Meta<typeof Dropdown> = {
 };
 export default meta;
 
-type Story = StoryObj<typeof Dropdown>;
+type Story = StoryObj<typeof WorldDropdown>;
 
 export const Default: Story = {
   args: {

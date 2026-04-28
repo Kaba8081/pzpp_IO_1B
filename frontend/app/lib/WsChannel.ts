@@ -90,13 +90,16 @@ export class WsChannel<TEventMap extends Record<string, unknown>> {
   ): WsChannel<TEventMap>;
   static connect<TEventMap extends Record<string, unknown>>(
     channelKey: string,
-    urlBuilder: (ticket: string | null) => string,
+    urlBuilder: ((ticket: string) => string) | ((ticket: string | null) => string),
     options?: { requiresAuth?: boolean }
   ): WsChannel<TEventMap> {
     const existing = instances.get(channelKey);
     if (existing) return existing as WsChannel<TEventMap>;
     const requiresAuth = options?.requiresAuth !== false;
-    const channel = new WsChannel<TEventMap>(channelKey, urlBuilder, requiresAuth);
+    const normalizedUrlBuilder = requiresAuth
+      ? (ticket: string | null) => (urlBuilder as (ticket: string) => string)(ticket as string)
+      : (urlBuilder as (ticket: string | null) => string);
+    const channel = new WsChannel<TEventMap>(channelKey, normalizedUrlBuilder, requiresAuth);
     instances.set(channelKey, channel as WsChannel<Record<string, unknown>>);
     return channel;
   }

@@ -49,7 +49,7 @@ def send_world_system_message(
     with transaction.atomic():
         message = WorldRoomMessages.objects.create(
             room=room,
-            user_profile=None,
+            user_profile=profile,
             content=None,
             message_type=MessageType.SYSTEM,
         )
