@@ -45,7 +45,11 @@ def broadcast_message_created(sender, instance, created, **kwargs):
     )
 
     def _send():
-        # Serialize here so subtypes (media/system) created in same transaction are included.
+        # Refresh instance from DB with media/system message relations prefetched
+        # so the serializer has access to subtypes (media/system) created in same transaction.
+        from django.db.models import prefetch_related_objects
+        prefetch_related_objects([instance], 'media_message', 'system_message', 'system_message__user_profile')
+        
         payload = WorldRoomMessagesSerializer(instance).data
 
         # Broadcast to the room channel (for live message display).

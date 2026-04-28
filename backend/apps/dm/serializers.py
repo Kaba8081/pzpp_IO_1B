@@ -28,16 +28,47 @@ def _user_to_dict(user, request=None) -> dict:
     }
 
 
+class DirectMessageMediaMessageSerializer(serializers.Serializer):
+    """Serializer for media attachments in DM"""
+    id = serializers.IntegerField(read_only=True)
+    file = serializers.SerializerMethodField()
+    media_type = serializers.CharField()
+
+    def get_file(self, obj) -> str | None:
+        if not obj.file:
+            return None
+        url = obj.file.url
+        request = self.context.get('request')
+        if request is not None:
+            return request.build_absolute_uri(url)
+        site_url = getattr(settings, 'SITE_URL', '').rstrip('/')
+        if not site_url:
+            return url
+        if not url.startswith('/'):
+            url = f'/{url}'
+        return f'{site_url}{url}'
+
+
 class DirectMessageSerializer(serializers.ModelSerializer):
     sender_info = serializers.SerializerMethodField()
+    media_message = serializers.SerializerMethodField()
 
     def get_sender_info(self, obj) -> dict:
         return _user_to_dict(obj.sender, self.context.get('request'))
 
+    def get_media_message(self, obj):
+        if not hasattr(obj, 'media_message'):
+            return None
+        serializer = DirectMessageMediaMessageSerializer(
+            obj.media_message,
+            context=self.context
+        )
+        return serializer.data
+
     class Meta:
         model = DirectMessages
-        fields = ['id', 'thread', 'sender', 'content', 'sender_info', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'created_at', 'updated_at', 'sender_info']
+        fields = ['id', 'thread', 'sender', 'content', 'sender_info', 'media_message', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'sender_info', 'media_message']
 
 
 class DirectMessageThreadSerializer(serializers.ModelSerializer):

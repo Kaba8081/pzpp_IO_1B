@@ -169,3 +169,30 @@ class WorldRoomMessagesSerializer(serializers.ModelSerializer):
             )
 
         return super().update(instance, validated_data)
+
+
+# Input serializers for creating messages
+class CreateMediaMessageSerializer(serializers.Serializer):
+    """Serializer for creating media messages with file upload"""
+    user_profile = serializers.IntegerField()
+    file = serializers.FileField()
+    media_type = serializers.ChoiceField(choices=['image', 'video'])
+
+    def validate_file(self, value):
+        """Validate file size (max 50MB)"""
+        max_size = 50 * 1024 * 1024  # 50MB
+        if value.size > max_size:
+            raise ValidationError(f"File size must not exceed 50MB. You provided {value.size / (1024*1024):.2f}MB")
+        return value
+
+    def validate_media_type(self, value):
+        """Validate media type"""
+        if value not in ['image', 'video']:
+            raise ValidationError("Media type must be 'image' or 'video'")
+        return value
+
+
+class CreateTextMessageSerializer(serializers.Serializer):
+    """Serializer for creating text messages"""
+    user_profile = serializers.IntegerField()
+    content = serializers.CharField(max_length=1024)

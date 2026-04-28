@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router";
 import { Button } from "@/components/ui/Button";
-import { SendHorizontal, ArrowLeft } from "lucide-react";
+import { SendHorizontal, ArrowLeft, Paperclip, X } from "lucide-react";
 import { useUserStore } from "@/stores/UserStore";
 import {
   getDMThreadMessages,
@@ -12,6 +12,7 @@ import {
   markDMRead,
   getDMThreads,
 } from "@/services/dm";
+import { createDMMediaMessage } from "@/services/dm/createDMMediaMessage.service";
 import type { DirectMessage, DirectMessageThread, ProfilePopupData } from "@/types/models";
 import { apiRequest } from "@/api/apiRequest";
 import { UserProfileModal } from "@/components/modals/UserProfileModal";
@@ -37,9 +38,13 @@ export default function DirectMessageRoom() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [selectedMedia, setSelectedMedia] = useState<File | null>(null);
+  const [mediaPreview, setMediaPreview] = useState<string | null>(null);
+  const [mediaType, setMediaType] = useState<"image" | "video" | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const topSentinelRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const isPrependingRef = useRef(false);
   const [viewingProfile, setViewingProfile] = useState<ProfilePopupData | null>(null);
 
@@ -166,6 +171,36 @@ export default function DirectMessageRoom() {
   }, [parsedThreadId, setUnreadDM]);
 
   const handleSend = async () => {
+    // For media messages
+    if (selectedMedia) {
+      if (!threadId) return;
+
+      setIsSending(true);
+      try {
+        await createDMMediaMessage(parseInt(threadId), {
+          file: selectedMedia,
+          media_type: mediaType!,
+        });
+        setSelectedMedia(null);
+        setMediaPreview(null);
+        setMediaType(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+        if (parsedThreadId && !dmThreads.some((t) => t.id === parsedThreadId)) {
+          getDMThreads()
+            .then(setDMThreads)
+            .catch(() => {});
+        }
+      } catch (error) {
+        console.error("Failed to send media message:", error);
+      } finally {
+        setIsSending(false);
+      }
+      return;
+    }
+
+    // For text messages
     if (!messageText.trim()) return;
     if (!isLoggedIn) {
       modal.open("login");
@@ -185,6 +220,48 @@ export default function DirectMessageRoom() {
       })
       .catch(console.error)
       .finally(() => setIsSending(false));
+  };
+
+  const handleMediaSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file size (max 50MB)
+    const maxSize = 50 * 1024 * 1024;
+    if (file.size > maxSize) {
+      console.error("File size exceeds 50MB limit");
+      return;
+    }
+
+    // Determine media type
+    let type: "image" | "video" | null = null;
+    if (file.type.startsWith("image/")) {
+      type = "image";
+    } else if (file.type.startsWith("video/")) {
+      type = "video";
+    } else {
+      console.error("Invalid file type. Only images and videos are supported.");
+      return;
+    }
+
+    setSelectedMedia(file);
+    setMediaType(type);
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setMediaPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const clearMediaSelection = () => {
+    setSelectedMedia(null);
+    setMediaPreview(null);
+    setMediaType(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -269,6 +346,29 @@ export default function DirectMessageRoom() {
 
       {/* Input */}
       <div className="max-w-full flex flex-col p-4 sm:p-6 border-t border-primary">
+        {mediaPreview && (
+          <div className="mb-4 relative">
+            <div className="rounded-lg overflow-hidden border border-primary/50 bg-background-site max-w-xs">
+              {mediaType === "image" ? (
+                <img
+                  src={mediaPreview}
+                  alt="Media preview"
+                  className="max-h-48 max-w-xs object-cover"
+                />
+              ) : (
+                <video src={mediaPreview} className="max-h-48 max-w-xs object-cover" />
+              )}
+            </div>
+            <button
+              onClick={clearMediaSelection}
+              className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+              aria-label="Remove media"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        )}
+
         <textarea
           value={messageText}
           onChange={(e) => setMessageText(e.target.value)}
@@ -277,15 +377,34 @@ export default function DirectMessageRoom() {
           className="w-full h-20 border-primary rounded-2xl border-2 p-4 text-white/90 focus:outline-none focus:border-primary resize-none mb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
           disabled={isSending}
         />
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*,video/*"
+          onChange={handleMediaSelect}
+          className="hidden"
+          aria-label="Attach media file"
+        />
+
         <div className="flex flex-row text-sm gap-3 w-full">
           <Button
             variant="outline"
             className="w-full sm:w-auto flex justify-center items-center gap-2"
             onClick={handleSend}
-            disabled={isSending}
+            disabled={isSending || (!messageText.trim() && !selectedMedia)}
           >
             SEND MESSAGE
             <SendHorizontal size={20} className="text-primary" strokeWidth={1.5} />
+          </Button>
+          <Button
+            variant="outline"
+            className="flex justify-center items-center gap-2"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isSending}
+            title="Attach media (image or video)"
+          >
+            <Paperclip size={20} className="text-primary" strokeWidth={1.5} />
           </Button>
         </div>
       </div>
@@ -343,13 +462,36 @@ function DMMessage({
         >
           {username}
         </button>
-        <div
-          className={`px-4 py-2 rounded-2xl text-white text-sm ${
-            isOwn ? "bg-primary/20 rounded-tr-sm" : "bg-white/5 rounded-tl-sm"
-          }`}
-        >
-          {message.content}
-        </div>
+        {message.media_message ? (
+          <div
+            className={`px-4 py-2 rounded-2xl text-white text-sm ${
+              isOwn ? "bg-primary/20 rounded-tr-sm" : "bg-white/5 rounded-tl-sm"
+            }`}
+          >
+            {message.media_message.media_type === "image" ? (
+              <img
+                src={message.media_message.file}
+                alt="Shared image"
+                className="max-w-xs max-h-64 rounded-lg object-contain"
+              />
+            ) : (
+              <video
+                src={message.media_message.file}
+                controls
+                className="max-w-xs max-h-64 rounded-lg"
+              />
+            )}
+            {message.content && <p className="text-sm mt-2">{message.content}</p>}
+          </div>
+        ) : (
+          <div
+            className={`px-4 py-2 rounded-2xl text-white text-sm ${
+              isOwn ? "bg-primary/20 rounded-tr-sm" : "bg-white/5 rounded-tl-sm"
+            }`}
+          >
+            {message.content || "No content provided."}
+          </div>
+        )}
       </div>
     </div>
   );

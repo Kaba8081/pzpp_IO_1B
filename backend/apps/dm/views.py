@@ -1,5 +1,5 @@
 from typing import TYPE_CHECKING, cast
-from django.db import models as db_models
+from django.db import models as db_models, transaction
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
@@ -9,6 +9,7 @@ from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination
 
 from apps.dm.models import DirectMessageThread, DirectMessages, DirectMessageReadStatus
+from apps.dm.media_message import DirectMessageMediaMessage
 from apps.dm.serializers import DirectMessageSerializer, DirectMessageThreadSerializer
 from apps.users.models import User
 
@@ -109,7 +110,7 @@ class DMMessageListView(APIView):
             DirectMessages.objects
             .filter(thread=thread, deleted_at__isnull=True)
             .select_related('sender')
-            .prefetch_related('sender__userprofile_set')
+            .prefetch_related('sender__userprofile_set', 'media_message')
             .order_by('created_at')
         )
         paginator = DMMessagePagination()
@@ -127,17 +128,53 @@ class DMMessageListView(APIView):
         if thread is None:
             return Response({'detail': 'Not found.'}, status=status.HTTP_404_NOT_FOUND)
 
-        content = request.data.get('content', '').strip()  # type: ignore
-        if not content:
-            return Response({'content': 'This field is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        # Check if this is a media message
+        file = request.FILES.get('file')
+        if file:
+            # Handle media message
+            media_type = request.data.get('media_type')
+            if not media_type:
+                return Response({"detail": "media_type is required for media messages."}, status=status.HTTP_400_BAD_REQUEST)
 
-        message = DirectMessages.objects.create(
-            thread=thread,
-            sender=request.user,
-            content=content,
-        )
-        serializer = DirectMessageSerializer(message, context={'request': request})
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+            if media_type not in ['image', 'video']:
+                return Response({"detail": "media_type must be 'image' or 'video'."}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Validate file size (max 50MB)
+            max_size = 50 * 1024 * 1024
+            if file.size > max_size:
+                return Response(
+                    {"detail": f"File size must not exceed 50MB. You provided {file.size / (1024*1024):.2f}MB"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            with transaction.atomic():
+                message = DirectMessages.objects.create(
+                    thread=thread,
+                    sender=request.user,
+                    content=None,
+                )
+                DirectMessageMediaMessage.objects.create(
+                    message=message,
+                    file=file,
+                    media_type=media_type,
+                )
+
+            message.refresh_from_db()
+            serializer = DirectMessageSerializer(message, context={'request': request})
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            # Handle text message
+            content = request.data.get('content', '').strip()  # type: ignore
+            if not content:
+                return Response({'content': 'This field is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            message = DirectMessages.objects.create(
+                thread=thread,
+                sender=request.user,
+                content=content,
+            )
+            serializer = DirectMessageSerializer(message, context={'request': request})
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class DMMarkReadView(APIView):

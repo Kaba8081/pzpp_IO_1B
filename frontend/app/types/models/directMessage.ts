@@ -6,19 +6,26 @@ export interface DMSenderInfo {
   avatar: string | null;
 }
 
+export interface DMMediaMessage {
+  id: number;
+  file: string;
+  media_type: "image" | "video";
+}
+
 export interface DirectMessage {
   id: number;
   thread: number;
   sender: number;
-  content: string;
+  content: string | null;
   sender_info: DMSenderInfo;
+  media_message?: DMMediaMessage | null;
   created_at: ISODateTime | null;
   updated_at: ISODateTime | null;
 }
 
 export interface DMLastMessage {
   id: number;
-  content: string;
+  content: string | null;
   sender_id: number;
   created_at: ISODateTime | null;
 }

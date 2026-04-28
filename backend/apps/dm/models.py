@@ -38,7 +38,7 @@ class DirectMessages(BaseModel):
     id = models.BigAutoField(primary_key=True)
     thread = models.ForeignKey(DirectMessageThread, on_delete=models.DO_NOTHING, related_name='messages')
     sender = models.ForeignKey(User, on_delete=models.DO_NOTHING, related_name='sent_dms')
-    content = models.CharField(max_length=2048)
+    content = models.CharField(max_length=2048, null=True, blank=True)
 
     class Meta(BaseModel.Meta):
         ordering = ['created_at']

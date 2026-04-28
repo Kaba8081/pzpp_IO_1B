@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
@@ -13,7 +13,12 @@ from django.shortcuts import get_object_or_404
 
 from apps.forum.permissions import user_has_permission
 from apps.forum.world_room_messages.models import WorldRoomMessages
-from apps.forum.world_room_messages.serializers import WorldRoomMessagesSerializer
+from apps.forum.world_room_messages.serializers import (
+    WorldRoomMessagesSerializer,
+    CreateMediaMessageSerializer,
+    CreateTextMessageSerializer,
+)
+from apps.forum.world_room_messages.services import create_media_message
 from apps.forum.world_rooms.models import WorldRooms
 from apps.forum.world_room_message_actions.models import WorldRoomMessageActions
 from apps.forum.world_user_profiles.models import WorldUserProfiles
@@ -48,7 +53,11 @@ class ChannelMessagesView(APIView):
     def get(self, request: "Request", room_id: int) -> Response:
         channel = get_object_or_404(WorldRooms, id=room_id)
 
-        messages = WorldRoomMessages.objects.filter(room=channel).select_related('user_profile').order_by('created_at')
+        messages = WorldRoomMessages.objects.filter(room=channel).select_related(
+            'user_profile'
+        ).prefetch_related(
+            'media_message', 'system_message', 'system_message__user_profile'
+        ).order_by('created_at')
 
         paginator = MessagePagination()
         page = paginator.paginate_queryset(messages, request, view=self)
@@ -74,23 +83,73 @@ class ChannelMessagesView(APIView):
         if not user_has_permission(request.user, channel.world, "send_messages"):
             return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
 
-        data: dict[str, Any] = dict(request.data)  # type: ignore
-        user_profile_id = data.get('user_profile')
+        user_profile_id = request.data.get('user_profile') # type: ignore
         if not user_profile_id:
             return Response({"detail": "User profile is required."}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            WorldUserProfiles.objects.get(id=user_profile_id, user=request.user)
+            user_profile = WorldUserProfiles.objects.get(id=user_profile_id, user=request.user)
         except WorldUserProfiles.DoesNotExist:
             return Response({"detail": "Permission denied. Profile not found or not owned by user."}, status=status.HTTP_403_FORBIDDEN)
 
-        data['room'] = channel.id
+        # Verify user_profile belongs to the same world as the room
+        if user_profile.world.id != channel.world.id:
+            return Response(
+                {"detail": "The user profile must belong to the same world as the room."},
+                status=status.HTTP_403_FORBIDDEN
+            )
 
-        serializer = WorldRoomMessagesSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # Check if this is a media message
+        file = request.FILES.get('file') # type: ignore
+        if file:
+            # Handle media message
+            media_type = request.data.get('media_type') # type: ignore
+            if not media_type:
+                return Response({"detail": "media_type is required for media messages."}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Validate media message input
+            media_serializer = CreateMediaMessageSerializer(data={
+                'user_profile': user_profile_id,
+                'file': file,
+                'media_type': media_type,
+            })
+            if not media_serializer.is_valid():
+                return Response(media_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            try:
+                message = create_media_message(
+                    room=channel,
+                    user_profile=user_profile,
+                    file=file,
+                    media_type=media_type,
+                )
+                serializer = WorldRoomMessagesSerializer(message, context={'request': request})
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            except ValueError as e:
+                return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            # Handle text message
+            content = request.data.get('content') # type: ignore
+            if not content:
+                return Response({"detail": "Content or file is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+            text_serializer = CreateTextMessageSerializer(data={
+                'user_profile': user_profile_id,
+                'content': content,
+            })
+            if not text_serializer.is_valid():
+                return Response(text_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            data = {
+                'user_profile': user_profile_id,
+                'room': channel.id,
+                'content': content,
+            }
+            serializer = WorldRoomMessagesSerializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class MessageDetailView(APIView):

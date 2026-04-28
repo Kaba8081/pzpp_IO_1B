@@ -19,7 +19,6 @@ def broadcast_dm_created(sender, instance, created, **kwargs):
     if channel_layer is None:
         return
 
-    payload = DirectMessageSerializer(instance).data
     thread = instance.thread
     thread_group_name = f'dm_thread_{instance.thread_id}'
 
@@ -34,6 +33,13 @@ def broadcast_dm_created(sender, instance, created, **kwargs):
     recipient_id = thread.user_b_id if thread.user_a_id == instance.sender_id else thread.user_a_id
 
     def _send():
+        # Refresh instance from DB with media message relation prefetched
+        # so the serializer has access to media data created in same transaction.
+        from django.db.models import prefetch_related_objects
+        prefetch_related_objects([instance], 'media_message')
+        
+        payload = DirectMessageSerializer(instance).data
+        
         # Broadcast to the DM room channel (for live message display).
         async_to_sync(channel_layer.group_send)(
             thread_group_name,
