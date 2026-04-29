@@ -8,9 +8,15 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
 from apps.forum.world_user_profiles.models import WorldUserProfiles
-from apps.forum.world_user_profiles.serializers import WorldUserProfilesSerializer, WorldUserProfilesUpdateSerializer
+from apps.forum.world_user_profiles.serializers import (
+    WorldUserProfilesSerializer,
+    WorldUserProfilesUpdateSerializer,
+    WorldUserProfilePublicSerializer,
+)
 from apps.forum.world_room_messages.models import WorldRoomMessages
 from apps.forum.world_user_profiles.managers import WorldUserProfilesManager
+from apps.forum.world_room_messages.services import send_world_system_message
+from apps.forum.world_room_messages.models.system_message import SystemEventType
 
 if TYPE_CHECKING:
     from rest_framework.request import Request
@@ -28,7 +34,7 @@ class WorldProfilesByWorldView(APIView):
     )
     def get(self, request: "Request", world_id: int) -> Response:
         profiles = WorldUserProfiles.objects.filter(user=request.user, world_id=world_id)
-        serializer = WorldUserProfilesSerializer(profiles, many=True)
+        serializer = WorldUserProfilesSerializer(profiles, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @extend_schema(
@@ -58,7 +64,7 @@ class AllProfilesView(APIView):
     )
     def get(self, request: "Request") -> Response:
         profiles = WorldUserProfiles.objects.filter(user=request.user)
-        serializer = WorldUserProfilesSerializer(profiles, many=True)
+        serializer = WorldUserProfilesSerializer(profiles, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -77,7 +83,7 @@ class ProfileView(APIView):
     )
     def get(self, request: "Request", profile_id: int) -> Response:
         profile = self.get_object(profile_id)
-        serializer = WorldUserProfilesSerializer(profile)
+        serializer = WorldUserProfilesSerializer(profile, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @extend_schema(
@@ -95,7 +101,7 @@ class ProfileView(APIView):
         if profile.user != request.user:
             return Response({"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN)
 
-        serializer = WorldUserProfilesSerializer(profile, data=request.data, partial=True)
+        serializer = WorldUserProfilesSerializer(profile, data=request.data, partial=True, context={'request': request})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -121,7 +127,26 @@ class ProfileView(APIView):
         # Soft-delete related messages
         WorldRoomMessages.objects.filter(user_profile=profile).update(deleted_at=now)
 
+        send_world_system_message(profile.world.id, SystemEventType.USER_LEFT, profile=profile)
+
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class WorldMembersView(APIView):
+    """List all WorldUserProfiles in a world (any user), for the channel room sidebar."""
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        tags=["World Profiles"],
+        responses={200: WorldUserProfilePublicSerializer(many=True)},
+    )
+    def get(self, request: "Request", world_id: int) -> Response:
+        profiles = WorldUserProfiles.objects.filter(
+            world_id=world_id,
+            deleted_at__isnull=True,
+        ).select_related('user')
+        serializer = WorldUserProfilePublicSerializer(profiles, many=True, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class ProfileAvatarView(APIView):
 

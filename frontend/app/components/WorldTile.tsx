@@ -3,9 +3,10 @@ import type { World } from "@/types/models";
 
 interface WorldTileProps {
   world: World;
+  onClick?: () => void;
 }
 
-export const WorldTile = ({ world }: WorldTileProps) => {
+export const WorldTile = ({ world, onClick }: WorldTileProps) => {
   const displayName = world.name || "Unnamed world";
   const displayDescription =
     world.description || "Creator has not added a description for this world yet.";
@@ -15,7 +16,17 @@ export const WorldTile = ({ world }: WorldTileProps) => {
     : "No Date";
 
   return (
-    <div className="text-white group flex flex-col overflow-hidden rounded-xl bg-background border border-primary mb-6 last:mb-0 shadow-sm transition-all hover:shadow-2xl hover:-translate-y-2 cursor-pointer">
+    <div
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onClick={onClick}
+      onKeyDown={(e) => {
+        if (!onClick || (e.key !== "Enter" && e.key !== " ")) return;
+        e.preventDefault();
+        onClick();
+      }}
+      className="group flex flex-col overflow-hidden rounded-xl bg-background border border-primary mb-6 last:mb-0 shadow-sm transition-all hover:shadow-2xl hover:-translate-y-2 cursor-pointer"
+    >
       {/*Image section*/}
       <div className="relative h-64 w-full bg-background overflow-hidden">
         {hasImage ? (
@@ -33,33 +44,22 @@ export const WorldTile = ({ world }: WorldTileProps) => {
         <div className="absolute inset-0 bg-black/20" />
 
         <div className="absolute inset-0 flex items-center justify-center p-4">
-          <h3 className="text-lg tracking-widest text-center [text-shadow:0_4px_12px_rgba(0,0,0,0.5)]">
-            {world.name || "World Name"}
-          </h3>
+          <h3 className="text-center">{world.name || "World Name"}</h3>
         </div>
       </div>
 
       {/*Metadata section*/}
       <div className="flex flex-wrap justify-center gap-x-8 gap-y-2 py-4 px-6">
-        <div className="flex gap-2 text-sm xl:text-lg md:text-lg uppercase tracking-widest">
-          Added:{dateAdded}
-        </div>
+        <div className="flex gap-2">Added:{dateAdded}</div>
 
-        <div className="flex gap-2 text-sm xl:text-lg md:text-lg uppercase tracking-widest">
-          Author:Nickname
-        </div>
+        <div className="flex gap-2">Author:{world.owner_username ?? "Unknown"}</div>
 
-        <div className="flex gap-2 text-sm xl:text-lg md:text-lg uppercase tracking-widest">
-          Characters:#
-        </div>
+        <div className="flex gap-2">Characters:{world.total_user_profiles_count}</div>
       </div>
 
       {/*Description section*/}
       <div className="flex flex-col p-6 sm:p-8 grow">
-        <p
-          className="lg:text-sm text-xs font-bold uppercase line-clamp-4 tracking-widest"
-          title={displayDescription}
-        >
+        <p className="line-clamp-4" title={displayDescription}>
           {displayDescription}
         </p>
       </div>

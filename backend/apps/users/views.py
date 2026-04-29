@@ -1,18 +1,40 @@
 from typing import TYPE_CHECKING
 
-from django.db import transaction, DEFAULT_DB_ALIAS
+from django.db import transaction, DEFAULT_DB_ALIAS, models as db_models
 from django.utils import timezone
 from django.contrib.admin.utils import NestedObjects
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import permissions, serializers, status
 from rest_framework.permissions import IsAuthenticated
 from drf_spectacular.utils import extend_schema, inline_serializer, OpenApiResponse
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .serializers import RegisterSerializer, UserSerializer, UserProfileSerializer
-from .models import UserProfile
+
+from apps.users.serializers import RegisterSerializer, UserSerializer, UserProfileSerializer
+from apps.users.models import UserProfile
+
+from apps.dm.models import DirectMessageThread, DirectMessages, DirectMessageReadStatus
+from apps.forum.models import WorldUserProfiles, WorldRoomMessages, WorldRoomReadStatus
+from apps.forum.models import WorldRooms
+
+class UserProfileByIdView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    @extend_schema(
+        description="Return the user profile for the given user ID.",
+        tags=['User'],
+        responses={
+            200: UserProfileSerializer,
+            404: OpenApiResponse(description="Profile not found."),
+        }
+    )
+    def get(self, request: "Request", user_id: int) -> Response:
+        profile = UserProfile.objects.filter(user_id=user_id).first()
+        if profile is None:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response(UserProfileSerializer(profile).data, status=status.HTTP_200_OK)
 
 if TYPE_CHECKING:
     from rest_framework.request import Request
@@ -204,3 +226,133 @@ class RefreshTokenView(TokenRefreshView):
     )
     def post(self, request: "Request", *args, **kwargs) -> Response:
         return super().post(request, *args, **kwargs)
+
+class UserUnreadView(APIView):
+    """Return IDs of DM threads and rooms with unread messages for the current user."""
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        tags=["User"],
+        responses={200: inline_serializer(
+            name="UserUnreadResponse",
+            fields={
+                "dm_thread_ids": serializers.ListField(child=serializers.IntegerField()),
+                "room_ids": serializers.ListField(child=serializers.IntegerField()),
+            }
+        )},
+    )
+    def get(self, request: "Request") -> Response:
+        # Unread DM threads: threads with messages newer than the user's last read.
+        thread_ids = list(
+            DirectMessageThread.objects
+            .filter(
+                db_models.Q(user_a=request.user) | db_models.Q(user_b=request.user),
+                deleted_at__isnull=True,
+            )
+            .values_list('id', flat=True)
+        )
+
+        unread_dm_ids = []
+        for tid in thread_ids:
+            latest = (
+                DirectMessages.objects
+                .filter(thread_id=tid, deleted_at__isnull=True)
+                .order_by('-id')
+                .values_list('id', flat=True)
+                .first()
+            )
+            if not latest:
+                continue
+            try:
+                rs = DirectMessageReadStatus.objects.get(user=request.user, thread_id=tid)
+                if (rs.last_read_message_id or 0) < latest:
+                    unread_dm_ids.append(tid)
+            except DirectMessageReadStatus.DoesNotExist:
+                unread_dm_ids.append(tid)
+
+        # Unread rooms: rooms in worlds the user is a member of, with messages newer than last read.
+        world_ids = list(
+            WorldUserProfiles.objects
+            .filter(user=request.user, deleted_at__isnull=True)
+            .values_list('world_id', flat=True)
+            .distinct()
+        )
+        room_ids = list(
+            WorldRooms.objects
+            .filter(world_id__in=world_ids, deleted_at__isnull=True)
+            .values_list('id', flat=True)
+        )
+
+        unread_room_ids = []
+        for rid in room_ids:
+            latest = (
+                WorldRoomMessages.objects
+                .filter(room_id=rid, deleted_at__isnull=True)
+                .order_by('-id')
+                .values_list('id', flat=True)
+                .first()
+            )
+            if not latest:
+                continue
+            try:
+                rs = WorldRoomReadStatus.objects.get(user=request.user, room_id=rid)
+                if (rs.last_read_message_id or 0) < latest:
+                    unread_room_ids.append(rid)
+            except WorldRoomReadStatus.DoesNotExist:
+                pass
+
+        return Response({
+            "dm_thread_ids": unread_dm_ids,
+            "room_ids": unread_room_ids,
+        })
+
+class UserAvatarView(APIView):
+    def get_permissions(self):
+        if self.request.method in ["POST"]:
+            return [IsAuthenticated()]
+        return [permissions.AllowAny()]
+
+    @extend_schema(
+        tags=["Worlds"],
+        description="Upload or update a user's avatar image.",
+        request={
+            'application/json': None,
+            'multipart/form-data': {
+                'type': 'object',
+                'properties': {
+                    'image': {
+                        'type': 'string',
+                        'format': 'binary',
+                        'description': 'Image file to upload as the avatar.'
+                    }
+                },
+                'required': ['image']
+            }
+        },
+        responses={
+            200: UserProfileSerializer,
+            400: VALIDATION_ERROR_RESPONSE,
+            403: OpenApiResponse(description="Forbidden."),
+            404: OpenApiResponse(description="Profile not found."),
+        },
+    )
+    def post(self, request: "Request", username: str) -> Response:
+        profile = UserProfile.objects.filter(username=username).first()
+
+        if profile is None:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        if request.user != profile.user:
+            return Response({
+                "error": "You do not have permission to update this user's avatar."
+                }, status=status.HTTP_403_FORBIDDEN)
+
+        file = request.FILES.get('image') # type: ignore
+        if not file:
+            return Response({"image": "No file provided."}, status=status.HTTP_400_BAD_REQUEST)
+
+        profile.profile_picture = file # type: ignore
+        profile.save(update_fields=["profile_picture"])
+
+        serializer = UserProfileSerializer(profile, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)

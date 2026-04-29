@@ -1,6 +1,10 @@
-import { type RouteConfig, route, index } from "@react-router/dev/routes";
+import { type RouteConfig, route, index, layout } from "@react-router/dev/routes";
 
 export default [
-  index("routes/MainPage.tsx"),
-  route("world/:worldId", "routes/ChannelRoom.tsx"),
+  layout("routes/AppLayout.tsx", [
+    index("routes/MainPage.tsx"),
+    route("world/roles/:worldId", "routes/World/RolePage.tsx"),
+    route("world/:worldId/:roomId", "routes/World/ChannelRoom.tsx"),
+    route("dm/:threadId", "routes/DirectMessageRoom.tsx"),
+  ]),
 ] satisfies RouteConfig;

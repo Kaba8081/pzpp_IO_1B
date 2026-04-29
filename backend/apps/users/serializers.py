@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import transaction
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
@@ -8,8 +9,27 @@ from .models import UserProfile
 
 User = get_user_model()
 
+
+def _build_media_url(media_field, request=None) -> str | None:
+    if not media_field:
+        return None
+
+    url = media_field.url
+    if request is not None:
+        return request.build_absolute_uri(url)
+    site_url = getattr(settings, 'SITE_URL', '').rstrip('/')
+    if not site_url:
+        return url
+    if not url.startswith('/'):
+        url = f'/{url}'
+    return f'{site_url}{url}'
+
 class UserProfileSerializer(serializers.ModelSerializer):
     user = serializers.IntegerField(read_only=True, source='user_id')
+    profile_picture = serializers.SerializerMethodField()
+
+    def get_profile_picture(self, obj) -> str | None:
+        return _build_media_url(obj.profile_picture, self.context.get('request'))
 
     class Meta:
         model = UserProfile

@@ -20,11 +20,12 @@ class Command(BaseSeeder):
 
     def prepare(self, *args, **kwargs) -> None:
         world_count = Worlds.objects.count()
+        target_world_count = max(1, self.config.object_count // 4)
 
         # Ensure enough worlds exist in the database
-        if world_count < self.config.object_count:
+        if world_count < target_world_count:
             self.stdout.write("[PREPARE] Not enough worlds, seeding . . .")
-            call_command('seed_worlds', count=self.config.object_count - world_count)
+            call_command('seed_worlds', count=target_world_count - world_count)
 
         super().prepare(self, *args, **kwargs)
 

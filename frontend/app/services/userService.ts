@@ -1,6 +1,6 @@
 import { apiRequest } from "@/api/apiRequest";
 import { getStoredUser } from "@/stores/UserStore";
-import type { AuthUser, AuthUserProfile, UpdateUserDto } from "@/types/models";
+import type { AuthUser, AuthUserProfile, UpdateUserDto, UserProfile } from "@/types/models";
 
 export async function getCurrentUser(): Promise<AuthUser> {
   try {
@@ -13,6 +13,12 @@ export async function getCurrentUser(): Promise<AuthUser> {
       `Nie udało się pobrać aktualnie zalogowanego użytkownika: ${error instanceof Error ? error.message : String(error)}`
     );
   }
+}
+
+export async function getUserById(userId: number): Promise<AuthUserProfile> {
+  return apiRequest<AuthUserProfile>(`/api/user/id/${userId}/`, {
+    method: "GET",
+  });
 }
 
 export async function getUserByUsername(username: string): Promise<AuthUserProfile> {
@@ -43,6 +49,23 @@ export async function updateCurrentUser(data: UpdateUserDto): Promise<AuthUserPr
   } catch (error) {
     throw new Error(
       `Nie udało się zaktualizować profilu użytkownika: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+}
+
+export async function uploadProfileAvatar(username: string, file: File): Promise<UserProfile> {
+  const formData = new FormData();
+  formData.append("image", file);
+
+  try {
+    return await apiRequest<UserProfile>(`/api/user/${username}/image`, {
+      method: "POST",
+      body: formData,
+      requiresAuth: true,
+    });
+  } catch (error) {
+    throw new Error(
+      `Nie udało się przesłać awatara profilu o nazwie ${username}: ${error instanceof Error ? error.message : String(error)}`
     );
   }
 }

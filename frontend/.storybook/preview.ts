@@ -3,7 +3,9 @@ import { createElement } from "react";
 import "../app/app.css";
 
 const preview: Preview = {
-  decorators: [(Story) => createElement("div", { className: "font-cinzel" }, createElement(Story))],
+  decorators: [
+    (Story) => createElement("div", { className: "font-cinzel text-white" }, createElement(Story)),
+  ],
   parameters: {
     backgrounds: {
       default: "dark",

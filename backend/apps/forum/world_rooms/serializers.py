@@ -2,9 +2,31 @@ from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers
 
 from apps.forum.world_rooms.models import WorldRooms
+from apps.forum.world_room_messages.models import WorldRoomMessages, WorldRoomReadStatus
 
 class WorldRoomsSerializer(serializers.ModelSerializer):
     world_id = serializers.IntegerField(read_only=True)
+    has_unread = serializers.SerializerMethodField()
+
+    def get_has_unread(self, obj) -> bool:
+        request = self.context.get('request')
+        if not request or not request.user or not request.user.is_authenticated:
+            return False
+        
+        latest = (
+            WorldRoomMessages.objects
+            .filter(room=obj, deleted_at__isnull=True)
+            .order_by('-id')
+            .values_list('id', flat=True)
+            .first()
+        )
+        if not latest:
+            return False
+        try:
+            status = WorldRoomReadStatus.objects.get(user=request.user, room=obj)
+            return (status.last_read_message_id or 0) < latest
+        except WorldRoomReadStatus.DoesNotExist:
+            return False
 
     class Meta:
         model = WorldRooms
@@ -20,9 +42,10 @@ class WorldRoomsSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({'name': 'Name must be at most 64 characters.'})
         attrs['name'] = name
 
-        world_object = attrs.get('world')
-        if world_object is None:
-            raise serializers.ValidationError({'world': 'World is required.'})
+        if not self.partial:
+            world_object = attrs.get('world')
+            if world_object is None:
+                raise serializers.ValidationError({'world': 'World is required.'})
         return attrs
 
     def create(self, validated_data):
@@ -38,7 +61,8 @@ class WorldRoomsSerializer(serializers.ModelSerializer):
 
         return WorldRooms.objects.create(**validated_data)
 
-# Ony for drf documentation purposes
+
+# Only for drf documentation purposes
 @extend_schema_serializer(exclude_fields=("world",))
 class WorldRoomsUpdateSerializer(WorldRoomsSerializer):
     class Meta(WorldRoomsSerializer.Meta):

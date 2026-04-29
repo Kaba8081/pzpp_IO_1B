@@ -3,6 +3,7 @@ import type { ISODateTime } from "./common";
 export interface World {
   id: number;
   owner_id: number;
+  owner_username: string | null;
   name: string | null;
   description: string | null;
   profile_picture: string | null;

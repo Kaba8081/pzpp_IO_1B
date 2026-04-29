@@ -5,14 +5,12 @@ services:
       dockerfile: Dockerfile
     container_name: pzpp-backend
     command: >
-      sh -c "python manage.py init_db &&
-      python manage.py migrate &&
-      python manage.py init_admin &&
+      sh -c "python manage.py bootstrap &&
+      python manage.py collectstatic --noinput &&
       if [ \"$$DJANGO_DEBUG\" = \"False\" ] || [ \"$$DJANGO_DEBUG\" = \"false\" ] || [ \"$$DJANGO_DEBUG\" = \"0\" ]; then
-        python manage.py collectstatic --noinput &&
-        exec gunicorn pzpp.wsgi:application --bind 0.0.0.0:8000;
+         exec gunicorn pzpp.asgi:application --bind 0.0.0.0:8000 -k uvicorn.workers.UvicornWorker;
       else
-        exec python manage.py runserver 0.0.0.0:8000;
+          exec uvicorn pzpp.asgi:application --host 0.0.0.0 --port 8000 --reload;
       fi"
     env_file:
       - ./backend/.env
@@ -29,10 +27,11 @@ services:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "python manage.py check_services"]
-      interval: 1m
-      timeout: 10s
-      retries: 3
+      test: ["CMD-SHELL", "python -c \"import socket; socket.create_connection(('localhost', 8000), 2)\""]
+      start_period: 15s
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   db:
     image: postgres:16-alpine
