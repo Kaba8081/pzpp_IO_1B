@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
-import { Button } from "../app/components/Button";
-import { Input } from "../app/components/Input";
-import { Toggle } from "../app/components/Toggle";
-import { Slider } from "../app/components/Slider";
-import { Checkbox } from "../app/components/Checkbox";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Toggle } from "@/components/ui/Toggle";
+import { Slider } from "@/components/ui/Slider";
+import { Checkbox } from "@/components/ui/Checkbox";
 
 const ComponentShowcase = () => {
   const [values, setValues] = useState({
@@ -35,7 +35,7 @@ const ComponentShowcase = () => {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-lg bg-input-bg/30 p-8 rounded-2xl border border-input-border shadow-2xl">
-        <h1 className="text-3xl font-bold text-white mb-8 text-center">example form</h1>
+        <h1 className="text-3xl text-white mb-8 text-center">example form</h1>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <Input

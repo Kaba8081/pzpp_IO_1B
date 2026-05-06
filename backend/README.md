@@ -65,7 +65,7 @@ python manage.py init_admin
 6. Run development server
 
 ```bash
-python manage.py runserver
+uvicorn pzpp.asgi:application --host 0.0.0.0 --port 8000 --reload
 ```
 
 Backend will be available at:
@@ -73,6 +73,31 @@ Backend will be available at:
 - `http://127.0.0.1:8000/`
 - Admin panel: `http://127.0.0.1:8000/admin/`
 - API documentation `http://127.0.0.1:8000/api/schema/swagger`
+
+## Realtime room messages (WebSocket)
+
+The backend is configured with Django Channels and Redis.
+
+- WebSocket endpoint: `/ws/forum/rooms/<room_id>/messages/`
+- Auth: uses Django auth scope (`AuthMiddlewareStack`), unauthenticated clients are rejected.
+
+When a new room message is created through the REST API, the backend emits this event to the room group:
+
+```json
+{
+  "event": "room.message.created",
+  "room_id": 123,
+  "message": {
+    "id": 456,
+    "room": 123,
+    "user_profile": 15,
+    "content": "Hello world",
+    "created_at": "...",
+    "updated_at": "...",
+    "deleted_at": null
+  }
+}
+```
 
 ## Docker Compose
 

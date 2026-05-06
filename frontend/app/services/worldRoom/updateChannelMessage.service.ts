@@ -1,13 +1,13 @@
 import { apiRequest } from "@/api/apiRequest";
-import type { WorldRoomMessage } from "@/types/models";
+import type { WorldRoomMessageWithAuthorOf } from "@/types/models";
 import type { UpdateChannelMessageDto } from "./types";
 
 export async function updateChannelMessage(
   messageId: number,
   data: UpdateChannelMessageDto
-): Promise<WorldRoomMessage> {
+): Promise<WorldRoomMessageWithAuthorOf<"text">> {
   try {
-    return await apiRequest<WorldRoomMessage, UpdateChannelMessageDto>(
+    return await apiRequest<WorldRoomMessageWithAuthorOf<"text">, UpdateChannelMessageDto>(
       `/api/forum/channel/messages/${messageId}`,
       {
         method: "PATCH",

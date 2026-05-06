@@ -8,7 +8,13 @@ import {
 } from "react-router";
 
 import type { Route } from "./+types/root";
-import { Modal } from "./components/Modal";
+import { Modal } from "./components/modals/Modal";
+import { Toast } from "./components/Toast";
+import { LogoutModal } from "./components/modals/LogoutModal";
+import { LoginRegisterModal } from "./components/modals/LoginRegisterModal";
+import { WorldChannelModal } from "./components/modals/WorldChannelModal";
+import { CharacterDeleteModal } from "./components/modals/CharacterDeleteModal";
+import { UnreadNotificationManager } from "./components/UnreadNotificationManager";
 import "./app.css";
 import { UserProvider } from "./stores/UserStore";
 
@@ -34,14 +40,20 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Meta />
         <Links />
       </head>
-      <body className="font-cinzel">
+      <body className="font-cinzel text-white bg-background-site">
         <UserProvider>
+          <UnreadNotificationManager />
           {children}
           <ScrollRestoration />
           <Scripts />
           <Modal name="test-modal">
             <div>Test Modal</div>
           </Modal>
+          <LogoutModal />
+          <LoginRegisterModal />
+          <WorldChannelModal />
+          <CharacterDeleteModal />
+          <Toast />
         </UserProvider>
       </body>
     </html>

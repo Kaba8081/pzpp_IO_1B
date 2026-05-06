@@ -6,6 +6,7 @@ export interface WorldRoom {
   name: string | null;
   description: string | null;
   thumbnail: string | null;
+  has_unread: boolean;
   created_at: ISODateTime | null;
   updated_at: ISODateTime | null;
   deleted_at: ISODateTime | null;

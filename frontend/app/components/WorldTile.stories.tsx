@@ -17,6 +17,7 @@ type Story = StoryObj<typeof WorldTile>;
 const baseWorld: World = {
   id: 1,
   owner_id: 1,
+  owner_username: "story_user",
   description: null,
   name: null,
   profile_picture: null,

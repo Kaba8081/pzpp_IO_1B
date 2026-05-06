@@ -26,7 +26,8 @@ urlpatterns = [
     path('api/schema/swagger', SpectacularSwaggerView.as_view(url_name="schema"), name='swagger-ui'),
     path('api/', include('apps.users.urls')),
     path('api/', include('apps.forum.urls')),
+    path('api/', include('apps.dm.urls')),
+    path('api/ws/', include('core.ws_auth.urls')),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -36,10 +36,8 @@ SECRET_KEY = os.environ.get("DJANGO_SECRET")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = _env_bool('DJANGO_DEBUG', False)
 
-ALLOWED_HOSTS = [
-    "localhost",
-    "127.0.0.1",
-]
+_allowed_hosts_env = os.environ.get('DJANGO_ALLOWED_HOSTS', '')
+ALLOWED_HOSTS = [h.strip() for h in _allowed_hosts_env.split(',') if h.strip()] or ["localhost", "127.0.0.1"]
 
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [
@@ -49,7 +47,8 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:8000',
 ]
 
-CSRF_TRUSTED_ORIGINS = [
+_csrf_env = os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS', '')
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in _csrf_env.split(',') if o.strip()] or [
     'http://localhost:3000',
     'http://localhost:5173',
     'http://127.0.0.1:5173',
@@ -62,9 +61,11 @@ LOCAL_APPS = [
     'core.apps.CoreConfig',
     'apps.users.apps.UsersConfig',
     'apps.forum.apps.ForumConfig',
+    'apps.dm.apps.DmConfig',
 ]
 
 THIRD_PARTY_APPS = [
+    'channels',
     "corsheaders",
     "rest_framework",
     'rest_framework_simplejwt',
@@ -82,8 +83,8 @@ INSTALLED_APPS = [
 ] + THIRD_PARTY_APPS + LOCAL_APPS
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -93,6 +94,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'pzpp.urls'
+ASGI_APPLICATION = 'pzpp.asgi.application'
 
 TEMPLATES = [
     {
@@ -160,23 +162,32 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATIC_ROOT = os.getenv('STATIC_ROOT', os.path.join(BASE_DIR, 'assets', 'static'))
 
-MEDIA_URL = 'media/'
+MEDIA_URL = '/media/'
 MEDIA_ROOT = os.getenv('MEDIA_ROOT', os.path.join(BASE_DIR, 'assets', 'media'))
+
+SITE_URL = os.getenv('SITE_URL', 'http://localhost:8000')
+
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 REDIS_HOST = os.getenv('REDIS_HOST', 'redis')
 REDIS_PORT = os.getenv('REDIS_PORT', '6379')
 REDIS_URL = os.getenv('REDIS_URL', f'redis://{REDIS_HOST}:{REDIS_PORT}/0')
 
-ADMINS = [
-    {
-        'username': os.getenv('DJANGO_SUPERUSER_USERNAME'),
-        'email': os.getenv('DJANGO_SUPERUSER_EMAIL'),
-        'password': os.getenv('DJANGO_SUPERUSER_PASSWORD'),
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [REDIS_URL],
+        },
     },
-]
+}
+
+_admin_email = os.getenv('DJANGO_SUPERUSER_EMAIL')
+ADMINS = [_admin_email] if _admin_email else []
 
 AUTH_USER_MODEL = 'users.User'
 

@@ -1,9 +1,12 @@
+from django.conf import settings
 from drf_spectacular.utils import extend_schema_serializer
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from apps.forum.world_user_profiles.models import WorldUserProfiles
 from apps.forum.worlds.models import Worlds
+from apps.forum.world_roles.models import WorldRoles
+from apps.forum.world_user_has_roles.models import WorldUserHasRoles
 
 User = get_user_model()
 
@@ -54,7 +57,19 @@ class WorldUserProfilesSerializer(serializers.ModelSerializer):
         if user is None:
             raise serializers.ValidationError({'user': 'User is required to create a profile.'})
 
-        return WorldUserProfiles.objects.create(world=world, user=user, **validated_data)
+        profile = WorldUserProfiles.objects.create(world=world, user=user, **validated_data)
+
+        default_role = WorldRoles.objects.filter(
+            world=world, name="default", is_system=True, deleted_at__isnull=True
+        ).first()
+        if default_role:
+            already_assigned = WorldUserHasRoles.objects.filter(
+                world=world, user=user, role=default_role, deleted_at__isnull=True
+            ).exists()
+            if not already_assigned:
+                WorldUserHasRoles.objects.create(world=world, user=user, role=default_role)
+
+        return profile
 
 
 # Ony for drf documentation purposes
@@ -62,3 +77,27 @@ class WorldUserProfilesSerializer(serializers.ModelSerializer):
 class WorldUserProfilesUpdateSerializer(WorldUserProfilesSerializer):
     class Meta(WorldUserProfilesSerializer.Meta):
         pass
+
+
+class WorldUserProfilePublicSerializer(serializers.ModelSerializer):
+    """Read-only serializer exposing user_id for world member listings."""
+    user_id = serializers.IntegerField(read_only=True)
+    avatar = serializers.SerializerMethodField()
+
+    def get_avatar(self, obj) -> str | None:
+        if not obj.avatar:
+            return None
+        url = obj.avatar.url
+        request = self.context.get('request')
+        if request is not None:
+            return request.build_absolute_uri(url)
+        site_url = getattr(settings, 'SITE_URL', '').rstrip('/')
+        if not site_url:
+            return url
+        if not url.startswith('/'):
+            url = f'/{url}'
+        return f'{site_url}{url}'
+
+    class Meta:
+        model = WorldUserProfiles
+        fields = ['id', 'name', 'description', 'avatar', 'user_id']

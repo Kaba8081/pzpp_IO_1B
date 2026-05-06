@@ -1,12 +1,23 @@
+from django.db import transaction
 from rest_framework import serializers
 
 from apps.forum.worlds.models import Worlds
+from apps.forum.world_roles.models import WorldRoles
+from apps.forum.world_role_permissions.models import WorldRolePermissions
+from apps.forum.world_role_has_permissions.models import WorldRoleHasPermissions
+from apps.forum.world_user_has_roles.models import WorldUserHasRoles
 
 class WorldSerializer(serializers.ModelSerializer):
 
     owner_id = serializers.IntegerField(read_only=True)
+    owner_username = serializers.SerializerMethodField()
     distinct_user_count = serializers.SerializerMethodField()
     total_user_profiles_count = serializers.SerializerMethodField()
+
+    def get_owner_username(self, obj: Worlds) -> str | None:
+        for profile in obj.owner.userprofile_set.all():  # uses prefetch cache
+            return profile.username
+        return None
 
     def get_distinct_user_count(self, obj: Worlds):
         return obj.worlduserprofiles_set.values('user').distinct().count() if hasattr(obj, 'worlduserprofiles_set') else 0 # pyright: ignore[reportAttributeAccessIssue]
@@ -21,6 +32,7 @@ class WorldSerializer(serializers.ModelSerializer):
             'name',
             'description',
             'owner_id',
+            'owner_username',
             'profile_picture',
             'distinct_user_count',
             'total_user_profiles_count',
@@ -48,7 +60,10 @@ class WorldSerializer(serializers.ModelSerializer):
             owner = request.user
 
         if owner:
-            if Worlds.objects.filter(owner=owner, name__iexact=name).exists():
+            qs = Worlds.objects.filter(owner=owner, name__iexact=name)
+            if self.instance is not None:
+                qs = qs.exclude(pk=self.instance.pk)
+            if qs.exists():
                 raise serializers.ValidationError({'name': 'You already have a world with this name.'})
 
         return attrs
@@ -60,6 +75,25 @@ class WorldSerializer(serializers.ModelSerializer):
             owner = request.user
         if owner is None:
             raise serializers.ValidationError({'owner': 'Owner is required to create a world.'})
-        world = Worlds.objects.create(owner=owner, **validated_data)
+
+        with transaction.atomic():
+            world = Worlds.objects.create(owner=owner, **validated_data)
+            self._create_system_roles(world, owner)
+
         return world
 
+    def _create_system_roles(self, world: Worlds, owner) -> None:
+        all_perms = list(WorldRolePermissions.objects.filter(deleted_at__isnull=True))
+        send_perm = next((p for p in all_perms if p.name == "send_messages"), None)
+
+        default_role = WorldRoles.objects.create(world=world, name="default", is_system=True)
+        if send_perm:
+            WorldRoleHasPermissions.objects.create(role=default_role, permission=send_perm)
+
+        owner_role = WorldRoles.objects.create(world=world, name="owner", is_system=True)
+        WorldRoleHasPermissions.objects.bulk_create([
+            WorldRoleHasPermissions(role=owner_role, permission=perm) for perm in all_perms
+        ])
+
+        WorldUserHasRoles.objects.create(world=world, user=owner, role=default_role)
+        WorldUserHasRoles.objects.create(world=world, user=owner, role=owner_role)

@@ -1,4 +1,6 @@
-import { getStoredUser } from "@/stores/UserStore";
+import { getStoredUser, setStoredUser } from "@/stores/UserStore";
+import { emitToast } from "@/lib/toastBridge";
+import { emitLogout } from "@/lib/authBridge";
 
 export type HttpMethod = "GET" | "POST" | "PATCH" | "DELETE";
 
@@ -78,6 +80,42 @@ function addParamsToUrl(url: string, params?: QueryParams): string {
   return `${url}${url.includes("?") ? "&" : "?"}${queryString}`;
 }
 
+// Deduplicates concurrent refresh attempts — only one in-flight at a time.
+let pendingRefresh: Promise<string> | null = null;
+
+async function attemptRefresh(): Promise<string> {
+  if (pendingRefresh) return pendingRefresh;
+
+  pendingRefresh = (async () => {
+    const user = getStoredUser();
+    if (!user?.refreshToken) {
+      emitLogout();
+      emitToast("Session expired. Please log in again.", "error");
+      throw new Error("No refresh token available");
+    }
+
+    const refreshResponse = await fetch(resolveApiUrl("/api/auth/refresh/"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh: user.refreshToken }),
+    });
+
+    if (!refreshResponse.ok) {
+      emitLogout();
+      emitToast("Session expired. Please log in again.", "error");
+      throw new Error("Token refresh failed");
+    }
+
+    const data = (await refreshResponse.json()) as { access: string };
+    setStoredUser({ ...user, accessToken: data.access });
+    return data.access;
+  })().finally(() => {
+    pendingRefresh = null;
+  });
+
+  return pendingRefresh;
+}
+
 export async function apiRequest<
   TResponse,
   TBody = unknown,
@@ -89,6 +127,7 @@ export async function apiRequest<
   if (requiresAuth) {
     const accessToken = getStoredUser()?.accessToken;
     if (!accessToken) {
+      emitToast("Login to continue", "error");
       throw new Error("Brak access token w UserStore.");
     }
     requestHeaders.set("Authorization", `Bearer ${accessToken}`);
@@ -108,16 +147,35 @@ export async function apiRequest<
 
   const requestUrl = addParamsToUrl(resolveApiUrl(url), params);
 
-  const response = await fetch(requestUrl, {
+  let activeResponse = await fetch(requestUrl, {
     method,
     headers: requestHeaders,
     body: requestBody,
     signal,
   });
 
-  if (!response.ok) {
-    let errorMessage = response.statusText;
-    const rawBody = await response.text();
+  // On 401 for authenticated requests, silently refresh and retry once.
+  if (activeResponse.status === 401 && requiresAuth) {
+    const newToken = await attemptRefresh(); // throws (with toast+logout) if refresh fails
+    if (signal?.aborted) throw new DOMException("aborted", "AbortError");
+    requestHeaders.set("Authorization", `Bearer ${newToken}`);
+    activeResponse = await fetch(requestUrl, {
+      method,
+      headers: requestHeaders,
+      body: requestBody,
+      signal,
+    });
+  }
+
+  if (!activeResponse.ok) {
+    if (activeResponse.status === 401) {
+      emitToast("Login to continue", "error");
+    } else if (activeResponse.status === 403) {
+      emitToast("Insuficient permission", "error");
+    }
+
+    let errorMessage = activeResponse.statusText;
+    const rawBody = await activeResponse.text();
 
     if (rawBody) {
       try {
@@ -134,17 +192,17 @@ export async function apiRequest<
       }
     }
 
-    throw new Error(`Request failed with status ${response.status}: ${errorMessage}`);
+    throw new Error(`Request failed with status ${activeResponse.status}: ${errorMessage}`);
   }
 
-  if (response.status === 204) {
+  if (activeResponse.status === 204) {
     return undefined as TResponse;
   }
 
-  const contentType = response.headers.get("Content-Type") ?? "";
+  const contentType = activeResponse.headers.get("Content-Type") ?? "";
   if (contentType.includes("application/json")) {
-    return (await response.json()) as TResponse;
+    return (await activeResponse.json()) as TResponse;
   }
 
-  return (await response.text()) as TResponse;
+  return (await activeResponse.text()) as TResponse;
 }

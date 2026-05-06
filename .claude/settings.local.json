@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs grep *)",
+      "Bash(npx tsc *)",
+      "Bash(node_modules/.bin/tsc --noEmit)",
+      "Bash(xargs cat *)",
+      "Bash(mkdir -p \"E:/Programowanie/inne/pzpp_IO_1B/backend/apps/forum/world_room_messages/models\")",
+      "Bash(rm \"E:/Programowanie/inne/pzpp_IO_1B/backend/apps/forum/world_room_messages/models.py\")",
+      "Bash(python manage.py migrate --check)",
+      "Bash(python *)",
+      "Bash(./node_modules/.bin/tsc --noEmit)"
+    ]
+  }
+}
